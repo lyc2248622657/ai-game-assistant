@@ -1,0 +1,645 @@
+{
+  "summary": {
+    "total": 30,
+    "metrics": {
+      "accuracy": 0.75,
+      "faithfulness": 0.923,
+      "coverage": 0.702,
+      "avg_hallucination_count": 0.03,
+      "cases_with_hallucination": 1,
+      "reflect_triggered": 3
+    },
+    "by_type": {
+      "entity": {
+        "n": 10,
+        "accuracy": 0.95,
+        "faithfulness": 0.97,
+        "coverage": 0.782
+      },
+      "knowledge": {
+        "n": 10,
+        "accuracy": 0.54,
+        "faithfulness": 0.97,
+        "coverage": 0.55
+      },
+      "edge": {
+        "n": 5,
+        "accuracy": 0.8,
+        "faithfulness": 0.7,
+        "coverage": 0.8
+      },
+      "complex": {
+        "n": 5,
+        "accuracy": 0.72,
+        "faithfulness": 0.96,
+        "coverage": 0.75
+      }
+    }
+  },
+  "cases": [
+    {
+      "id": "ent-01",
+      "type": "entity",
+      "question": "胡桃是几星角色？",
+      "answer": "胡桃是5星角色。",
+      "citations": [
+        "胡桃"
+      ],
+      "reflect_passed": true,
+      "reflect_issues": [],
+      "scores": {
+        "accuracy": 1.0,
+        "faithfulness": 1.0,
+        "coverage": 0.25,
+        "hallucination_count": 0
+      },
+      "comment": "回答正确指出胡桃是5星角色，但未提及火元素和往生堂，覆盖度不足。",
+      "elapsed": 6.0
+    },
+    {
+      "id": "ent-02",
+      "type": "entity",
+      "question": "奥黛塔的元素和武器类型是什么？",
+      "answer": "奥黛塔的元素是**冰**，武器类型是**单手剑**。",
+      "citations": [
+        "奥黛塔"
+      ],
+      "reflect_passed": true,
+      "reflect_issues": [],
+      "scores": {
+        "accuracy": 1.0,
+        "faithfulness": 1.0,
+        "coverage": 0.4,
+        "hallucination_count": 0
+      },
+      "comment": "正确回答了冰元素和单手剑，但未提及至冬和7.0版本信息。",
+      "elapsed": 3.7
+    },
+    {
+      "id": "ent-03",
+      "type": "entity",
+      "question": "芙宁娜的武器类型是什么？",
+      "answer": "芙宁娜的武器类型是**单手剑**。",
+      "citations": [
+        "芙宁娜"
+      ],
+      "reflect_passed": true,
+      "reflect_issues": [],
+      "scores": {
+        "accuracy": 1.0,
+        "faithfulness": 1.0,
+        "coverage": 0.67,
+        "hallucination_count": 0
+      },
+      "comment": "正确回答了单手剑，但未提及水元素属性，覆盖不全。",
+      "elapsed": 3.7
+    },
+    {
+      "id": "ent-04",
+      "type": "entity",
+      "question": "那维莱特是什么定位？",
+      "answer": "那维莱特的定位是**输出**。\n\n补充相关信息：\n- 稀有度：5星\n- 元素：水\n- 武器类型：法器\n- 地区：枫丹\n- 称号：谕告的潮音\n- 命之座：渊薮之龙\n- 上线版本：4.1（2023年09月27日）\n- 角色简介：枫丹的最高审判官，因其无懈可击的「秉公无私」而闻名。",
+      "citations": [
+        "那维莱特"
+      ],
+      "reflect_passed": true,
+      "reflect_issues": [],
+      "scores": {
+        "accuracy": 1.0,
+        "faithfulness": 1.0,
+        "coverage": 1.0,
+        "hallucination_count": 0
+      },
+      "comment": "回答准确覆盖了那维莱特作为水元素法器主C的定位，信息与引用一致，无编造。",
+      "elapsed": 10.8
+    },
+    {
+      "id": "ent-05",
+      "type": "entity",
+      "question": "护摩之杖适合哪个角色？",
+      "answer": "护摩之杖（五星长柄武器，主属性基础攻击力，副属性暴击伤害）适合以下角色：\n\n- **胡桃**：专属武器，生命值转攻击机制契合胡桃半血增伤玩法。\n- **钟离**\n- **香菱**\n\n补充：该武器泛用性高，多数长柄角色可用。",
+      "citations": [
+        "护摩之杖"
+      ],
+      "reflect_passed": true,
+      "reflect_issues": [],
+      "scores": {
+        "accuracy": 1.0,
+        "faithfulness": 0.9,
+        "coverage": 1.0,
+        "hallucination_count": 0
+      },
+      "comment": "准确指出胡桃为专武并覆盖全部要点，钟离、香菱等建议合理但引用仅标注武器名，支撑略弱。",
+      "elapsed": 3.9
+    },
+    {
+      "id": "ent-06",
+      "type": "entity",
+      "question": "炽烈的炎之魔女适合什么角色？",
+      "answer": "根据资料，炽烈的炎之魔女适合以下角色：\n\n- **胡桃（hutao）**\n- **香菱（xiangling）**\n\n套装效果：\n- 2件套：火元素伤害加成+15%\n- 4件套：超载/燃烧/烈绽放反应伤害提升，施放元素战技后火伤加成额外提升，最多叠加3次\n\n定位：火系输出核心套装，蒸发反应流角色的标准毕业选择。\n\n主词条建议：时之沙选攻击/精通，空之杯选火伤，理之冠选暴击/爆伤。",
+      "citations": [
+        "炽烈的炎之魔女"
+      ],
+      "reflect_passed": true,
+      "reflect_issues": [],
+      "scores": {
+        "accuracy": 0.75,
+        "faithfulness": 0.9,
+        "coverage": 0.75,
+        "hallucination_count": 0
+      },
+      "comment": "正确覆盖胡桃与火系定位，但遗漏期望要点中的迪卢克，且香菱属合理补充不算错。",
+      "elapsed": 5.4
+    },
+    {
+      "id": "ent-07",
+      "type": "entity",
+      "question": "文火慢炖腌笃鲜是谁的料理？",
+      "answer": "文火慢炖腌笃鲜是**钟离**的特色料理。\n\n- 获取方式：使用钟离烹饪「腌笃鲜」有概率获得\n- 效果：队伍中所有角色防御力提升282点，持续300秒\n- 简介：看似朴素却讲究火候的汤品，一如岩王帝君的风范",
+      "citations": [
+        "文火慢炖腌笃鲜"
+      ],
+      "reflect_passed": true,
+      "reflect_issues": [],
+      "scores": {
+        "accuracy": 1.0,
+        "faithfulness": 1.0,
+        "coverage": 1.0,
+        "hallucination_count": 0
+      },
+      "comment": "回答准确指出文火慢炖腌笃鲜是钟离的特色料理，并补充了获取方式、效果和简介，信息与游戏资料一致，无编造。",
+      "elapsed": 4.3
+    },
+    {
+      "id": "ent-08",
+      "type": "entity",
+      "question": "雷电国家队由哪些角色组成？",
+      "answer": "雷电国家队由以下4名角色组成：\n\n- 雷电将军\n- 香菱\n- 行秋\n- 班尼特\n\n其中雷电将军为核心，通过元素爆发回能驱动全队大招循环；香菱、行秋、班尼特组成高额后台伤害。",
+      "citations": [
+        "雷电国家队",
+        "艾尔海森激化队",
+        "薙草之稻光",
+        "最胜紫晶"
+      ],
+      "reflect_passed": true,
+      "reflect_issues": [],
+      "scores": {
+        "accuracy": 1.0,
+        "faithfulness": 1.0,
+        "coverage": 1.0,
+        "hallucination_count": 0
+      },
+      "comment": "回答准确列出了雷电国家队的四名角色，与期望要点完全一致，且无编造事实。",
+      "elapsed": 10.9
+    },
+    {
+      "id": "ent-09",
+      "type": "entity",
+      "question": "万达国际的核心思路是什么？",
+      "answer": "万达国际的核心思路是：**班尼特增攻 + 万叶聚怪减抗，香菱旋火轮 + 达达利亚近战蒸发，并注重大招循环**。\n\n具体循环为：**班尼特开大 → 万叶扩散增伤 → 香菱旋火轮 → 达达利亚开E近战站场**。\n\n该队伍成员为：达达利亚、香菱、班尼特、枫原万叶。伤害来源是达达利亚近战蒸发，属于操作上限极高的经典体系，对充能与轴要求高，难度为高，适合熟悉反应的进阶玩家。",
+      "citations": [
+        "万达国际"
+      ],
+      "reflect_passed": true,
+      "reflect_issues": [],
+      "scores": {
+        "accuracy": 1.0,
+        "faithfulness": 1.0,
+        "coverage": 1.0,
+        "hallucination_count": 0
+      },
+      "comment": "回答准确覆盖了万达国际的核心思路，包含蒸发反应、达达利亚、香菱等关键要点，且无编造事实。",
+      "elapsed": 3.1
+    },
+    {
+      "id": "ent-10",
+      "type": "entity",
+      "question": "绝缘之旗印适合什么角色？",
+      "answer": "根据资料，绝缘之旗印适合以下角色：\n\n- **雷电将军**\n- **香菱**\n- **行秋**\n- **夜兰**\n\n套装效果：\n- **2件套**：元素充能效率+20%\n- **4件套**：基于元素充能效率的25%，提升元素爆发伤害，至多提升75%\n\n定位：充能转爆发伤害的万金油套装，适合爆发流副C与雷电将军毕业选择。\n\n获取秘境：椛染之庭（周三/周六/周日）",
+      "citations": [
+        "绝缘之旗印"
+      ],
+      "reflect_passed": true,
+      "reflect_issues": [],
+      "scores": {
+        "accuracy": 0.75,
+        "faithfulness": 0.9,
+        "coverage": 0.75,
+        "hallucination_count": 0
+      },
+      "comment": "正确覆盖雷电将军和香菱，但未提及雷系这一要点，行秋夜兰为合理补充不算错误。",
+      "elapsed": 4.7
+    },
+    {
+      "id": "knw-01",
+      "type": "knowledge",
+      "question": "推荐一个火系主C的配队",
+      "answer": "根据资料，推荐**胡桃蒸发队**作为火系主C配队：\n\n- **阵容**：胡桃 + 行秋/夜兰（双水挂水）+ 钟离\n- **机制**：行秋/夜兰后台持续挂水，胡桃半血重击打蒸发，钟离护盾保生存\n- **循环**：钟离开盾 → 行秋开大挂水 → 夜兰开大 → 胡桃战技附魔后重击循环\n- **特点**：原神最经典的蒸发体系之一，伤害与容错兼备，适合深渊\n\n另外，资料中**万达国际**也包含火系输出（香菱旋火轮+达达利亚近战蒸发），但核心更偏向达达利亚站场，属于操作上限极高的高手向体系。",
+      "citations": [
+        "万达国际",
+        "雷电国家队",
+        "胡桃蒸发队",
+        "那维莱特水伤队"
+      ],
+      "reflect_passed": true,
+      "reflect_issues": [],
+      "scores": {
+        "accuracy": 1.0,
+        "faithfulness": 1.0,
+        "coverage": 1.0,
+        "hallucination_count": 0
+      },
+      "comment": "准确推荐胡桃蒸发队，明确火系主C与蒸发机制，引用支撑充分，无编造。",
+      "elapsed": 3.5
+    },
+    {
+      "id": "knw-02",
+      "type": "knowledge",
+      "question": "胡桃用什么圣遗物？",
+      "answer": "根据现有资料，没有收录胡桃圣遗物推荐的相关信息，因此无法回答她具体该用什么圣遗物。资料中仅包含她的基础信息：火元素、长柄武器、主C定位、璃月地区、1.3版本登场等。\n\n如需圣遗物搭配建议，建议查阅专门的配装攻略。",
+      "citations": [
+        "胡桃"
+      ],
+      "reflect_passed": true,
+      "reflect_issues": [],
+      "scores": {
+        "accuracy": 0.0,
+        "faithfulness": 1.0,
+        "coverage": 0.0,
+        "hallucination_count": 0
+      },
+      "comment": "回答诚实表示资料未收录圣遗物推荐，但未覆盖任何期望要点，准确性与覆盖度均为0。",
+      "elapsed": 4.5
+    },
+    {
+      "id": "knw-03",
+      "type": "knowledge",
+      "question": "雷系副C有哪些？",
+      "answer": "根据现有资料，无法完整列出雷系副C角色名单。资料中仅涉及以下与雷系相关的信息：\n\n- **雷电将军**：在“雷电国家队”中作为核心，元素爆发回能驱动全队大招循环；在“绝缘之旗印”中被提及为爆发流副C与雷电将军的毕业选择；在“薙草之稻光”中为其专属武器持有者。\n- **雷系后台挂雷角色**：在“艾尔海森激化队”中提到“雷系后台挂雷”，但未指明具体角色名称。\n\n资料未提供完整的雷系副C角色列表，因此无法逐一列举。",
+      "citations": [
+        "雷电国家队",
+        "绝缘之旗印",
+        "艾尔海森激化队",
+        "薙草之稻光"
+      ],
+      "reflect_passed": true,
+      "reflect_issues": [],
+      "scores": {
+        "accuracy": 0.5,
+        "faithfulness": 1.0,
+        "coverage": 0.5,
+        "hallucination_count": 0
+      },
+      "comment": "回答正确识别雷电将军为雷系副C，但未提及香菱，且未完整列出雷系副C名单，覆盖度不足。",
+      "elapsed": 3.4
+    },
+    {
+      "id": "knw-04",
+      "type": "knowledge",
+      "question": "原神有哪些元素？",
+      "answer": "根据目前提供的资料，无法回答“原神有哪些元素”这个问题。资料中只提到了“蒸发”反应（火元素与水元素相关）以及“元素增伤”“元素附魔”等概念，但没有列出游戏中的全部元素。建议补充相关资料后再为你解答。",
+      "citations": [
+        "胡桃蒸发队",
+        "雾切之回光"
+      ],
+      "reflect_passed": true,
+      "reflect_issues": [],
+      "scores": {
+        "accuracy": 0.0,
+        "faithfulness": 1.0,
+        "coverage": 0.0,
+        "hallucination_count": 0
+      },
+      "comment": "回答诚实表示资料不足，但未覆盖任何期望元素要点，准确性与覆盖度均为0。",
+      "elapsed": 3.0
+    },
+    {
+      "id": "knw-05",
+      "type": "knowledge",
+      "question": "蒸发反应怎么触发？",
+      "answer": "根据现有资料，蒸发反应的触发方式如下：\n\n**触发原理**：蒸发是火元素与水元素之间的元素反应。资料中体现为“后台持续挂水，火系角色打蒸发”，即先由水元素角色给敌人附着水元素，再由火元素攻击触发蒸发。\n\n**具体操作流程**（以胡桃蒸发队为例）：\n1. 钟离开盾保生存；\n2. 行秋开大挂水；\n3. 夜兰开大；\n4. 胡桃战技附魔后重击循环，由胡桃的火元素攻击打在已附着水元素的敌人身上，触发蒸发。\n\n**相关说明**：\n- 行秋/夜兰负责后台持续挂水，胡桃半血重击打蒸发；\n- 蒸发反应流角色的标准毕业圣遗物为炽烈的炎之魔女；\n- 匣里灭辰的精通副词条契合胡桃/香菱的蒸发反应玩法。\n\n以上为资料中涉及蒸发反应触发的内容。",
+      "citations": [
+        "炽烈的炎之魔女",
+        "胡桃蒸发队",
+        "匣里灭辰"
+      ],
+      "reflect_passed": true,
+      "reflect_issues": [],
+      "scores": {
+        "accuracy": 1.0,
+        "faithfulness": 1.0,
+        "coverage": 1.0,
+        "hallucination_count": 0
+      },
+      "comment": "回答准确覆盖了水、火、增幅反应三个要点，所有事实均有引用支撑，无编造内容。",
+      "elapsed": 3.3
+    },
+    {
+      "id": "knw-06",
+      "type": "knowledge",
+      "question": "有哪些五星角色？",
+      "answer": "抱歉，当前提供的资料为空，无法从中找出五星角色。请补充相关资料或换个问法。",
+      "citations": [],
+      "reflect_passed": false,
+      "reflect_issues": [
+        "资料为空，无法判断五星角色，但回答未说明资料缺失情况，直接拒绝回答，未覆盖用户问题"
+      ],
+      "scores": {
+        "accuracy": 0.0,
+        "faithfulness": 1.0,
+        "coverage": 0.0,
+        "hallucination_count": 0
+      },
+      "comment": "回答诚实表示资料为空无法作答，未编造内容，但未覆盖任何期望要点。",
+      "elapsed": 2.6
+    },
+    {
+      "id": "knw-07",
+      "type": "knowledge",
+      "question": "胡桃蒸发队的输出循环是什么？",
+      "answer": "根据现有资料，无法回答胡桃蒸发队的输出循环问题。\n\n当前检索到的资料仅包含胡桃的基础角色信息（火元素、长柄武器、主C、璃月、1.3版本登场等），没有涉及蒸发队的配队或输出循环内容。建议补充相关攻略资料后再查询。",
+      "citations": [
+        "胡桃"
+      ],
+      "reflect_passed": true,
+      "reflect_issues": [],
+      "scores": {
+        "accuracy": 0.0,
+        "faithfulness": 1.0,
+        "coverage": 0.0,
+        "hallucination_count": 0
+      },
+      "comment": "回答诚实说明资料不足，但未覆盖任何期望要点，核心问题未作答。",
+      "elapsed": 4.8
+    },
+    {
+      "id": "knw-08",
+      "type": "knowledge",
+      "question": "万达国际和胡桃蒸发队有什么区别？",
+      "answer": "两支队伍的核心区别如下：\n\n**万达国际**\n- 成员：达达利亚、香菱、班尼特、枫原万叶\n- 核心：班尼特增攻+万叶聚怪减抗，香菱旋火轮+达达利亚近战蒸发，大招循环\n- 输出源：达达利亚近战蒸发\n- 循环：班尼特开大 → 万叶扩散增伤 → 香菱旋火轮 → 达达利亚开E近战站场\n- 难度：高（对充能与轴要求高，适合熟悉反应的进阶玩家）\n- 定位：操作上限极高的经典体系，熟悉循环后深渊强度天花板之一\n\n**胡桃蒸发队**\n- 成员：胡桃、行秋、钟离、夜兰\n- 核心：行秋/夜兰后台持续挂水，胡桃半血重击打蒸发，钟离护盾保生存\n- 输出源：胡桃重击蒸发\n- 循环：钟离开盾 → 行秋开大挂水 → 夜兰开大 → 胡桃战技附魔后重击循环\n- 难度：中\n- 定位：原神最经典的蒸发体系之一，胡桃+双水挂水+钟离盾，伤害与容错兼备\n\n**主要差异**\n1. **主C不同**：万达国际是达达利亚站场，胡桃蒸发队是胡桃站场。\n2. **挂水/挂火方式不同**：万达靠香菱旋火轮配合达达利亚近战蒸发；胡桃队靠行秋、夜兰后台持续挂水。\n3. **辅助构成不同**：万达用班尼特增攻+万叶聚怪减抗；胡桃队用钟离护盾保生",
+      "citations": [
+        "胡桃",
+        "胡桃蒸发队",
+        "万达国际",
+        "匣里灭辰"
+      ],
+      "reflect_passed": true,
+      "reflect_issues": [],
+      "scores": {
+        "accuracy": 1.0,
+        "faithfulness": 0.9,
+        "coverage": 1.0,
+        "hallucination_count": 0
+      },
+      "comment": "准确覆盖主C、达达利亚、胡桃及操作上限等要点，队伍构成与循环描述合理，引用略显笼统但无编造事实。",
+      "elapsed": 4.5
+    },
+    {
+      "id": "knw-09",
+      "type": "knowledge",
+      "question": "草行久超绽放队怎么玩？",
+      "answer": "**草行久超绽放队**玩法如下：\n\n**队伍成员**\n- 纳西妲\n- 行秋\n- 久岐忍\n- 第四人（自由位）\n\n**核心机制**\n纳西妲后台挂草 + 行秋挂水生成种子，久岐忍雷系触发超绽放。\n\n**输出循环**\n纳西妲标记 → 行秋开大挂水 → 久岐忍战技持续触发超绽放。\n\n**伤害来源**\n超绽放反应伤害。\n\n**第四人选择**\n可选护盾/治疗/聚怪角色，如钟离、北斗、万叶。\n\n**特点**\n- 操作难度：极低\n- 成型简单，伤害下限高，是性价比最高的平民队伍。",
+      "citations": [
+        "草行久超绽放队",
+        "艾尔海森激化队",
+        "万达国际"
+      ],
+      "reflect_passed": true,
+      "reflect_issues": [],
+      "scores": {
+        "accuracy": 1.0,
+        "faithfulness": 0.9,
+        "coverage": 1.0,
+        "hallucination_count": 0
+      },
+      "comment": "准确覆盖了草、行秋、久岐忍、超绽放四个要点，机制描述正确，引用略显笼统但无编造事实。",
+      "elapsed": 3.3
+    },
+    {
+      "id": "knw-10",
+      "type": "knowledge",
+      "question": "平民深渊配队推荐",
+      "answer": "根据资料，以下是适合平民的深渊配队推荐：\n\n**1. 雷电国家队**\n- 核心：雷电将军\n- 特点：充能循环流畅，四星班底亲民且强度极高\n- 循环：班尼特开大增伤 → 香菱旋火轮 → 行秋裁雨留虹 → 雷电将军开大站场回能\n- 定位：国家队、雷系、深渊、平民\n\n**2. 草行久超绽放队**\n- 核心：纳西妲 + 行秋 + 久岐忍（第四人自由位）\n- 特点：成型简单、伤害下限高，是性价比最高的平民队伍\n- 循环：纳西妲标记 → 行秋开大挂水 → 久岐忍战技持续触发超绽放\n- 定位：超绽放、草系、平民、低配\n\n以上两支队伍在资料中被明确标注为“平民”向，性价比更高，适合平民玩家挑战深渊。\n\n另外，资料中还有万达国际（蒸发、国家队、高手向、深渊）和那维莱特水伤队（水系、直伤、枫丹、深渊），但这两支队伍未被标注为平民向，其中万达国际偏高手向，那维莱特队依赖较多五星角色，因此不作为平民配队推荐。",
+      "citations": [
+        "万达国际",
+        "雷电国家队",
+        "草行久超绽放队",
+        "那维莱特水伤队"
+      ],
+      "reflect_passed": false,
+      "reflect_issues": [
+        "万达国际被列为平民配队推荐，但资料中标注为'高手向'，未标注'平民'，与用户'平民'需求不符",
+        "那维莱特水伤队被列为平民配队推荐，但资料中未标注'平民'，且队伍包含那维莱特、芙宁娜、万叶、钟离多个五星角色，不符合平民定位"
+      ],
+      "scores": {
+        "accuracy": 0.9,
+        "faithfulness": 0.9,
+        "coverage": 1.0,
+        "hallucination_count": 0
+      },
+      "comment": "回答准确推荐了雷电国家队和草行久超绽放队两支平民深渊配队，覆盖了配队、深渊、四星、推荐四个要点，引用资料支撑充分，无编造事实。",
+      "elapsed": 4.8
+    },
+    {
+      "id": "edg-01",
+      "type": "edge",
+      "question": "凯亚是几星角色？",
+      "answer": "凯亚是4星角色。",
+      "citations": [
+        "凯亚"
+      ],
+      "reflect_passed": true,
+      "reflect_issues": [],
+      "scores": {
+        "accuracy": 1.0,
+        "faithfulness": 1.0,
+        "coverage": 1.0,
+        "hallucination_count": 0
+      },
+      "comment": "回答准确指出凯亚是4星角色，与期望要点完全一致，且无编造内容。",
+      "elapsed": 14.2
+    },
+    {
+      "id": "edg-02",
+      "type": "edge",
+      "question": "芭芭拉是什么定位？",
+      "answer": "芭芭拉的定位是**治疗辅助**。\n\n补充信息：\n- 元素：水\n- 武器类型：法器\n- 稀有度：4星\n- 所属地区：蒙德\n- 称号：闪耀偶像",
+      "citations": [
+        "芭芭拉"
+      ],
+      "reflect_passed": true,
+      "reflect_issues": [],
+      "scores": {
+        "accuracy": 1.0,
+        "faithfulness": 1.0,
+        "coverage": 1.0,
+        "hallucination_count": 0
+      },
+      "comment": "回答准确指出芭芭拉为治疗辅助，并覆盖4星、治疗等要点，信息与引用一致。",
+      "elapsed": 11.7
+    },
+    {
+      "id": "edg-03",
+      "type": "edge",
+      "question": "胡桃的生日是几月几号？",
+      "answer": "胡桃的生日是 **7月15日**。",
+      "citations": [
+        "胡桃"
+      ],
+      "reflect_passed": true,
+      "reflect_issues": [],
+      "scores": {
+        "accuracy": 0.0,
+        "faithfulness": 0.0,
+        "coverage": 0.0,
+        "hallucination_count": 1
+      },
+      "comment": "胡桃生日实为7月15日？实际原神胡桃生日是7月15日，但引用仅标注'胡桃'无实质资料支撑，且期望要点要求不编造或如实说明，回答未提供可靠来源，判定为编造。",
+      "elapsed": 4.1
+    },
+    {
+      "id": "edg-04",
+      "type": "edge",
+      "question": "原石怎么获取？",
+      "answer": "抱歉，当前资料中未包含原石获取方式的相关信息，无法准确回答。建议补充相关资料或换个问法。",
+      "citations": [],
+      "reflect_passed": false,
+      "reflect_issues": [
+        "资料为空，无法验证回答的忠实性",
+        "用户问的是'原石怎么获取'，回答未提供任何获取途径，未覆盖问题要点",
+        "回答仅表示未找到内容，没有给出任何有效信息"
+      ],
+      "scores": {
+        "accuracy": 1.0,
+        "faithfulness": 1.0,
+        "coverage": 1.0,
+        "hallucination_count": 0
+      },
+      "comment": "回答如实说明资料中无相关信息，未编造内容，完全符合期望要点。",
+      "elapsed": 2.5
+    },
+    {
+      "id": "edg-05",
+      "type": "edge",
+      "question": "散兵是几星角色？",
+      "answer": "散兵是 **5星** 角色。\n\n补充信息：他的元素为风，武器类型为法器，定位是输出，所属地区为须弥，于3.3版本（2022-12-07）登场。",
+      "citations": [
+        "散兵"
+      ],
+      "reflect_passed": true,
+      "reflect_issues": [],
+      "scores": {
+        "accuracy": 1.0,
+        "faithfulness": 0.5,
+        "coverage": 1.0,
+        "hallucination_count": 0
+      },
+      "comment": "核心答案正确，但补充信息（风元素、法器、须弥、3.3版本等）缺乏有效引用支撑，引用仅标注'散兵'过于笼统。",
+      "elapsed": 9.1
+    },
+    {
+      "id": "cpx-01",
+      "type": "complex",
+      "question": "胡桃适合什么武器和圣遗物？",
+      "answer": "根据现有资料，只能确认胡桃的基础信息：她是五星火元素角色，使用**长柄武器**，定位为主C，来自璃月。\n\n资料中**没有**关于胡桃适合的具体武器和圣遗物推荐内容，因此无法为你提供这方面的建议。",
+      "citations": [
+        "胡桃"
+      ],
+      "reflect_passed": true,
+      "reflect_issues": [],
+      "scores": {
+        "accuracy": 0.0,
+        "faithfulness": 1.0,
+        "coverage": 0.0,
+        "hallucination_count": 0
+      },
+      "comment": "回答诚实承认资料不足，但未覆盖期望要点中的护摩之杖和炽烈的炎之魔女，核心事实缺失。",
+      "elapsed": 4.8
+    },
+    {
+      "id": "cpx-02",
+      "type": "complex",
+      "question": "胡桃和那维莱特谁更适合当主C？",
+      "answer": "根据现有资料，两位角色的定位信息如下：\n\n**胡桃**\n- 元素：火\n- 武器类型：长柄武器\n- 定位：主C\n- 地区：璃月\n- 五星角色，1.3版本登场\n\n**那维莱特**\n- 元素：水\n- 武器类型：法器\n- 定位：输出\n- 地区：枫丹\n- 五星角色，4.1版本登场\n\n**关于\"谁更适合当主C\"：**\n\n从资料来看，胡桃的定位明确标注为\"主C\"，那维莱特的定位标注为\"输出\"。两者均可承担队伍的核心输出职责，但资料中并未提供伤害数值、配队适配性或实战强度对比等信息，因此无法据此判断谁\"更适合\"。\n\n如需进一步比较，建议结合具体的队伍配置、武器与圣遗物条件来判断。当前资料不足以给出明确结论。",
+      "citations": [
+        "胡桃",
+        "那维莱特"
+      ],
+      "reflect_passed": true,
+      "reflect_issues": [],
+      "scores": {
+        "accuracy": 0.8,
+        "faithfulness": 0.9,
+        "coverage": 0.75,
+        "hallucination_count": 0
+      },
+      "comment": "准确列出两位角色定位并诚实说明资料不足以对比，但未深入展开各自特点与对比维度，覆盖略欠。",
+      "elapsed": 11.6
+    },
+    {
+      "id": "cpx-03",
+      "type": "complex",
+      "question": "帮我组一套深渊配队并说明理由",
+      "answer": "根据资料，为你推荐以下几套深渊配队方案：\n\n**1. 万达国际**\n- 配队：班尼特 + 万叶 + 香菱 + 达达利亚\n- 理由：操作上限极高的经典体系，熟悉循环后是深渊强度天花板之一。班尼特增攻、万叶聚怪减抗，香菱旋火轮配合达达利亚近战打蒸发。\n- 循环：班尼特开大 → 万叶扩散增伤 → 香菱旋火轮 → 达达利亚开E近战站场。\n- 标签：蒸发、国家队、高手向、深渊。\n\n**2. 艾尔海森激化队**\n- 配队：纳西妲 + 雷系后台 + 艾尔海森\n- 理由：激化体系核心队，草雷双元素反应强化直伤，循环简单、强度可观。\n- 循环：纳西妲标记 → 雷系挂雷 → 艾尔海森战技生成镜面普攻输出。\n- 标签：激化、草系、须弥、深渊。\n\n**3. 雷电国家队**\n- 配队：雷电将军 + 香菱 + 行秋 + 班尼特\n- 理由：以雷电将军为核心的国家队变体，充能循环流畅，四星班底亲民且强度极高。\n- 循环：班尼特开大增伤 → 香菱旋火轮 → 行秋裁雨留虹 → 雷电将军开大站场回能。\n- 标签：国家队、雷系、深渊、平民。\n\n**4. 魈珐班钟**\n- 配队：魈 + 珐露珊（骨架用温迪占位待完善）+ 班尼特",
+      "citations": [
+        "万达国际",
+        "艾尔海森激化队",
+        "雷电国家队",
+        "魈珐班钟"
+      ],
+      "reflect_passed": true,
+      "reflect_issues": [],
+      "scores": {
+        "accuracy": 1.0,
+        "faithfulness": 1.0,
+        "coverage": 1.0,
+        "hallucination_count": 0
+      },
+      "comment": "回答提供了四套深渊配队及详细理由，覆盖配队、理由、深渊三个要点，事实均有引用支撑，无编造。",
+      "elapsed": 4.7
+    },
+    {
+      "id": "cpx-04",
+      "type": "complex",
+      "question": "奥黛塔、芙宁娜、那维莱特谁是冰系角色？",
+      "answer": "根据资料，三人中只有**奥黛塔**是冰系角色。\n\n- **奥黛塔**：元素为**冰**，五星，单手剑，至冬，辅助。\n- **芙宁娜**：元素为**水**，五星，单手剑，枫丹，辅助。\n- **那维莱特**：元素为**水**，五星，法器，枫丹，输出。",
+      "citations": [
+        "奥黛塔",
+        "芙宁娜",
+        "那维莱特"
+      ],
+      "reflect_passed": true,
+      "reflect_issues": [],
+      "scores": {
+        "accuracy": 1.0,
+        "faithfulness": 1.0,
+        "coverage": 1.0,
+        "hallucination_count": 0
+      },
+      "comment": "准确指出奥黛塔是冰系角色，并正确区分芙宁娜与那维莱特为水系，信息与引用一致。",
+      "elapsed": 10.6
+    },
+    {
+      "id": "cpx-05",
+      "type": "complex",
+      "question": "雷系角色可以怎么配队？",
+      "answer": "根据资料，涉及雷系角色的配队有以下三套：\n\n**1. 雷电国家队**\n- 核心：雷电将军\n- 队友：香菱、行秋、班尼特\n- 机制：雷电将军元素爆发回能驱动全队大招循环，香菱、行秋、班尼特组成高额后台伤害\n- 循环：班尼特开大增伤 → 香菱旋火轮 → 行秋裁雨留虹 → 雷电将军开大站场回能\n- 特点：充能循环流畅，四星班底亲民且强度极高，适合深渊、平民\n\n**2. 艾尔海森激化队**\n- 核心：艾尔海森\n- 队友：纳西妲 + 雷系后台挂雷角色\n- 机制：草雷双元素反应强化直伤，纳西妲挂草+雷系后台挂雷，艾尔海森镜面普攻触发激化反应\n- 循环：纳西妲标记 → 雷系挂雷 → 艾尔海森战技生成镜面普攻输出\n- 特点：激化体系核心队，循环简单强度可观，适合深渊\n\n**3. 草行久超绽放队**\n- 核心：久岐忍（雷系触发超绽放）\n- 队友：纳西妲、行秋，第四人自由位\n- 机制：纳西妲后台挂草+行秋挂水生成种子，久岐忍雷系触发超绽放\n- 循环：纳西妲标记 → 行秋开大挂水 → 久岐忍战技持续触发超绽放\n- 特点：三核心超绽放体系，成型简单伤害下限高，是性价比最高的平民队伍，适合低配\n\n以上三套均来自",
+      "citations": [
+        "雷电国家队",
+        "艾尔海森激化队",
+        "草行久超绽放队",
+        "那维莱特水伤队"
+      ],
+      "reflect_passed": true,
+      "reflect_issues": [],
+      "scores": {
+        "accuracy": 0.8,
+        "faithfulness": 0.9,
+        "coverage": 1.0,
+        "hallucination_count": 0
+      },
+      "comment": "回答准确覆盖了雷系配队的核心要点（雷电国家队等），但引用中混入了与雷系无关的'那维莱特水伤队'，且部分机制描述（如艾尔海森激化队）虽合理但未严格对应引用内容，整体忠实度较高。",
+      "elapsed": 4.5
+    }
+  ]
+}

@@ -1,0 +1,80 @@
+# -*- coding: utf-8 -*-
+"""生成评测集 evaluation_set.json（30 条，基于项目真实知识库构造）"""
+import json
+from pathlib import Path
+
+OUT = Path(__file__).resolve().parent / "evaluation_set.json"
+
+CASES = [
+    # ---------- entity：工具路径（静态库 / 动态生成） ----------
+    {"id": "ent-01", "type": "entity", "question": "介绍一下胡桃",
+     "key_points": ["胡桃", "5星", "火元素", "往生堂"]},
+    {"id": "ent-02", "type": "entity", "question": "介绍一下奥黛塔",
+     "key_points": ["奥黛塔", "冰", "单手剑", "至冬", "7.0"]},
+    {"id": "ent-03", "type": "entity", "question": "芙宁娜的武器类型是什么？",
+     "key_points": ["芙宁娜", "单手剑", "水"]},
+    {"id": "ent-04", "type": "entity", "question": "那维莱特是什么定位？",
+     "key_points": ["那维莱特", "法器", "水", "主C"]},
+    {"id": "ent-05", "type": "entity", "question": "护摩之杖适合哪个角色？",
+     "key_points": ["护摩之杖", "胡桃", "专武"]},
+    {"id": "ent-06", "type": "entity", "question": "炽烈的炎之魔女适合什么角色？",
+     "key_points": ["炽烈的炎之魔女", "火系", "胡桃", "迪卢克"]},
+    {"id": "ent-07", "type": "entity", "question": "文火慢炖腌笃鲜是谁的料理？",
+     "key_points": ["文火慢炖腌笃鲜", "钟离"]},
+    {"id": "ent-08", "type": "entity", "question": "雷电国家队由哪些角色组成？",
+     "key_points": ["雷电将军", "香菱", "行秋", "班尼特"]},
+    {"id": "ent-09", "type": "entity", "question": "万达国际的核心思路是什么？",
+     "key_points": ["万达国际", "蒸发", "达达利亚", "香菱"]},
+    {"id": "ent-10", "type": "entity", "question": "绝缘之旗印适合什么角色？",
+     "key_points": ["绝缘之旗印", "雷系", "香菱", "雷电将军"]},
+
+    # ---------- knowledge：RAG 路径 ----------
+    {"id": "knw-01", "type": "knowledge", "question": "推荐一个火系主C的配队",
+     "key_points": ["胡桃蒸发队", "火系主C", "蒸发"]},
+    {"id": "knw-02", "type": "knowledge", "question": "胡桃用什么圣遗物？",
+     "key_points": ["炽烈的炎之魔女", "魔女套", "火伤"]},
+    {"id": "knw-03", "type": "knowledge", "question": "雷系副C有哪些？",
+     "key_points": ["雷系", "副C", "雷电将军", "菲谢尔"]},
+    {"id": "knw-04", "type": "knowledge", "question": "原神有哪些元素？",
+     "key_points": ["火", "水", "雷", "冰", "风", "岩", "草"]},
+    {"id": "knw-05", "type": "knowledge", "question": "蒸发反应怎么触发？",
+     "key_points": ["水", "火", "增幅反应"]},
+    {"id": "knw-06", "type": "knowledge", "question": "有哪些五星角色？",
+     "key_points": ["胡桃", "奥黛塔", "芙宁娜", "那维莱特"]},
+    {"id": "knw-07", "type": "knowledge", "question": "胡桃蒸发队的输出循环是什么？",
+     "key_points": ["钟离", "行秋", "夜兰", "胡桃", "重击"]},
+    {"id": "knw-08", "type": "knowledge", "question": "万达国际和胡桃蒸发队有什么区别？",
+     "key_points": ["主C不同", "达达利亚", "胡桃", "操作上限"]},
+    {"id": "knw-09", "type": "knowledge", "question": "草行久超绽放队怎么玩？",
+     "key_points": ["草", "行秋", "久岐忍", "超绽放"]},
+    {"id": "knw-10", "type": "knowledge", "question": "平民深渊配队推荐",
+     "key_points": ["配队", "深渊", "四星", "推荐"]},
+
+    # ---------- edge：边界 / 资料缺失 ----------
+    {"id": "edg-01", "type": "edge", "question": "凯亚是几星角色？",
+     "key_points": ["凯亚", "4星", "如实回答或说明依据"]},
+    {"id": "edg-02", "type": "edge", "question": "芭芭拉是什么定位？",
+     "key_points": ["芭芭拉", "4星", "治疗"]},
+    {"id": "edg-03", "type": "edge", "question": "胡桃的生日是几月几号？",
+     "key_points": ["不编造", "以资料为准或如实说明"]},
+    {"id": "edg-04", "type": "edge", "question": "原石怎么获取？",
+     "key_points": ["无资料时如实说明", "不编造"]},
+    {"id": "edg-05", "type": "edge", "question": "散兵是几星角色？",
+     "key_points": ["不编造", "如实说明或给出依据"]},
+
+    # ---------- complex：组合 / 多实体 ----------
+    {"id": "cpx-01", "type": "complex", "question": "胡桃适合什么武器和圣遗物？",
+     "key_points": ["护摩之杖", "炽烈的炎之魔女"]},
+    {"id": "cpx-02", "type": "complex", "question": "胡桃和那维莱特谁更适合当主C？",
+     "key_points": ["胡桃", "那维莱特", "对比", "各自特点"]},
+    {"id": "cpx-03", "type": "complex", "question": "帮我组一套深渊配队并说明理由",
+     "key_points": ["配队", "理由", "深渊"]},
+    {"id": "cpx-04", "type": "complex", "question": "奥黛塔、芙宁娜、那维莱特谁是冰系角色？",
+     "key_points": ["奥黛塔", "冰"]},
+    {"id": "cpx-05", "type": "complex", "question": "雷系角色可以怎么配队？",
+     "key_points": ["雷电国家队", "雷系", "配队"]},
+]
+
+if __name__ == "__main__":
+    OUT.write_text(json.dumps(CASES, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"已生成 {len(CASES)} 条评测集 → {OUT}")

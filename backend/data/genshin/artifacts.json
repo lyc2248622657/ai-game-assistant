@@ -1,0 +1,317 @@
+[
+  {
+    "id": "crimson_witch",
+    "type": "artifact",
+    "name": "炽烈的炎之魔女",
+    "set_pieces": [
+      "生之花",
+      "死之羽",
+      "时之沙",
+      "空之杯",
+      "理之冠"
+    ],
+    "rarity": 5,
+    "two_piece": "火元素伤害加成+15%",
+    "four_piece": "超载/燃烧/烈绽放反应伤害提升，施放元素战技后火伤加成额外提升，最多叠加3次",
+    "recommended": [
+      "hutao",
+      "xiangling",
+      "diluc"
+    ],
+    "domain": "无妄引咎密宫（周二/周五/周日）",
+    "image": "images/artifacts/crimson_witch.png",
+    "tags": [
+      "火系",
+      "蒸发",
+      "胡桃"
+    ],
+    "summary": "火系输出核心套装，蒸发反应流角色的标准毕业选择。",
+    "details": {
+      "main_stat": "时之沙攻击/精通，空之杯火伤，理之冠暴击/爆伤"
+    },
+    "source": "游戏内圣遗物图鉴"
+  },
+  {
+    "id": "emblem_of_severed_fate",
+    "type": "artifact",
+    "name": "绝缘之旗印",
+    "set_pieces": [
+      "生之花",
+      "死之羽",
+      "时之沙",
+      "空之杯",
+      "理之冠"
+    ],
+    "rarity": 5,
+    "two_piece": "元素充能效率+20%",
+    "four_piece": "基于元素充能效率的25%，提升元素爆发伤害，至多提升75%",
+    "recommended": [
+      "raiden",
+      "xiangling",
+      "xingqiu",
+      "yelan"
+    ],
+    "domain": "椛染之庭（周三/周六/周日）",
+    "image": "images/artifacts/emblem_severed_fate.png",
+    "tags": [
+      "充能",
+      "元素爆发",
+      "雷电将军"
+    ],
+    "summary": "充能转爆发伤害的万金油套装，爆发流副C与雷电将军毕业选择。",
+    "details": {
+      "main_stat": "时之沙充能/攻击，空之杯元素伤，理之冠暴击/爆伤"
+    },
+    "source": "游戏内圣遗物图鉴"
+  },
+  {
+    "id": "viridescent_venerer",
+    "type": "artifact",
+    "name": "翠绿之影",
+    "set_pieces": [
+      "生之花",
+      "死之羽",
+      "时之沙",
+      "空之杯",
+      "理之冠"
+    ],
+    "rarity": 5,
+    "two_piece": "风元素伤害加成+15%",
+    "four_piece": "扩散反应造成的伤害提升，并降低受到扩散影响的敌人对应元素抗性40%",
+    "recommended": [
+      "kazuha",
+      "venti"
+    ],
+    "domain": "铭记之谷（周二/周五/周日）",
+    "image": "images/artifacts/viridescent_venerer.png",
+    "tags": [
+      "风系",
+      "减抗",
+      "扩散"
+    ],
+    "summary": "风系辅助核心套装，扩散减抗是队伍增伤的关键机制。",
+    "details": {
+      "main_stat": "时之沙精通/充能，空之杯精通/风伤，理之冠精通/暴击"
+    },
+    "source": "游戏内圣遗物图鉴"
+  },
+  {
+    "id": "tenacity_of_millelith",
+    "type": "artifact",
+    "name": "千岩牢固",
+    "set_pieces": [
+      "生之花",
+      "死之羽",
+      "时之沙",
+      "空之杯",
+      "理之冠"
+    ],
+    "rarity": 5,
+    "two_piece": "生命值+20%",
+    "four_piece": "元素战技命中敌人后，队伍中所有角色攻击力提升20%，护盾强效提升30%",
+    "recommended": [
+      "zhongli",
+      "kuki"
+    ],
+    "domain": "山脊守望（周三/周六/周日）",
+    "image": "images/artifacts/tenacity_millelith.png",
+    "tags": [
+      "生命",
+      "护盾",
+      "增伤"
+    ],
+    "summary": "盾辅/生命辅助标准套装，钟离等护盾角色的增伤辅助选择。",
+    "details": {
+      "main_stat": "时之沙生命，空之杯生命，理之冠生命/治疗"
+    },
+    "source": "游戏内圣遗物图鉴"
+  },
+  {
+    "id": "ocean_hued_clam",
+    "type": "artifact",
+    "name": "海染砗磲",
+    "set_pieces": [
+      "生之花",
+      "死之羽",
+      "时之沙",
+      "空之杯",
+      "理之冠"
+    ],
+    "rarity": 5,
+    "two_piece": "治疗加成+15%",
+    "four_piece": "治疗量产生泡沫，泡沫破裂时造成基于累计治疗量的伤害",
+    "recommended": [
+      "kokomi",
+      "kuki"
+    ],
+    "domain": "沉眠之庭（周三/周六/周日）",
+    "image": "images/artifacts/ocean_hued_clam.png",
+    "tags": [
+      "治疗",
+      "心海",
+      "后台伤害"
+    ],
+    "summary": "治疗转伤害套装，珊瑚宫心海的毕业选择。",
+    "details": {
+      "main_stat": "时之沙生命，空之杯治疗/水伤，理之冠治疗"
+    },
+    "source": "游戏内圣遗物图鉴"
+  },
+  {
+    "id": "deepwood_memories",
+    "type": "artifact",
+    "name": "深林的记忆",
+    "set_pieces": [
+      "生之花",
+      "死之羽",
+      "时之沙",
+      "空之杯",
+      "理之冠"
+    ],
+    "rarity": 5,
+    "two_piece": "草元素伤害加成+15%",
+    "four_piece": "元素战技或元素爆发命中敌人后降低其草元素抗性30%",
+    "recommended": [
+      "nahida",
+      "alhaitham"
+    ],
+    "domain": "缘觉塔（周二/周五/周日）",
+    "image": "images/artifacts/deepwood_memories.png",
+    "tags": [
+      "草系",
+      "减抗",
+      "纳西妲"
+    ],
+    "summary": "草系体系核心套装，草抗降低是草反应队伍的必要组件。",
+    "details": {
+      "main_stat": "时之沙精通，空之杯草伤/精通，理之冠暴击/精通"
+    },
+    "source": "游戏内圣遗物图鉴"
+  },
+  {
+    "id": "marechaussee_hunter",
+    "type": "artifact",
+    "name": "逐影猎人",
+    "set_pieces": [
+      "生之花",
+      "死之羽",
+      "时之沙",
+      "空之杯",
+      "理之冠"
+    ],
+    "rarity": 5,
+    "two_piece": "普攻与重击伤害+15%",
+    "four_piece": "生命值变化时暴击率提升，最多叠加3次",
+    "recommended": [
+      "neuvillette",
+      "clorinde"
+    ],
+    "domain": "罪祸的终末（周三/周六/周日）",
+    "image": "images/artifacts/marechaussee_hunter.png",
+    "tags": [
+      "重击",
+      "暴击",
+      "枫丹"
+    ],
+    "summary": "枫丹生命变化机制的暴击套，那维莱特等生命自耗角色的毕业选择。",
+    "details": {
+      "main_stat": "时之沙生命/攻击，空之杯元素伤，理之冠暴伤"
+    },
+    "source": "游戏内圣遗物图鉴"
+  },
+  {
+    "id": "gilded_dreams",
+    "type": "artifact",
+    "name": "饰金之梦",
+    "set_pieces": [
+      "生之花",
+      "死之羽",
+      "时之沙",
+      "空之杯",
+      "理之冠"
+    ],
+    "rarity": 5,
+    "two_piece": "元素精通+80",
+    "four_piece": "触发元素反应后基于队伍元素类型获得精通或攻击加成",
+    "recommended": [
+      "nahida",
+      "alhaitham",
+      "kuki"
+    ],
+    "domain": "缘觉塔（周二/周五/周日）",
+    "image": "images/artifacts/gilded_dreams.png",
+    "tags": [
+      "精通",
+      "激化",
+      "绽放"
+    ],
+    "summary": "精通反应体系的强力套装，草系输出与触发角色的常用选择。",
+    "details": {
+      "main_stat": "时之沙精通，空之杯精通/草伤，理之冠暴击/精通"
+    },
+    "source": "游戏内圣遗物图鉴"
+  },
+  {
+    "id": "golden_troupe",
+    "type": "artifact",
+    "name": "黄金剧团",
+    "set_pieces": [
+      "生之花",
+      "死之羽",
+      "时之沙",
+      "空之杯",
+      "理之冠"
+    ],
+    "rarity": 5,
+    "two_piece": "元素战技伤害+20%",
+    "four_piece": "元素战技造成的伤害提升，且角色处于后台时进一步提升",
+    "recommended": [
+      "furina",
+      "yelan"
+    ],
+    "domain": "罪祸的终末（周三/周六/周日）",
+    "image": "images/artifacts/golden_troupe.png",
+    "tags": [
+      "元素战技",
+      "后台",
+      "芙宁娜"
+    ],
+    "summary": "后台战技输出套装，芙宁娜、夜兰等后台副C的毕业选择。",
+    "details": {
+      "main_stat": "时之沙攻击/充能，空之杯水伤，理之冠暴击/爆伤"
+    },
+    "source": "游戏内圣遗物图鉴"
+  },
+  {
+    "id": "noblesse_oblige",
+    "type": "artifact",
+    "name": "昔日宗室之仪",
+    "set_pieces": [
+      "生之花",
+      "死之羽",
+      "时之沙",
+      "空之杯",
+      "理之冠"
+    ],
+    "rarity": 5,
+    "two_piece": "元素爆发伤害+20%",
+    "four_piece": "施放元素爆发后，队伍中所有角色攻击力提升20%",
+    "recommended": [
+      "bennett",
+      "venti",
+      "zhongli"
+    ],
+    "domain": "华池岩岫（周一/周四/周日）",
+    "image": "images/artifacts/noblesse_oblige.png",
+    "tags": [
+      "增伤",
+      "元素爆发",
+      "辅助"
+    ],
+    "summary": "辅助增伤经典套装，班尼特等爆发增伤辅助的标准选择。",
+    "details": {
+      "main_stat": "时之沙充能/攻击，空之杯元素伤，理之冠暴击/治疗"
+    },
+    "source": "游戏内圣遗物图鉴"
+  }
+]

@@ -1,0 +1,627 @@
+[
+  {
+    "id": "character_奥黛塔",
+    "type": "character",
+    "name": "奥黛塔",
+    "image": "",
+    "source": "DeepSeek LLM 生成（生成-校验双 Agent 工作流，2026-09）",
+    "title": "翾风回雪",
+    "rarity": 5,
+    "element": "冰",
+    "weapon_type": "单手剑",
+    "role": "辅助",
+    "region": "至冬",
+    "summary": "至冬知名芭蕾舞者，于冰雪中绽放的凛冽之花。",
+    "debut_version": "7.0",
+    "debut_date": "2026年08月12日",
+    "_meta": {
+      "source": "dynamic",
+      "wiki_checked": true,
+      "diffs": [
+        "title: LLM=未知 → wiki=翾风回雪（以 wiki 为准）",
+        "weapon_type: LLM=法器 → wiki=单手剑（以 wiki 为准）",
+        "rarity: LLM=4 → wiki=5（以 wiki 为准）",
+        "region: LLM=枫丹 → wiki=至冬（以 wiki 为准）",
+        "debut_version: LLM=4.3 → wiki=7.0（以 wiki 为准）",
+        "debut_date: LLM=2023-12-20 → wiki=2026年08月12日（以 wiki 为准）",
+        "summary: LLM=奥黛塔是枫丹的冰元素法器角色，擅长提供护盾与治疗，是团队中可靠的辅助。 → wiki=至冬知名芭蕾舞者，于冰雪中绽放的凛冽之花。（以 wiki 为准）"
+      ],
+      "errors": []
+    }
+  },
+  {
+    "id": "character_胡桃",
+    "type": "character",
+    "name": "胡桃",
+    "image": "",
+    "source": "DeepSeek LLM 生成（生成-校验双 Agent 工作流，2026-09）",
+    "title": "雪霁梅香",
+    "rarity": 5,
+    "element": "火",
+    "weapon_type": "长柄武器",
+    "role": "主C",
+    "region": "璃月",
+    "summary": "「往生堂」七十七代堂主，年纪轻轻就已主掌璃月的葬仪事务",
+    "debut_version": "1.3",
+    "debut_date": "2021年03月02日",
+    "constellation": "引蝶座",
+    "birthday": "12月20日",
+    "special_food": "幽幽大行军",
+    "_meta": {
+      "source": "dynamic",
+      "wiki_checked": true,
+      "diffs": [
+        "debut_date: LLM=2021-03-02 → wiki=2021年03月02日（以 wiki 为准）",
+        "summary: LLM=胡桃是璃月港「往生堂」的第七十七代堂主，掌管葬仪事务。她虽然年纪轻轻，却对生死之事有着超乎常人的理解。她认为，死亡并非终结，而是另一种形式的开始。在战斗中，她挥舞长柄武器，以燃烧生命为代价，换取强大的火焰力量。她的元素战技「彼岸蝶舞」能将她的一部分生命值转化为攻击力，并使攻击附着火元素；元素爆发「安神秘法」则能造成大范围火元素伤害，并根据生命值上限恢复自身生命。胡桃是一位极具爆发力的火元素主C，擅长在短时间内造成大量伤害。 → wiki=「往生堂」七十七代堂主，年纪轻轻就已主掌璃月的葬仪事务（以 wiki 为准）",
+        "birthday: 7月15日 → 12月20日（人工核验修正，原神官方角色资料）"
+      ],
+      "errors": []
+    }
+  },
+  {
+    "id": "character_芙宁娜",
+    "type": "character",
+    "name": "芙宁娜",
+    "image": "",
+    "source": "DeepSeek LLM 生成（生成-校验双 Agent 工作流，2026-09）",
+    "title": "不休独舞",
+    "rarity": 5,
+    "element": "水",
+    "weapon_type": "单手剑",
+    "region": "枫丹",
+    "role": "辅助",
+    "summary": "审判舞台上的绝对焦点，直至谢幕的掌声响起。",
+    "debut_date": "2023年11月08日",
+    "constellation": "司颂座",
+    "birthday": "10月13日",
+    "debut_version": "4.2",
+    "special_food": "「普茹斯蒂司」",
+    "_meta": {
+      "source": "dynamic",
+      "wiki_checked": true,
+      "diffs": [
+        "debut_date: LLM=2023-11-08 → wiki=2023年11月08日（以 wiki 为准）",
+        "summary: LLM=芙宁娜是枫丹的焦点人物，她的一举一动都吸引着众人的目光。作为前水神，她以人类之躯承载了五百年的孤独与责任。在战斗中，她通过召唤「沙龙成员」和「众水歌者」来支援队伍，并利用生命值的变动来提升队友的伤害。 → wiki=审判舞台上的绝对焦点，直至谢幕的掌声响起。（以 wiki 为准）"
+      ],
+      "errors": [],
+      "reference_gaps": [
+        "[芙宁娜] 引用不存在: special_food=「普茹斯蒂司」"
+      ]
+    }
+  },
+  {
+    "id": "character_那维莱特",
+    "type": "character",
+    "name": "那维莱特",
+    "image": "",
+    "source": "DeepSeek LLM 生成（生成-校验双 Agent 工作流，2026-09）",
+    "title": "谕告的潮音",
+    "rarity": 5,
+    "element": "水",
+    "weapon_type": "法器",
+    "role": "主C",
+    "region": "枫丹",
+    "summary": "枫丹的最高审判官，因其无懈可击的「秉公无私」而闻名。",
+    "debut_version": "4.1",
+    "debut_date": "2023年09月27日",
+    "special_food": "「缥雨一滴」",
+    "_meta": {
+      "source": "dynamic",
+      "wiki_checked": true,
+      "diffs": [
+        "debut_date: LLM=2023-09-27 → wiki=2023年09月27日（以 wiki 为准）",
+        "summary: LLM=枫丹的最高审判官，拥有水元素的强大力量，以公正严明著称。 → wiki=枫丹的最高审判官，因其无懈可击的「秉公无私」而闻名。（以 wiki 为准）"
+      ],
+      "errors": [],
+      "reference_gaps": [
+        "[那维莱特] 引用不存在: special_food=「缥雨一滴」"
+      ]
+    }
+  },
+  {
+    "id": "character_凯亚",
+    "type": "character",
+    "name": "凯亚",
+    "image": "",
+    "source": "DeepSeek LLM 生成（生成-校验双 Agent 工作流，2026-09）",
+    "title": "寒风剑士",
+    "rarity": 4,
+    "element": "冰",
+    "weapon_type": "单手剑",
+    "role": "主C",
+    "region": "蒙德",
+    "summary": "异国面容的剑斗士，西风骑士团的头脑派人物。",
+    "debut_date": "2020年09月15日",
+    "constellation": "孔雀羽座",
+    "birthday": "11月30日",
+    "debut_version": "1.0",
+    "special_food": "果香串烤",
+    "_meta": {
+      "source": "dynamic",
+      "wiki_checked": true,
+      "diffs": [
+        "debut_date: LLM=2020-09-28 → wiki=2020年09月15日（以 wiki 为准）",
+        "summary: LLM=西风骑士团的骑兵队长，可靠且富有魅力的男人。他有着异国风情的面容和深邃的眼神，似乎隐藏着许多秘密。 → wiki=异国面容的剑斗士，西风骑士团的头脑派人物。（以 wiki 为准）"
+      ],
+      "errors": [],
+      "reference_gaps": [
+        "[凯亚] 引用不存在: special_food=果香串烤"
+      ]
+    }
+  },
+  {
+    "id": "character_芭芭拉",
+    "type": "character",
+    "name": "芭芭拉",
+    "image": "",
+    "source": "DeepSeek LLM 生成（生成-校验双 Agent 工作流，2026-09）",
+    "title": "闪耀偶像",
+    "rarity": 4,
+    "element": "水",
+    "weapon_type": "法器",
+    "role": "辅助（治疗）",
+    "region": "蒙德",
+    "summary": "蒙德城的大家都喜欢芭芭拉。「偶像」这个词是她从一本杂志里看到的。",
+    "birthday": "7月5日",
+    "constellation": "金杯座",
+    "debut_date": "2020年09月15日",
+    "debut_version": "1.0",
+    "special_food": "辣味时蔬烩肉",
+    "_meta": {
+      "source": "dynamic",
+      "wiki_checked": true,
+      "diffs": [
+        "debut_date: LLM=2020-09-28 → wiki=2020年09月15日（以 wiki 为准）",
+        "summary: LLM=芭芭拉是西风教会的祈礼牧师，同时也是蒙德城的偶像。她性格温柔善良，总是用歌声和治愈魔法为人们带来希望。作为水元素法器角色，她能在战斗中为队友提供稳定的治疗，是许多冒险者队伍中不可或缺的辅助。 → wiki=蒙德城的大家都喜欢芭芭拉。「偶像」这个词是她从一本杂志里看到的。（以 wiki 为准）",
+        "role: 辅助 → 辅助（治疗）（人工修正，芭芭拉是水元素治疗角色）"
+      ],
+      "errors": [],
+      "reference_gaps": [
+        "[芭芭拉] 引用不存在: special_food=辣味时蔬烩肉"
+      ]
+    }
+  },
+  {
+    "id": "character_散兵",
+    "type": "character",
+    "name": "散兵",
+    "image": "",
+    "source": "DeepSeek LLM 生成（生成-校验双 Agent 工作流，2026-09）",
+    "title": "久世浮倾",
+    "rarity": 5,
+    "element": "风",
+    "weapon_type": "法器",
+    "role": "主C",
+    "region": "须弥",
+    "summary": "曾为愚人众执行官第六席「散兵」，在须弥造神计划失败后，被纳西妲点化并重获新生，以「流浪者」之名踏上寻找自我意义的旅途。",
+    "debut_version": "3.3",
+    "debut_date": "2022-12-07",
+    "constellation": "浪客座",
+    "birthday": "1月3日",
+    "_meta": {
+      "source": "dynamic",
+      "wiki_checked": false,
+      "diffs": [],
+      "errors": [],
+      "retried": true
+    }
+  },
+  {
+    "id": "character_菲谢尔",
+    "type": "character",
+    "name": "菲谢尔",
+    "image": "",
+    "source": "人工补录（2026-09，待 wiki 交叉验证）",
+    "title": "断罪皇女",
+    "rarity": 4,
+    "element": "雷",
+    "weapon_type": "弓",
+    "role": "副C（后台输出）",
+    "region": "蒙德",
+    "summary": "自称「断罪之皇女」的菲谢尔，是与夜鸦奥兹缔结契约的少女，擅长雷电与召唤物后台输出。",
+    "birthday": "5月27日",
+    "constellation": "幻鸦座",
+    "debut_date": "2020年09月28日",
+    "debut_version": "1.0",
+    "special_food": "",
+    "_meta": {
+      "source": "manual",
+      "wiki_checked": false,
+      "reference_gaps": [
+        "[菲谢尔] 待 wiki 交叉验证：debut_date/birthday/constellation"
+      ]
+    }
+  },
+  {
+    "id": "character_迪卢克",
+    "type": "character",
+    "name": "迪卢克",
+    "image": "",
+    "source": "人工补录（2026-09，待 wiki 交叉验证）",
+    "title": "晨曦的暗面",
+    "rarity": 5,
+    "element": "火",
+    "weapon_type": "大剑",
+    "role": "主C",
+    "region": "蒙德",
+    "summary": "蒙德最大酒庄「晨曦酒庄」的庄主，暗夜中的守护者，火元素大剑主C。",
+    "birthday": "4月30日",
+    "constellation": "夜枭座",
+    "debut_date": "2020年09月28日",
+    "debut_version": "1.0",
+    "special_food": "蒙德往事",
+    "_meta": {
+      "source": "manual",
+      "wiki_checked": false,
+      "reference_gaps": [
+        "[迪卢克] 待 wiki 交叉验证：debut_date/birthday/constellation"
+      ]
+    }
+  },
+  {
+    "id": "character_雷电将军",
+    "type": "character",
+    "name": "雷电将军",
+    "image": "",
+    "source": "人工补录（2026-09，待 wiki 交叉验证）",
+    "title": "一心净土",
+    "rarity": 5,
+    "element": "雷",
+    "weapon_type": "长柄武器",
+    "role": "副C（爆发流）",
+    "region": "稻妻",
+    "summary": "稻妻的雷之神，追求「永恒」的执政者。元素爆发可回能驱动全队大招循环，是雷电国家队的核心。",
+    "birthday": "6月26日",
+    "constellation": "天下人座",
+    "debut_date": "2021年09月01日",
+    "debut_version": "2.1",
+    "special_food": "",
+    "_meta": {
+      "source": "manual",
+      "wiki_checked": false,
+      "reference_gaps": [
+        "[雷电将军] 待 wiki 交叉验证：debut_date/birthday/constellation"
+      ]
+    }
+  },
+  {
+    "id": "character_法尔伽",
+    "type": "character",
+    "name": "法尔伽",
+    "title": "北风骑士",
+    "rarity": 5,
+    "element": "风",
+    "weapon_type": "双手剑",
+    "role": "主C（双元素输出）",
+    "region": "蒙德",
+    "summary": "西风骑士团大团长，守护蒙德的北风骑士。挥舞两把双手剑，可同时打出两种元素伤害的风元素输出型角色（2026-02 月之五版本实装）。",
+    "birthday": "",
+    "constellation": "北风",
+    "debut_date": "2026年02月25日",
+    "debut_version": "月之五（6.5）",
+    "special_food": "",
+    "_meta": {
+      "source": "manual-2026",
+      "wiki_checked": false,
+      "reference_gaps": [
+        "待 wiki 交叉验证：birthday/constellation"
+      ]
+    }
+  },
+  {
+    "id": "character_莉奈娅",
+    "type": "character",
+    "name": "莉奈娅",
+    "title": "博闻异旅",
+    "rarity": 5,
+    "element": "岩",
+    "weapon_type": "弓",
+    "role": "辅助（岩系减抗+治疗+后台伤害）",
+    "region": "挪德卡莱",
+    "summary": "冒险家协会挪德卡莱分会顾问，博物学家。可使队伍触发月结晶反应，兼具岩元素减抗、治疗与后台持续伤害的岩元素辅助型角色（2026-04 月之六版本实装）。",
+    "birthday": "",
+    "constellation": "异旅",
+    "debut_date": "2026年04月08日",
+    "debut_version": "月之六（6.6）",
+    "special_food": "",
+    "_meta": {
+      "source": "manual-2026",
+      "wiki_checked": false,
+      "reference_gaps": [
+        "待 wiki 交叉验证：birthday/constellation"
+      ]
+    }
+  },
+  {
+    "id": "character_哥伦比娅",
+    "type": "character",
+    "name": "哥伦比娅",
+    "image": "",
+    "source": "DeepSeek LLM 生成（生成-校验双 Agent 工作流，2026-09）",
+    "title": "空月归乡",
+    "rarity": 5,
+    "element": "水",
+    "weapon_type": "法器",
+    "role": "主C",
+    "region": "挪德卡莱",
+    "summary": "于挪德卡莱诞生的「月之少女」，亦是归乡的空月。",
+    "constellation": "仙鹤座",
+    "birthday": "1月1日",
+    "debut_date": "2026年01月14日",
+    "debut_version": "月之四",
+    "_meta": {
+      "source": "dynamic",
+      "wiki_checked": true,
+      "diffs": [
+        "title: LLM=少女 → wiki=空月归乡（以 wiki 为准）",
+        "element: LLM=冰 → wiki=水（以 wiki 为准）",
+        "region: LLM=至冬 → wiki=挪德卡莱（以 wiki 为准）",
+        "debut_date: LLM=2025-01-01 → wiki=2026年01月14日（以 wiki 为准）",
+        "summary: LLM=愚人众执行官第三席「少女」哥伦比娅，以冰元素法器进行战斗，拥有独特的霜华机制，在战场上优雅而致命。 → wiki=于挪德卡莱诞生的「月之少女」，亦是归乡的空月。（以 wiki 为准）"
+      ],
+      "errors": []
+    }
+  },
+  {
+    "id": "character_薇斯娜",
+    "type": "character",
+    "name": "薇斯娜",
+    "image": "",
+    "source": "DeepSeek LLM 生成（生成-校验双 Agent 工作流，2026-09）",
+    "title": "「薇斯娜」",
+    "rarity": 4,
+    "element": "冰",
+    "weapon_type": "法器",
+    "role": "辅助",
+    "region": "至冬",
+    "summary": "薇斯娜是《原神》中的一名冰元素角色，使用法器作为武器，来自至冬国。她是一位辅助型角色，能够在战斗中为队伍提供冰元素支援。",
+    "debut_version": "未知",
+    "debut_date": "未知",
+    "_meta": {
+      "source": "dynamic",
+      "wiki_checked": false,
+      "diffs": [
+        "wiki 验证不可用: 'parse'"
+      ],
+      "errors": []
+    }
+  },
+  {
+    "id": "character_钟离",
+    "type": "character",
+    "name": "钟离",
+    "image": "",
+    "title": "尘世闲游",
+    "element": "岩",
+    "weapon_type": "长柄武器",
+    "rarity": 5,
+    "region": "璃月",
+    "summary": "被「往生堂」请来的神秘客卿，知识渊博，对各种事物都颇有见地。<br>",
+    "birthday": "12月31日",
+    "constellations": [
+      {
+        "index": 1,
+        "name": "岩者，六合引之为骨",
+        "effect": "创造的岩脊至多可以同时存在2个。"
+      },
+      {
+        "index": 2,
+        "name": "石者，八荒韫玉而明",
+        "effect": "陨落时，会为附近的当前场上角色赋予玉璋护盾。"
+      },
+      {
+        "index": 3,
+        "name": "圭璋，瞑仍不移其晖",
+        "effect": "的技能等级提高3级。"
+      },
+      {
+        "index": 4,
+        "name": "黄琮，破而不夺其坚",
+        "effect": "的影响范围扩大20%。"
+      },
+      {
+        "index": 5,
+        "name": "苍璧，驱之长昭天理",
+        "effect": "的技能等级提高3级。"
+      },
+      {
+        "index": 6,
+        "name": "金玉，礼予天地四方",
+        "effect": "玉璋护盾受到伤害时，将为当前角色恢复生命值，回复量为伤害的40%。"
+      }
+    ],
+    "skills": [
+      {
+        "name": "岩雨",
+        "type": "normal",
+        "description": "进行至多六段的连续枪击。 消耗一定体力，向前方疾行，在行动路径上和终点投下如雨的岩枪。 从空中下坠冲击地面，攻击下落路径上的敌人，并在落地时造成范围伤害。",
+        "levels": {
+          "二段伤害": [
+            "31.4%",
+            "33.7%",
+            "36.2%",
+            "39.9%",
+            "42.4%",
+            "45.3%",
+            "49.3%",
+            "53.3%",
+            "57.2%",
+            "61.6%",
+            "66.6%"
+          ],
+          "三段伤害": [
+            "38.6%",
+            "41.7%",
+            "44.9%",
+            "49.3%",
+            "52.5%",
+            "56.1%",
+            "61.0%",
+            "65.9%",
+            "70.9%",
+            "76.3%",
+            "82.4%"
+          ],
+          "四段伤害": [
+            "42.9%",
+            "46.4%",
+            "49.9%",
+            "54.9%",
+            "58.4%",
+            "62.4%",
+            "67.9%",
+            "73.4%",
+            "78.9%",
+            "84.9%",
+            "91.7%"
+          ],
+          "六段伤害": [
+            "54.5%",
+            "58.9%",
+            "63.4%",
+            "69.7%",
+            "74.1%",
+            "79.2%",
+            "86.2%",
+            "93.2%",
+            "100.1%",
+            "107.7%",
+            "116.4%"
+          ],
+          "重击伤害": [
+            "111%",
+            "120%",
+            "129%",
+            "142%",
+            "151%",
+            "161%",
+            "176%",
+            "190%",
+            "204%",
+            "220%",
+            "237%"
+          ],
+          "下坠期间伤害": [
+            "63.9%",
+            "69.1%",
+            "74.3%",
+            "81.8%",
+            "87.0%",
+            "92.9%",
+            "101.1%",
+            "109.3%",
+            "117.5%",
+            "126.4%",
+            "135.3%"
+          ]
+        }
+      },
+      {
+        "name": "地心",
+        "type": "skill",
+        "description": "山脉中、大地上、磐石间，都遍布着岩之力。能自如驱动这股力量的人却少之又少。 命令大地上的岩元素积聚而起，创造岩脊。 令附近岩元素爆发，造成以下效果： *如果岩脊数量没有达到上限，则创造岩脊； *形成玉璋护盾，伤害吸收量受益于钟离的生命值上限； *造成； *身边如果有附带的目标，则大量消耗至多两个目标的。这个效果不会造成伤害。 创造时，造成。 此外，岩脊存在期间会与周围的其他间歇进行原岩共鸣，对周围的敌人造成。 岩脊视为，可以阻挡攻击、可以攀爬。 由钟离自己创造的岩脊，初始同时只能存在一个。 对所有元素伤害与物理伤害有150%的吸收效果。 处于玉璋护盾庇护下的角色，会使附近小范围内敌人的所有元素抗性与物理抗性降低20%，该效果不可叠加。 ''岩者坚也，可攻玉雕金。''",
+        "levels": {
+          "长按伤害": [
+            "80%",
+            "86%",
+            "92%",
+            "100%",
+            "106%",
+            "112%",
+            "120%",
+            "128%",
+            "136%",
+            "144%",
+            "152%",
+            "160%",
+            "170%"
+          ]
+        }
+      },
+      {
+        "name": "天星",
+        "type": "burst",
+        "description": "降下巨大的星岩，对坠落范围内的敌人造成巨额，并使其。 处于状态下的敌人无法行动。 ''以陨天苍岩星，昭命理昏暝者。''",
+        "levels": {
+          "元素能量": [
+            "40",
+            "40",
+            "40",
+            "40",
+            "40",
+            "40",
+            "40",
+            "40",
+            "40",
+            "40",
+            "40",
+            "40",
+            "40",
+            "40"
+          ]
+        }
+      },
+      {
+        "name": "悬岩宸断",
+        "type": "passive",
+        "description": "玉璋护盾受到伤害时，会为产生坚璧效果： *处于玉璋护盾庇护下的角色，护盾强效提升5%； *该效果至多叠加5次，持续直到玉璋护盾消失。"
+      },
+      {
+        "name": "炊金馔玉",
+        "type": "passive",
+        "description": "基于生命值上限，钟离的以下攻击造成的伤害提高： *普通攻击、重击与下落攻击造成的伤害提高值：生命值上限的1.39% *的岩脊、共鸣伤害与长按伤害提高值：生命值上限的1.9% *伤害提高值：生命值上限的33%"
+      },
+      {
+        "name": "晶石命理",
+        "type": "passive",
+        "description": "锻造长柄武器时，返还15%消耗的矿石。"
+      }
+    ],
+    "role": "护盾辅助",
+    "teams": [
+      {
+        "name": "胡行钟夜",
+        "members": [
+          "胡桃",
+          "行秋",
+          "钟离",
+          "夜兰"
+        ],
+        "core": "钟离提供护盾与减抗，保障胡桃低血量安全输出"
+      },
+      {
+        "name": "那维莱特万钟",
+        "members": [
+          "那维莱特",
+          "枫原万叶",
+          "钟离",
+          "莫娜"
+        ],
+        "core": "钟离护盾减抗，为那维莱特创造稳定重击输出环境"
+      },
+      {
+        "name": "魈钟班砂",
+        "members": [
+          "魈",
+          "钟离",
+          "班尼特",
+          "砂糖"
+        ],
+        "core": "钟离护盾防打断，配合班尼特增伤保障魈下落攻击"
+      }
+    ],
+    "tags": [
+      "护盾",
+      "减抗",
+      "控制",
+      "岩元素"
+    ],
+    "source": "原神官方wiki（BWIKI）为主要依据 + DeepSeek 仅补缺失",
+    "_meta": {
+      "source": "dynamic",
+      "wiki_checked": true,
+      "diffs": [],
+      "errors": []
+    }
+  }
+]

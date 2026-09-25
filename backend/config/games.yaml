@@ -1,0 +1,19 @@
+# 游戏注册表：声明每个游戏的知识包配置
+# 新增游戏三步：1) 创建 data/<id> 目录并整理 JSON  2) 运行入库脚本  3) 在此登记
+games:
+  - id: genshin
+    name: 原神
+    description: 角色、武器、圣遗物、材料与配队攻略
+    data_dir: data/genshin
+    collection: genshin_kb
+    wiki_base_url: https://wiki.biligame.com/ys/api.php
+    enabled: true
+
+  - id: arknights
+    name: 明日方舟
+    description: 干员、关卡、材料与养成攻略（PRTS 官方数据动态获取已启用）
+    data_dir: data/arknights
+    collection: arknights_kb
+    wiki_base_url: https://prts.wiki/api.php
+    dynamic_generation: true
+    enabled: true
