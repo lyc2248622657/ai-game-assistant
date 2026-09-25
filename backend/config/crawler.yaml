@@ -1,0 +1,78 @@
+# 数据采集管道配置（多游戏扩展：新增游戏 = 新增一段配置）
+# 采集源：原神 WIKI_BWIKI（MediaWiki + Semantic MediaWiki，开放 API）
+
+genshin:
+  base_url: "https://wiki.biligame.com/ys/api.php"
+  # 分类查询（SMW ask 语法，需 [[ ]]）
+  categories:
+    character: "[[分类:角色]]"
+    weapon: "[[分类:武器]]"
+    artifact: "[[分类:圣遗物]]"
+    food: "[[分类:食物]]"
+    material: "[[分类:材料]]"
+  # 页面模板字段映射（wiki 字段 → 数据模板字段）；wiki 无此字段则留空
+  fields:
+    character:
+      name: "全名"
+      title: "称号"
+      element: "元素属性"
+      weapon_type: "武器类型"
+      rarity: "稀有度"
+      region: "所属"
+      debut_version: "实装版本"
+      debut_date: "实装日期"
+      special_food: "特殊料理"
+      tags: "TAG"
+      summary: "介绍"
+      details_map:
+        constellation: "命之座"
+        race: "种族"
+        story: "角色故事1"
+        break_through_stat: "突破加成属性"
+    weapon:
+      name: ""
+      category: "类型"
+      rarity: "稀有度"
+      passive: "技能名称"
+      passive_desc: "技能介绍"
+      summary: "介绍"
+      details_map:
+        obtain_note: "获取方式"
+    artifact:
+      name: ""
+      rarity: "最高稀有度"
+      two_piece: "两件套效果"
+      four_piece: "四件套效果"
+      summary: "提示"
+      source: "获取方式"
+      details_map:
+        min_rarity: "最低稀有度"
+    food:
+      name: ""
+      rarity: "稀有度"
+      food_type_raw: "类型"
+      food_category: "类别"
+      effect: "效果说明"
+      summary: "介绍"
+      obtain: "获取方式"
+      details_map:
+        ingredients: "所需食材"
+    material:
+      name: ""
+      rarity: "稀有度"
+      category: "类型"
+      source: "来源"
+      summary: "介绍"
+      details_map:
+        debut_version: "实装版本"
+  # 特殊料理表（角色 → 原型料理 → 特殊料理 全量映射，用于回填 owner_character / prototype_food）
+  special_food_table: "模板:特殊料理表/行"
+  # 图片规则
+  image:
+    # 条目类型 → 优先文件名关键字（按顺序）；不命中则取第一张
+    character: ["头像", "立绘"]
+    weapon: []
+    artifact: []
+    food: []
+    material: []
+    skip_keywords: ["图标背景", "材料", "突破材料", "导航", "logo"]  # 角色页排除非立绘图

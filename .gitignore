@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# 环境与数据
+backend/.env
+.env
+backend/models/
+backend/data/chroma/
+backend/data/sessions.db
+
+# Node
+node_modules/
+frontend/dist/
+frontend/.vite/
+
+# 编辑器 / 系统
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# 打包产物与运行时数据
+dist_pkg/
+build_pkg/
+app_data/
+.dev/
+
+# 密钥（全局防护）
+key.txt
+*.key
+
+# 事件缓存
+backend/data/events_cache.json
+
+# 日志
+*.log

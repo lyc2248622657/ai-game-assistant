@@ -1,0 +1,33 @@
+[
+  {
+    "id": "weapon_天空之翼",
+    "type": "weapon",
+    "name": "天空之翼",
+    "image": "https://patchwiki.biligame.com/images/ys/2/2b/rbmrxt4t11u67sr50far44n8su5a0h7.png",
+    "source": "DeepSeek LLM 生成（生成-校验双 Agent 工作流，2026-09）",
+    "category": "弓",
+    "rarity": 5,
+    "sub_stat": "暴击率 22.1%",
+    "passive": "暴击伤害提高{{颜色",
+    "recommended_characters": [
+      "温迪",
+      "达达利亚",
+      "甘雨",
+      "宵宫",
+      "菲谢尔",
+      "九条裟罗"
+    ],
+    "summary": "曾翱翔于天空的猛禽之弓，弓身蕴藏着天空的祝福与力量。",
+    "_meta": {
+      "source": "dynamic",
+      "wiki_checked": true,
+      "diffs": [
+        "category: LLM=weapon → wiki=弓（以 wiki 为准）",
+        "passive: LLM=回响长天的诗歌：暴击伤害提高20%，攻击命中时有60%概率发射能造成125%攻击力物理伤害的小型真空刃，该效果每0.5秒至多触发一次。 → wiki=暴击伤害提高{{颜色（以 wiki 为准）"
+      ],
+      "errors": [],
+      "retried": true
+    },
+    "image_url": "https://patchwiki.biligame.com/images/ys/2/2b/rbmrxt4t11u67sr50far44n8su5a0h7.png"
+  }
+]

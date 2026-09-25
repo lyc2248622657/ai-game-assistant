@@ -1,0 +1,126 @@
+{
+  "rows": [
+    {
+      "question": "胡桃是几星角色？",
+      "graph": {
+        "accuracy": 1.0,
+        "faithfulness": 1.0,
+        "coverage": 1.0,
+        "hallucination_count": 0,
+        "comment": "回答准确指出胡桃为5星角色，完全覆盖期望要点，无编造内容。"
+      },
+      "react": {
+        "accuracy": 1.0,
+        "faithfulness": 1.0,
+        "coverage": 1.0,
+        "hallucination_count": 0,
+        "comment": "回答准确给出胡桃为5星角色，且所有补充信息均可在资料中找到依据，无编造。"
+      }
+    },
+    {
+      "question": "介绍一下奥黛塔",
+      "graph": {
+        "accuracy": 1.0,
+        "faithfulness": 1.0,
+        "coverage": 1.0,
+        "hallucination_count": 0,
+        "comment": "回答准确覆盖了奥黛塔的冰元素、单手剑、至冬、7.0版本等全部期望要点，且信息均来自资料，未收录内容如实说明。"
+      },
+      "react": {
+        "accuracy": 1.0,
+        "faithfulness": 1.0,
+        "coverage": 1.0,
+        "hallucination_count": 0,
+        "comment": "回答完整覆盖奥黛塔、冰、单手剑、至冬、7.0等全部期望要点，且所有事实均与资料一致，无编造。"
+      }
+    },
+    {
+      "question": "胡桃用什么圣遗物？",
+      "graph": {
+        "accuracy": 1.0,
+        "faithfulness": 1.0,
+        "coverage": 1.0,
+        "hallucination_count": 0,
+        "comment": "回答准确推荐炽烈的炎之魔女，并正确关联胡桃与火系，完全覆盖期望要点，且未编造资料外内容。"
+      },
+      "react": {
+        "accuracy": 1.0,
+        "faithfulness": 1.0,
+        "coverage": 1.0,
+        "hallucination_count": 0,
+        "comment": "回答准确推荐炽烈的炎之魔女，并正确关联胡桃火系蒸发流定位，所有事实均有资料依据，无编造。"
+      }
+    },
+    {
+      "question": "炽烈的炎之魔女适合什么角色？",
+      "graph": {
+        "accuracy": 1.0,
+        "faithfulness": 1.0,
+        "coverage": 1.0,
+        "hallucination_count": 0,
+        "comment": "回答准确覆盖了炽烈的炎之魔女、胡桃和火系三个要点，且所有事实均可在资料中找到依据，无编造内容。"
+      },
+      "react": {
+        "accuracy": 1.0,
+        "faithfulness": 1.0,
+        "coverage": 1.0,
+        "hallucination_count": 0,
+        "comment": "回答准确覆盖了炽烈的炎之魔女、胡桃和火系三个要点，所有事实均与资料一致，无编造。"
+      }
+    },
+    {
+      "question": "雷系副C有哪些？",
+      "graph": {
+        "accuracy": 0.5,
+        "faithfulness": 1.0,
+        "coverage": 0.67,
+        "hallucination_count": 0,
+        "comment": "回答正确识别菲谢尔为雷系副C并诚实说明雷电将军定位未收录，但期望要点中的雷电将军未被明确覆盖，且菲谢尔非期望要点，故准确性与覆盖度有扣分。"
+      },
+      "react": {
+        "accuracy": 0.7,
+        "faithfulness": 0.9,
+        "coverage": 0.67,
+        "hallucination_count": 0,
+        "comment": "正确覆盖雷系与副C并提及雷电将军，但雷电将军的副C定位在资料中仅间接体现，且未明确列出雷电将军为雷系副C，覆盖度与准确性略打折扣。"
+      }
+    },
+    {
+      "question": "护摩之杖适合哪个角色？",
+      "graph": {
+        "accuracy": 1.0,
+        "faithfulness": 1.0,
+        "coverage": 1.0,
+        "hallucination_count": 0,
+        "comment": "回答准确覆盖了护摩之杖、胡桃、钟离、香菱四个要点，且对未提及角色诚实说明无法判断，无编造内容。"
+      },
+      "react": {
+        "accuracy": 1.0,
+        "faithfulness": 1.0,
+        "coverage": 1.0,
+        "hallucination_count": 0,
+        "comment": "回答准确覆盖护摩之杖、胡桃、钟离、香菱四个要点，所有事实均与资料一致，无编造。"
+      }
+    }
+  ],
+  "summary": {
+    "graph": {
+      "accuracy": 0.917,
+      "faithfulness": 1.0,
+      "coverage": 0.945,
+      "avg_hallucination": 0.0
+    },
+    "react": {
+      "accuracy": 0.95,
+      "faithfulness": 0.983,
+      "coverage": 0.945,
+      "avg_hallucination": 0.0
+    }
+  },
+  "usage": {
+    "input_tokens": 6703,
+    "output_tokens": 881,
+    "total_tokens": 7584,
+    "llm_calls": 12
+  }
+}

@@ -1,0 +1,208 @@
+[
+  {
+    "id": "team_hutao_vape",
+    "type": "team",
+    "name": "胡桃蒸发队",
+    "members": [
+      "character_胡桃",
+      "character_行秋",
+      "character_钟离",
+      "character_夜兰"
+    ],
+    "core": "行秋/夜兰后台持续挂水，胡桃半血重击打蒸发，钟离护盾保生存",
+    "rotation": "钟离开盾 → 行秋开大挂水 → 夜兰开大 → 胡桃战技附魔后重击循环",
+    "difficulty": "中",
+    "dps_source": "胡桃重击蒸发",
+    "image": "images/teams/hutao_vape.png",
+    "tags": [
+      "蒸发",
+      "火C",
+      "深渊",
+      "经典队"
+    ],
+    "summary": "原神最经典的蒸发体系之一，胡桃+双水挂水+钟离盾，伤害与容错兼备。",
+    "details": {
+      "note": "夜兰可替换为阿贝多/莫娜/行秋（双水）"
+    }
+  },
+  {
+    "id": "team_raiden_national",
+    "type": "team",
+    "name": "雷电国家队",
+    "members": [
+      "character_雷电将军",
+      "character_香菱",
+      "character_行秋",
+      "character_班尼特"
+    ],
+    "core": "雷电将军元素爆发回能驱动全队大招循环，香菱行秋班尼特组成高额后台伤害",
+    "rotation": "班尼特开大增伤 → 香菱旋火轮 → 行秋裁雨留虹 → 雷电将军开大站场回能",
+    "difficulty": "低",
+    "dps_source": "全队元素爆发循环",
+    "image": "images/teams/raiden_national.png",
+    "tags": [
+      "国家队",
+      "雷系",
+      "深渊",
+      "平民"
+    ],
+    "summary": "以雷电将军为核心的国家队变体，充能循环流畅，四星班底亲民且强度极高。",
+    "details": {
+      "note": "全队对充能需求较高，副词条优先充能"
+    }
+  },
+  {
+    "id": "team_ayaka_freeze",
+    "type": "team",
+    "name": "神里永冻队",
+    "members": [
+      "character_神里绫华",
+      "character_枫原万叶",
+      "character_珊瑚宫心海",
+      "character_甘雨"
+    ],
+    "core": "心海持续挂水冻结，万叶聚怪增伤减抗，神里绫华爆发收割",
+    "rotation": "万叶聚怪染冰 → 心海挂水 → 甘雨/绫华输出 → 绫华开大爆发",
+    "difficulty": "中",
+    "dps_source": "神里绫华元素爆发",
+    "image": "images/teams/ayaka_freeze.png",
+    "tags": [
+      "永冻",
+      "冰系",
+      "深渊",
+      "对群"
+    ],
+    "summary": "永冻体系代表，控制与伤害兼备，对可冻结敌人表现出色。",
+    "details": {
+      "note": "甘雨位可换申鹤/罗莎莉亚等冰系辅助"
+    }
+  },
+  {
+    "id": "team_neuvillette",
+    "type": "team",
+    "name": "那维莱特水伤队",
+    "members": [
+      "character_那维莱特",
+      "character_芙宁娜",
+      "character_枫原万叶",
+      "character_钟离"
+    ],
+    "core": "芙宁娜全队增伤+万叶减抗聚怪，钟离护盾保重击蓄力，那维莱特重击直伤",
+    "rotation": "钟离开盾 → 芙宁娜战技爆发 → 万叶聚怪 → 那维莱特蓄力重击循环",
+    "difficulty": "低",
+    "dps_source": "那维莱特蓄力重击",
+    "image": "images/teams/neuvillette.png",
+    "tags": [
+      "水系",
+      "直伤",
+      "枫丹",
+      "深渊"
+    ],
+    "summary": "那维莱特为核心的直伤体系，操作简单伤害稳定，生命值收益极高。",
+    "details": {
+      "note": "依赖生命之契相关机制，注意输出节奏"
+    }
+  },
+  {
+    "id": "team_nahida_hyperbloom",
+    "type": "team",
+    "name": "草行久超绽放队",
+    "members": [
+      "character_纳西妲",
+      "character_行秋",
+      "character_久岐忍"
+    ],
+    "core": "纳西妲后台挂草+行秋挂水生成种子，久岐忍雷系触发超绽放，第四人自由位",
+    "rotation": "纳西妲标记 → 行秋开大挂水 → 久岐忍战技持续触发超绽放",
+    "difficulty": "极低",
+    "dps_source": "超绽放反应伤害",
+    "image": "images/teams/nahida_hyperbloom.png",
+    "tags": [
+      "超绽放",
+      "草系",
+      "平民",
+      "低配"
+    ],
+    "summary": "三核心超绽放体系，成型简单伤害下限高，是性价比最高的平民队伍。",
+    "details": {
+      "note": "第四人可选护盾/治疗/聚怪角色，如钟离、北斗、万叶"
+    }
+  },
+  {
+    "id": "team_wanda_international",
+    "type": "team",
+    "name": "万达国际",
+    "members": [
+      "character_达达利亚",
+      "character_香菱",
+      "character_班尼特",
+      "character_枫原万叶"
+    ],
+    "core": "班尼特增攻+万叶聚怪减抗，香菱旋火轮+达达利亚近战蒸发，大招循环",
+    "rotation": "班尼特开大 → 万叶扩散增伤 → 香菱旋火轮 → 达达利亚开E近战站场",
+    "difficulty": "高",
+    "dps_source": "达达利亚近战蒸发",
+    "image": "images/teams/wanda_international.png",
+    "tags": [
+      "蒸发",
+      "国家队",
+      "高手向",
+      "深渊"
+    ],
+    "summary": "操作上限极高的经典体系，熟悉循环后深渊强度天花板之一。",
+    "details": {
+      "note": "对充能与轴要求高，适合熟悉反应的进阶玩家"
+    }
+  },
+  {
+    "id": "team_xiao",
+    "type": "team",
+    "name": "魈珐班钟",
+    "members": [
+      "character_魈",
+      "character_温迪",
+      "character_班尼特",
+      "character_钟离"
+    ],
+    "core": "珐露珊风伤增伤（骨架用温迪占位待完善），班尼特增攻，钟离护盾，魈下落攻击",
+    "rotation": "钟离开盾 → 班尼特开大 → 风系辅助增伤 → 魈开大下落攻击循环",
+    "difficulty": "中",
+    "dps_source": "魈下落攻击",
+    "image": "images/teams/xiao.png",
+    "tags": [
+      "风系",
+      "下落攻击",
+      "深渊"
+    ],
+    "summary": "围绕魈下落攻击构建的插秧队，风系专辅+盾奶保障输出环境。",
+    "details": {
+      "note": "珐露珊实装后为最优风辅，此处以温迪示意，可替换"
+    }
+  },
+  {
+    "id": "team_alhaitham_spread",
+    "type": "team",
+    "name": "艾尔海森激化队",
+    "members": [
+      "character_艾尔海森",
+      "character_纳西妲",
+      "character_雷电将军",
+      "character_钟离"
+    ],
+    "core": "纳西妲挂草+雷系后台挂雷，艾尔海森镜面普攻触发激化反应",
+    "rotation": "纳西妲标记 → 雷系挂雷 → 艾尔海森战技生成镜面普攻输出",
+    "difficulty": "低",
+    "dps_source": "激化反应+艾尔海森直伤",
+    "image": "images/teams/alhaitham_spread.png",
+    "tags": [
+      "激化",
+      "草系",
+      "须弥",
+      "深渊"
+    ],
+    "summary": "激化体系核心队，草雷双元素反应强化直伤，循环简单强度可观。",
+    "details": {
+      "note": "雷系位可换久岐忍/菲谢尔等后台雷"
+    }
+  }
+]

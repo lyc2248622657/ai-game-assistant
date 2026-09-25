@@ -1,0 +1,79 @@
+{
+  "summary": {
+    "total": 2,
+    "metrics": {
+      "accuracy": 1.0,
+      "faithfulness": 1.0,
+      "coverage": 1.0,
+      "avg_hallucination_count": 0.0,
+      "cases_with_hallucination": 0,
+      "reflect_triggered": 0
+    },
+    "usage": {
+      "input_tokens": 4915,
+      "output_tokens": 545,
+      "total_tokens": 5460,
+      "llm_calls": 8,
+      "avg_tokens_per_case": 2730.0
+    },
+    "by_type": {
+      "entity": {
+        "n": 1,
+        "accuracy": 1.0,
+        "faithfulness": 1.0,
+        "coverage": 1.0
+      },
+      "knowledge": {
+        "n": 1,
+        "accuracy": 1.0,
+        "faithfulness": 1.0,
+        "coverage": 1.0
+      }
+    }
+  },
+  "cases": [
+    {
+      "id": "ent-10",
+      "type": "entity",
+      "question": "绝缘之旗印适合什么角色？",
+      "answer": "根据资料，**绝缘之旗印**适合以下角色：\n\n- **雷电将军（raiden）**\n- **香菱（xiangling）**\n- **行秋（xingqiu）**\n- **夜兰（yelan）**\n\n套装效果要点：\n- **2件套**：元素充能效率+20%\n- **4件套**：基于元素充能效率的25%提升元素爆发伤害，至多提升75%\n- 定位：充能转爆发伤害的万金油套装，适合爆发流副C与雷电将军毕业选择\n\n资料中提到的推荐角色仅以上四位；胡桃、散兵是否适合该套装，**资料未收录**。",
+      "citations": [
+        "绝缘之旗印",
+        "胡桃",
+        "散兵"
+      ],
+      "reflect_passed": true,
+      "reflect_issues": [],
+      "scores": {
+        "accuracy": 1.0,
+        "faithfulness": 1.0,
+        "coverage": 1.0,
+        "hallucination_count": 0
+      },
+      "comment": "回答准确覆盖了期望要点中的绝缘之旗印、雷电将军和香菱，且所有事实均来自引用资料，未发现编造内容。",
+      "elapsed": 7.6
+    },
+    {
+      "id": "knw-02",
+      "type": "knowledge",
+      "question": "胡桃用什么圣遗物？",
+      "answer": "根据资料，胡桃的圣遗物推荐如下：\n\n- **炽烈的炎之魔女**：资料中明确标注为「火系输出核心套装，蒸发反应流角色的标准毕业选择」，并直接点名适用于「火系 蒸发 胡桃」。胡桃为火元素主C，因此这是资料中给出的首选。\n\n资料中另外提到的两套圣遗物：\n- **昔日宗室之仪**：定位为「辅助增伤经典套装」，适用于班尼特等爆发增伤辅助，资料未将其与胡桃关联。\n- **绝缘之旗印**：定位为「充能转爆发伤害的万金油套装」，适用于爆发流副C与雷电将军，资料未将其与胡桃关联。\n\n除上述内容外，关于胡桃圣遗物的具体词条、主副词条搭配等信息，资料未收录。",
+      "citations": [
+        "胡桃",
+        "炽烈的炎之魔女",
+        "昔日宗室之仪",
+        "绝缘之旗印"
+      ],
+      "reflect_passed": true,
+      "reflect_issues": [],
+      "scores": {
+        "accuracy": 1.0,
+        "faithfulness": 1.0,
+        "coverage": 1.0,
+        "hallucination_count": 0
+      },
+      "comment": "回答准确引用资料，明确给出炽烈的炎之魔女（魔女套）适用于胡桃，覆盖全部期望要点，无编造内容。",
+      "elapsed": 4.0
+    }
+  ]
+}

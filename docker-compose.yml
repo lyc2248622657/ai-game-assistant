@@ -1,0 +1,25 @@
+# 一键部署编排（阶段三完善：后端 + 前端 + 数据/模型持久化卷）
+# 用法：docker compose up -d --build
+version: "3.8"
+
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./backend/.env
+    volumes:
+      # 数据（静态知识包 + 动态缓存 + Chroma + SQLite）持久化
+      - ./backend/data:/app/data
+      # embedding 模型缓存复用（宿主机已下载 bge-small-zh-v1.5，避免容器内重新下载）
+      - ./backend/models:/app/models
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
