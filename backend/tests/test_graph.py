@@ -54,10 +54,15 @@ def test_resolve_delegate_event_domain():
 
 
 def test_subagent_prompt_injects_identity():
-    """子代理 system prompt 注入委派身份（多智能体叙事）"""
+    """子代理 system prompt 注入委派身份（多智能体叙事；1.1 后身份由注册表 agent_label 派生）"""
     p = build_subagent_system_prompt("genshin_agent", "原神")
-    assert "原神专家子代理" in p
+    assert "原神子代理" in p
     assert "主管智能体委派" in p
+    # 注册表驱动的身份：新增游戏登记后，其 agent_id 自动出现在角色表
+    from app.agents.prompts import SUBAGENT_ROLES
+
+    assert "genshin_agent" in SUBAGENT_ROLES and "arknights_agent" in SUBAGENT_ROLES
+    assert "knowledge_agent" in SUBAGENT_ROLES
 
 
 # ---------- 动态重规划：规则预检（纯函数） ----------

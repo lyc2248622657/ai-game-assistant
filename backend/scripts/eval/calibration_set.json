@@ -1,0 +1,17 @@
+{
+  "说明": "LLM-as-Judge 人工校准集。human_scores 由标注者对照期望要点(key_points)客观核对回答内容得出；judge 重评后对比，输出 MAE/一致性/偏差模式。",
+  "cases": [
+    {
+      "case_id": "ent-10",
+      "question": "绝缘之旗印适合什么角色？",
+      "human_scores": {"accuracy": 1.0, "faithfulness": 1.0, "coverage": 1.0, "hallucination_count": 0},
+      "human_comment": "回答覆盖资料中的推荐角色与套装效果，且明确标注资料未收录项，无编造。"
+    },
+    {
+      "case_id": "knw-02",
+      "question": "胡桃用什么圣遗物？",
+      "human_scores": {"accuracy": 1.0, "faithfulness": 1.0, "coverage": 1.0, "hallucination_count": 0},
+      "human_comment": "回答明确给出魔女套并说明其余套装不适用理由，未收录项如实说明。"
+    }
+  ]
+}

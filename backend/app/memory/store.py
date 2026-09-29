@@ -132,6 +132,7 @@ class SessionStore:
                 ).fetchall()
         return [
             {
+                "id": r["id"],  # 消息自增 id（增量摘要压缩用）
                 "role": r["role"],
                 "content": r["content"],
                 "citations": json.loads(r["citations"] or "[]"),

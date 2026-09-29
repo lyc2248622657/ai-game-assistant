@@ -213,6 +213,49 @@ LangGraph（四路混合检索 + Reflection 质检 + 引用输出）质量更稳
 最新全量结果（2026-09-23）：**准确率 0.962 / 忠实性 1.0 / 覆盖度 0.945 / 幻觉 0 条**（30 条，93.6k token，平均 3.1k/条）；
 收尾处置（数据补录雷电将军 + synthesize 详实化 + key_points 校准）后原 3 个低分项全部满分，30 条无低分项。
 
+### 代码审查与修复（2026-09-25）
+
+对照「4 维度 10 检查点」逐项核查并修复，新增三块工程化证据：
+
+**① 组件级消融实验**（`scripts/eval/ablation.py` → `data/ablation_report.json`）：
+```bash
+.venv\Scripts\python.exe scripts\eval\ablation.py --cases 4   # 5 配置 × 4 条，约 20 次链路，耗时 10+ 分钟
+```
+| 配置 | acc | Δacc | fth | cov | 幻觉/条 | token |
+|---|---|---|---|---|---|---|
+| 全链路 | 0.950 | — | 0.925 | 1.0 | 0.75 | 53,525 |
+| 去 replan | 0.912 | -0.038 | 0.850 | 1.0 | 1.0 | 53,330 |
+| 去 reflect | 0.887 | -0.063 | 0.787 | 1.0 | **2.0** | 41,119 |
+| 去混合检索 | 0.725 | **-0.225** | 0.825 | 0.85 | 1.5 | 46,145 |
+| 去记忆注入 | 0.688 | **-0.262** | 0.900 | **0.75** | 0.75 | 49,358 |
+
+结论：**记忆注入与混合检索贡献最大（去掉后准确率 -0.26 / -0.23 且覆盖度明显下降），
+Reflection 对防幻觉贡献显著（去掉后幻觉 0.75→2.0 条），replan 贡献中等（-0.038）——四组件均为正贡献，非过度工程**。
+
+**② Judge 校准与统计口径**（`scripts/eval/judge_calibration.py` + `eval_common.py`）：
+- 评测报告新增 **Wilson 95% 置信区间** 与阈值通过率（如 acc=0.905，95%CI 0.803~1.0，通过率 0.8 [0.49~0.943]）；
+- 新建人工校准集（`calibration_set.json`，逐条人工对照期望要点打分）与校准脚本（MAE/一致率/偏差模式）；
+- 校准过程**暴露并修复了真问题**：eval 报告原先只存引用标题，Judge 看不到引用正文，
+  对「资料未收录但合理作答」的用例误判编造（ent-10：0.7/0.6/2 条幻觉）→ 修复为带引用正文后
+  **Judge 与人工标注完全一致（1.0/1.0/1.0/0，MAE=0）**——这是 LLM-as-Judge 校准闭环的实证。
+
+**③ Chroma 并发压力测试**（`scripts/stress_test_rag.py`）：
+```bash
+.venv\Scripts\python.exe scripts\stress_test_rag.py --threads 8 --rounds 8
+```
+8 线程 × 8 轮 = 64 次查询：**0 错误**，墙钟 13.4s（串行理论下限 104.9s，并发加速 7.8×），
+但 P95=11.9s 暴露出嵌入式 PersistentClient 的锁竞争——本地单用户场景无碍，
+多用户并发需串行化或换异步/独立服务端模式（已在架构决策中注明）。
+
+**④ Supervisor 路由注册表化**（架构扩展性）：游戏子代理身份/实体类型/识别线索/数据源全部
+由 `config/games.yaml` 声明（agent_id/agent_label/entity_types/hints/wiki_desc），
+`prompts.py` 的 SUPPORTED_GAMES/SUBAGENT_ROLES/PLAN/SUPERVISOR 与 `graph.py` 的
+`_resolve_delegate` 从注册表动态派生——**新增第三个游戏只需登记 yaml + 建数据目录，不改任何 Agent 代码**。
+已有 pytest 断言覆盖（44 passed）。
+
+最新 10 条评测（2026-09-25，带 CI）：acc=0.905（CI 0.803~1.0）/ fth=0.885 / cov=0.95 / 幻觉 0.6 条。
+
+
 ## 记忆分层与上下文工程（P1）
 
 - **上下文工程**（`app/agents/prompts.py`）：Prompt 模板化（角色/规则/任务指令分离，可复用可演进）；
