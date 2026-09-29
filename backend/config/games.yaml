@@ -1,5 +1,7 @@
-# 游戏注册表：声明每个游戏的知识包配置
+# 游戏注册表：声明每个游戏的知识包配置 + Agent 层委派声明
 # 新增游戏三步：1) 创建 data/<id> 目录并整理 JSON  2) 运行入库脚本  3) 在此登记
+# 1.1 修复：agent_id/agent_label/entity_types/hints/wiki_desc 由注册表声明，
+#           supervisor 委派与提示词从注册表动态派生 → 新增游戏无需改 Agent 代码
 games:
   - id: genshin
     name: 原神
@@ -7,6 +9,11 @@ games:
     data_dir: data/genshin
     collection: genshin_kb
     wiki_base_url: https://wiki.biligame.com/ys/api.php
+    agent_id: genshin_agent
+    agent_label: 原神子代理
+    entity_types: [character, weapon, artifact, food, material]
+    hints: [原神, 旅行者, 提瓦特, 派蒙, 璃月, 蒙德, 胡桃, 那维莱特, 天空之翼]
+    wiki_desc: 原神wiki（bilibili）
     enabled: true
 
   - id: arknights
@@ -15,5 +22,10 @@ games:
     data_dir: data/arknights
     collection: arknights_kb
     wiki_base_url: https://prts.wiki/api.php
+    agent_id: arknights_agent
+    agent_label: 明日方舟子代理
+    entity_types: [character, level]
+    hints: [方舟, 干员, 罗德岛, 源石, 博士, 银灰, 能天使, 愚人号]
+    wiki_desc: PRTS wiki
     dynamic_generation: true
     enabled: true

@@ -19,6 +19,12 @@ class Game:
         self.wiki_base_url: str = raw.get("wiki_base_url", "")
         self.enabled: bool = raw.get("enabled", True)
         self.dynamic_generation: bool = raw.get("dynamic_generation", True)
+        # Agent 层委派声明（1.1：supervisor 委派与提示词由此派生，热插拔扩展）
+        self.agent_id: str = raw.get("agent_id", f"{self.game_id}_agent")
+        self.agent_label: str = raw.get("agent_label", f"{raw['name']}子代理")
+        self.entity_types: list[str] = [str(t) for t in raw.get("entity_types", [])]
+        self.hints: list[str] = [str(h) for h in raw.get("hints", [])]
+        self.wiki_desc: str = raw.get("wiki_desc", raw.get("description", ""))
 
     def to_info(self) -> dict:
         return {
@@ -26,6 +32,11 @@ class Game:
             "name": self.name,
             "enabled": self.enabled,
             "description": self.description,
+            "agent_id": self.agent_id,
+            "agent_label": self.agent_label,
+            "entity_types": self.entity_types,
+            "hints": self.hints,
+            "wiki_desc": self.wiki_desc,
         }
 
 

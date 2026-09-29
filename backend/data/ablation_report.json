@@ -1,0 +1,68 @@
+{
+  "cases": 4,
+  "configs": {
+    "all": {
+      "ablate": {},
+      "n": 4,
+      "accuracy": 0.95,
+      "faithfulness": 0.925,
+      "coverage": 1.0,
+      "avg_hallucination_count": 0.75,
+      "cases_with_hallucination": 2,
+      "total_tokens": 53525,
+      "llm_calls": 22
+    },
+    "no_replan": {
+      "ablate": {
+        "replan": true
+      },
+      "n": 4,
+      "accuracy": 0.912,
+      "faithfulness": 0.85,
+      "coverage": 1.0,
+      "avg_hallucination_count": 1.0,
+      "cases_with_hallucination": 1,
+      "total_tokens": 53330,
+      "llm_calls": 22
+    },
+    "no_reflect": {
+      "ablate": {
+        "reflect": true
+      },
+      "n": 4,
+      "accuracy": 0.887,
+      "faithfulness": 0.787,
+      "coverage": 1.0,
+      "avg_hallucination_count": 2.0,
+      "cases_with_hallucination": 3,
+      "total_tokens": 41119,
+      "llm_calls": 18
+    },
+    "no_hybrid": {
+      "ablate": {
+        "hybrid": true
+      },
+      "n": 4,
+      "accuracy": 0.725,
+      "faithfulness": 0.825,
+      "coverage": 0.85,
+      "avg_hallucination_count": 1.5,
+      "cases_with_hallucination": 2,
+      "total_tokens": 46145,
+      "llm_calls": 22
+    },
+    "no_memory": {
+      "ablate": {
+        "memory": true
+      },
+      "n": 4,
+      "accuracy": 0.688,
+      "faithfulness": 0.9,
+      "coverage": 0.75,
+      "avg_hallucination_count": 0.75,
+      "cases_with_hallucination": 1,
+      "total_tokens": 49358,
+      "llm_calls": 24
+    }
+  }
+}

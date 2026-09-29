@@ -37,6 +37,10 @@ class SessionMemory:
                 conn.execute("ALTER TABLE sessions ADD COLUMN summary TEXT")
                 conn.commit()
                 logger.info("sessions 表新增 summary 列")
+            if "summary_from" not in cols:
+                conn.execute("ALTER TABLE sessions ADD COLUMN summary_from INTEGER DEFAULT 0")
+                conn.commit()
+                logger.info("sessions 表新增 summary_from 列（增量压缩游标）")
 
     # --- 读取 ---
     def get_summary(self, session_id: str) -> str | None:
@@ -46,36 +50,59 @@ class SessionMemory:
             ).fetchone()
         return (row["summary"] or None) if row else None
 
-    # --- 生成/更新摘要 ---
+    def _get_summary_from(self, session_id: str) -> int:
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT summary_from FROM sessions WHERE session_id = ?", (session_id,)
+            ).fetchone()
+        return int((row["summary_from"] or 0)) if row else 0
+
+    # --- 生成/更新摘要（增量压缩：只压缩游标之后的新消息，transcript 有界） ---
     def refresh(self, session_id: str, game_id: str) -> str | None:
-        """消息达到阈值时压缩为摘要；失败返回 None（不阻塞主流程）"""
+        """消息达到阈值时压缩为摘要；失败返回 None（不阻塞主流程）。
+
+        4.2 修复：以 summary_from 游标做增量压缩——旧摘要 + 游标后的新消息重新压缩，
+        避免 transcript 随轮次线性增长（token 成本有界），同时早期轮次信息通过旧摘要保留。
+        """
         msgs = self.store.get_messages(session_id)
         if len(msgs) < SUMMARY_THRESHOLD:
             return None
+        cursor = self._get_summary_from(session_id)
+        # 游标之后、最近 2 条之前（压缩已完成轮次，保留进行中上下文）
+        pending = [m for m in msgs if m["id"] > cursor][:-2]
+        if not pending:
+            return self.get_summary(session_id)
         try:
             model = get_chat_model()
-            transcript = "\n".join(
-                f"{'用户' if m['role'] == 'user' else '助手'}: {m['content'][:300]}"
-                for m in msgs[:-2]
+            old_summary = self.get_summary(session_id)
+            transcript_parts = []
+            if old_summary:
+                transcript_parts.append(f"[此前对话摘要]\n{old_summary}")
+            transcript_parts.append(
+                "\n".join(
+                    f"{'用户' if m['role'] == 'user' else '助手'}: {m['content'][:300]}"
+                    for m in pending
+                )
             )
             resp = model.invoke(
                 [
                     {
                         "role": "system",
-                        "content": "把以下对话压缩成 3~5 行中文摘要，保留：玩家问过的主题/实体、助手给出的关键结论、玩家偏好线索。只输出摘要正文。",
+                        "content": "把以下内容压缩成 3~5 行中文摘要（含此前摘要时需融合保留其关键信息），保留：玩家问过的主题/实体、助手给出的关键结论、玩家偏好线索。只输出摘要正文。",
                     },
-                    {"role": "user", "content": transcript},
+                    {"role": "user", "content": "\n".join(transcript_parts)},
                 ]
             )
             summary = (resp.content or "").strip()
             if not summary:
                 return None
+            last_id = pending[-1]["id"]
             with self._connect() as conn:
                 conn.execute(
-                    "UPDATE sessions SET summary = ?, updated_at = ? WHERE session_id = ?",
-                    (summary, datetime.now(timezone.utc).isoformat(), session_id),
+                    "UPDATE sessions SET summary = ?, summary_from = ?, updated_at = ? WHERE session_id = ?",
+                    (summary, last_id, datetime.now(timezone.utc).isoformat(), session_id),
                 )
-            logger.info("[mem] 会话摘要已更新: %s", session_id)
+            logger.info("[mem] 会话摘要已增量更新: %s（游标 → %s）", session_id, last_id)
             return summary
         except Exception as e:  # noqa: BLE001
             logger.warning("[mem] 摘要生成失败: %s", e)

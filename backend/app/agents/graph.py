@@ -49,12 +49,19 @@ N_SYNTHESIZE = "synthesize"
 N_REFLECT = "reflect"
 N_FALLBACK = "fallback"
 
-# 子代理委派对象 → 显示身份
-DELEGATE_IDENTITY = {
-    "genshin_agent": "原神子代理",
-    "arknights_agent": "明日方舟子代理",
-    "knowledge_agent": "通用知识子代理",
-}
+# 子代理委派对象 → 显示身份（1.1 修复：由游戏注册表动态派生，新增游戏无需改代码；
+# knowledge_agent 为跨游戏通用子代理，固定保留）
+def _delegate_identity() -> dict:
+    ident = {"knowledge_agent": "通用知识子代理"}
+    try:
+        for g in registry.list_games():
+            ident[g["agent_id"]] = g["agent_label"]
+    except Exception:  # noqa: BLE001
+        pass
+    return ident
+
+
+DELEGATE_IDENTITY = _delegate_identity()
 
 
 def _emit(state: AgentState, event: dict) -> None:
@@ -78,14 +85,19 @@ def _load_memory_context(state: AgentState) -> None:
 
 
 def _resolve_delegate(game_id: str, domain: str, delegate_to: str = "") -> str:
-    """委派对象解析（纯函数）：domain + game_id 联合决定；显式 delegate_to 优先"""
+    """委派对象解析（1.1 修复）：由游戏注册表动态派生——entity/event 域委派给
+    game_id 对应游戏的 agent_id；knowledge 域走通用子代理；显式 delegate_to 优先。
+    新增游戏只需在 games.yaml 登记 agent_id，无需修改本函数。
+    """
     if delegate_to in DELEGATE_IDENTITY:
         return delegate_to
-    if domain in ("entity", "event"):
-        if game_id == "arknights":
-            return "arknights_agent"
-        if game_id == "genshin":
-            return "genshin_agent"
+    if domain in ("entity", "event") and game_id:
+        try:
+            game = registry.get_game(game_id, require_enabled=False)
+            if game.agent_id in DELEGATE_IDENTITY:
+                return game.agent_id
+        except Exception:  # noqa: BLE001
+            pass
     return "knowledge_agent"
 
 
@@ -98,7 +110,8 @@ def supervisor_node(state: AgentState) -> AgentState:
     """
     logger.info("[%s] supervisor: %s", state["game_id"], state["user_message"][:50])
     _emit(state, {"type": "agent_start", "node_name": N_SUPERVISOR, "message": "主管智能体正在理解任务并规划委派…"})
-    _load_memory_context(state)
+    if not state.get("ablate", {}).get("memory"):
+        _load_memory_context(state)
     data: dict = {}
     try:
         model = get_chat_model()
@@ -235,9 +248,15 @@ def retrieve_node(state: AgentState) -> AgentState:
     _emit(state, {"type": "agent_start", "node_name": N_RETRIEVE, "message": "检索知识库…", "agent": state.get("agent_identity")})
     try:
         game = registry.get_game(state["game_id"])
-        from app.rag.retriever import hybrid_retrieve
+        if state.get("ablate", {}).get("hybrid"):
+            # 消融：纯向量检索（去掉名称置顶/体系词/关键词兜底）
+            from app.rag.retriever import retriever
 
-        docs = hybrid_retrieve(game, state["user_message"], top_k=4)
+            docs = retriever.retrieve(game, state["user_message"], top_k=4)
+        else:
+            from app.rag.retriever import hybrid_retrieve
+
+            docs = hybrid_retrieve(game, state["user_message"], top_k=4)
         state["retrieved_docs"] = docs
         _emit(state, {"type": "agent_end", "node_name": N_RETRIEVE, "summary": f"检索到 {len(docs)} 条"})
         if docs:
@@ -569,6 +588,10 @@ def replan_node(state: AgentState) -> AgentState:
     预检命中且重规划未超限 → LLM 评估剩余任务 → 追加 replan_tasks。
     """
     state["replan_needed"] = False
+    if state.get("ablate", {}).get("replan"):
+        # 消融：禁用动态重规划
+        logger.info("[%s] replan 已消融（跳过）", state["game_id"])
+        return state
     if state.get("replan_count", 0) >= 1 or not state.get("subtasks"):
         return state
     pending, failed = _replan_signals(state)
@@ -626,6 +649,11 @@ def reflect_node(state: AgentState) -> AgentState:
     """Reflection 范式：质检回答 → 不通过则回炉 synthesize 一次（最多一次）"""
     logger.info("[%s] reflect", state["game_id"])
     _emit(state, {"type": "agent_start", "node_name": N_REFLECT, "message": "质检回答…"})
+    if state.get("ablate", {}).get("reflect"):
+        # 消融：禁用 Reflection 自检（直接通过，不回炉）
+        state["self_reflect"] = {"passed": True, "issues": [], "revised": ""}
+        _emit(state, {"type": "agent_end", "node_name": N_REFLECT, "summary": "质检已消融（直接通过）"})
+        return state
     answer = state.get("final_answer") or ""
     materials = _build_materials(state)
     try:

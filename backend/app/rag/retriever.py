@@ -16,7 +16,16 @@ TYPE_WORDS = {
     "料理": "food", "武器": "weapon", "材料": "material",
 }
 # 元素/体系词：query 含元素词时，命中该词的条目小幅加权
-ELEMENT_WORDS = ["火", "水", "雷", "冰", "风", "岩", "草", "蒸发", "融化", "激化", "超绽放"]
+ELEMENT_WORDS = ["火", "水", "雷", "冰", "风", "岩", "草", "蒸发", "融化", "激化", "超绽放", "永冻", "感电", "超载"]
+# 体系词 → 涉及元素集合（用于元素×职能精确补充的展开匹配）
+ELEMENT_GROUPS = {
+    "火": ("火",), "水": ("水",), "雷": ("雷",), "冰": ("冰",), "风": ("风",),
+    "岩": ("岩",), "草": ("草",),
+    "蒸发": ("火", "水"), "融化": ("火", "冰"), "超载": ("火", "雷"),
+    "超绽放": ("草", "雷"), "激化": ("雷", "草"), "永冻": ("冰", "水"), "感电": ("雷", "水"),
+}
+# 经典配队/体系简称：query 命中时直接补充对应 team 条目（覆盖词典盲区）
+TEAM_SPECIALS = ["雷九万班", "万达国际", "胡行钟", "胡钟行", "雷国", "国家队列", "草行久", "那芙万"]
 
 
 def _rerank(query: str, results: list[dict]) -> list[dict]:
@@ -100,6 +109,21 @@ def _load_all_entries(game: Game) -> list[dict]:
     return out
 
 
+def _name_match_score(query: str, name: str) -> tuple[int, int]:
+    """名称匹配质量打分（2.2 修复：query 含多实体名时区分主次）。
+    返回 (级别, 名称长度)；级别：精确等于 > query 以名称开头 > 名称在 query 中 > query 为名称子串。
+    """
+    if name == query:
+        return 4, len(name)
+    if name and query.startswith(name):
+        return 3, len(name)
+    if name and name in query:
+        return 2, len(name)
+    if name and query in name:
+        return 1, len(name)
+    return 0, 0
+
+
 def hybrid_retrieve(game: Game, query: str, top_k: int = 4) -> list[dict]:
     """混合检索：① 名称命中（强信号置顶）→ ② 向量召回补充 → ③ 均未命中时关键词/全文兜底
 
@@ -107,15 +131,17 @@ def hybrid_retrieve(game: Game, query: str, top_k: int = 4) -> list[dict]:
     """
     entries = _load_all_entries(game)
 
-    # ① 名称命中（置顶）
-    name_hits: list[dict] = []
+    # ① 名称命中（置顶）：按匹配质量排序（精确 > 前缀 > 包含 > 子串），同分按名称长度降序
+    name_hits: list[tuple[tuple[int, int], dict]] = []
     for e in entries:
         name = e.get("name", "")
-        if name and (name == query or name in query or query in name):
-            name_hits.append(e)
+        score_t = _name_match_score(query, name)
+        if score_t[0] > 0:
+            name_hits.append((score_t, e))
             continue
         if e.get("type") == "team" and query in (e.get("name", "") + e.get("summary", "")):
-            name_hits.append(e)
+            name_hits.append(((2, len(name)), e))
+    name_hits.sort(key=lambda t: (-t[0][0], -t[0][1]))
     name_docs = [
         {
             "doc_id": e.get("id", ""),
@@ -124,7 +150,7 @@ def hybrid_retrieve(game: Game, query: str, top_k: int = 4) -> list[dict]:
             "source": e.get("source", "static"),
             "score": 1.0,
         }
-        for e in name_hits[:3]
+        for _, e in name_hits[:3]
     ]
 
     # ② 向量检索补充
@@ -139,17 +165,20 @@ def hybrid_retrieve(game: Game, query: str, top_k: int = 4) -> list[dict]:
     docs = docs[:top_k]
 
     # ③ 元素 × 职能精确补充（如"雷系副C"→ element=雷 且 role 含副C 的角色）
-    ELEMENTS = ("火", "水", "雷", "冰", "风", "岩", "草")
+    # 2.3 修复：体系词（永冻/蒸发/激化等）展开为元素对；经典配队简称直接补充 team 条目
     FUNC_WORDS = ("主C", "副C", "辅助", "治疗", "护盾")
-    q_els = [w for w in ELEMENTS if w in query]
+    q_els = [w for w in ELEMENT_GROUPS if w in query]
+    expanded_els: set[str] = set()
+    for w in q_els:
+        expanded_els.update(ELEMENT_GROUPS[w])
     q_func = [w for w in FUNC_WORDS if w in query]
-    if q_els and q_func:
+    if expanded_els and q_func:
         extra: list[dict] = []
         for e in entries:
             if e.get("type") != "character" or e.get("id") in seen:
                 continue
             role = str(e.get("role", ""))
-            if e.get("element") in q_els and any(f in role for f in q_func):
+            if e.get("element") in expanded_els and any(f in role for f in q_func):
                 extra.append(e)
         for e in extra[:2]:
             docs.append({
@@ -160,6 +189,32 @@ def hybrid_retrieve(game: Game, query: str, top_k: int = 4) -> list[dict]:
                 "score": 0.95,
             })
             seen.add(e.get("id", ""))
+    # 2.3b：仅体系词（无职能词）或经典配队简称 → 补充匹配 team 条目与对应元素角色
+    elif expanded_els or any(s in query for s in TEAM_SPECIALS):
+        extra2: list[dict] = []
+        team_hit = next(
+            (e for e in entries
+             if e.get("type") == "team" and e.get("id") not in seen
+             and any(s in (e.get("name", "") + e.get("summary", "")) for s in (*TEAM_SPECIALS, *q_els))),
+            None,
+        )
+        if team_hit:
+            extra2.append(team_hit)
+            seen.add(team_hit.get("id", ""))
+        for e in entries:
+            if e.get("type") != "character" or e.get("id") in seen or len(extra2) >= 2:
+                continue
+            if expanded_els and e.get("element") in expanded_els:
+                extra2.append(e)
+                seen.add(e.get("id", ""))
+        for e in extra2:
+            docs.append({
+                "doc_id": e.get("id", ""),
+                "title": e.get("name", ""),
+                "content": json.dumps({k: v for k, v in e.items() if k != "_meta"}, ensure_ascii=False),
+                "source": e.get("source", "static"),
+                "score": 0.95,
+            })
 
     # ④ 关键词 / 全文兜底（docs 为空时）
     if not docs:

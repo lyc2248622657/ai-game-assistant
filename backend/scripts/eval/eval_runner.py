@@ -23,6 +23,7 @@ from app.agents.graph import app_graph  # noqa: E402
 from app.agents.llm import get_chat_model  # noqa: E402
 from app.core.logging import get_logger  # noqa: E402
 from app.core.usage import usage_stats  # noqa: E402
+from scripts.eval.eval_common import mean_ci, pass_rate  # noqa: E402
 
 logger = get_logger(__name__)
 EVAL_SET = Path(__file__).resolve().parent / "evaluation_set.json"
@@ -80,7 +81,10 @@ def run_case(model, case: dict) -> dict:
         "type": case["type"],
         "question": q,
         "answer": answer[:500],
-        "citations": [c["title"] for c in citations][:5],
+        "citations": [
+            {"title": c["title"], "content": str(c.get("content", ""))[:600]}
+            for c in citations
+        ][:5],  # 3.2 修复：保留引用正文，Judge 可依据引用内容核验（否则误判"无引用支撑"）
         "reflect_passed": reflect.get("passed"),
         "reflect_issues": reflect.get("issues", []),
         "scores": {
@@ -154,10 +158,16 @@ def main() -> int:
             })
     usage = usage_stats.snapshot()
 
-    # 汇总
+    # 汇总（3.1 修复：均值 + 95% 置信区间 + 阈值通过率 Wilson CI）
     def avg(key):
         vals = [r["scores"][key] for r in results if r["scores"].get(key) is not None]
         return round(sum(vals) / len(vals), 3) if vals else 0.0
+
+    metric_vals = {
+        k: [r["scores"][k] for r in results]
+        for k in ("accuracy", "faithfulness", "coverage")
+    }
+    ci = {k: mean_ci(vals) for k, vals in metric_vals.items()}
 
     summary = {
         "total": len(results),
@@ -168,6 +178,17 @@ def main() -> int:
             "avg_hallucination_count": round(sum(r["scores"]["hallucination_count"] for r in results) / len(results), 2),
             "cases_with_hallucination": sum(1 for r in results if r["scores"]["hallucination_count"] > 0),
             "reflect_triggered": sum(1 for r in results if r["reflect_passed"] is False),
+        },
+        "confidence_intervals": {
+            k: {"mean": ci[k][0], "ci_lo": ci[k][1], "ci_hi": ci[k][2]}
+            for k in ("accuracy", "faithfulness", "coverage")
+        },
+        "pass_rates": {
+            "accuracy_pass": pass_rate(metric_vals["accuracy"], 0.8),
+            "faithfulness_pass": pass_rate(metric_vals["faithfulness"], 0.8),
+            "coverage_pass": pass_rate(metric_vals["coverage"], 0.8),
+            "no_hallucination": pass_rate([0 if v > 0 else 1 for v in metric_vals.get("coverage", []) or
+                                          [r["scores"]["hallucination_count"] for r in results]], 1.0),
         },
         "usage": {
             "input_tokens": usage["input_tokens"],
@@ -202,10 +223,16 @@ def main() -> int:
     # 控制台表格
     print("\n===== LLM-as-Judge 评测报告 =====")
     print(f"总条数: {summary['total']}")
-    print(f"准确率 accuracy      : {summary['metrics']['accuracy']}")
-    print(f"忠实性 faithfulness  : {summary['metrics']['faithfulness']}")
-    print(f"覆盖度 coverage      : {summary['metrics']['coverage']}")
-    print(f"平均幻觉条数         : {summary['metrics']['avg_hallucination_count']}（{summary['metrics']['cases_with_hallucination']} 条含幻觉）")
+    ci_show = summary["confidence_intervals"]
+    pr = summary["pass_rates"]
+    print(f"准确率 accuracy      : {ci_show['accuracy']['mean']}  (95%CI {ci_show['accuracy']['ci_lo']}~{ci_show['accuracy']['ci_hi']}, "
+          f"通过率 {pr['accuracy_pass']['rate']} [{pr['accuracy_pass']['ci_lo']}~{pr['accuracy_pass']['ci_hi']}])")
+    print(f"忠实性 faithfulness  : {ci_show['faithfulness']['mean']}  (95%CI {ci_show['faithfulness']['ci_lo']}~{ci_show['faithfulness']['ci_hi']}, "
+          f"通过率 {pr['faithfulness_pass']['rate']} [{pr['faithfulness_pass']['ci_lo']}~{pr['faithfulness_pass']['ci_hi']}])")
+    print(f"覆盖度 coverage      : {ci_show['coverage']['mean']}  (95%CI {ci_show['coverage']['ci_lo']}~{ci_show['coverage']['ci_hi']}, "
+          f"通过率 {pr['coverage_pass']['rate']} [{pr['coverage_pass']['ci_lo']}~{pr['coverage_pass']['ci_hi']}])")
+    print(f"平均幻觉条数         : {summary['metrics']['avg_hallucination_count']}（{summary['metrics']['cases_with_hallucination']} 条含幻觉，"
+          f"无幻觉率 {pr['no_hallucination']['rate']} [{pr['no_hallucination']['ci_lo']}~{pr['no_hallucination']['ci_hi']}]）")
     print(f"Reflection 触发回炉  : {summary['metrics']['reflect_triggered']} 条")
     u = summary["usage"]
     print(f"Token 消耗           : {u['total_tokens']:,}（输入 {u['input_tokens']:,} / 输出 {u['output_tokens']:,}，"

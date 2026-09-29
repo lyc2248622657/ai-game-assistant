@@ -16,14 +16,40 @@ BASE_RULES = (
     "4) 当工具未命中且无法获取时如实说明，不编造。"
 )
 
-# 支持的游戏（供判别）
-SUPPORTED_GAMES = (
-    "你可以服务的游戏：\n"
-    "- 原神（genshin）：实体类型 character/weapon/artifact/food/material；官方数据源=原神wiki（bilibili）\n"
-    "- 明日方舟（arknights）：实体类型 character（干员）；官方数据源=PRTS wiki\n"
-    "用户问题中会提到游戏名、角色名、武器名等，你需要判断属于哪个游戏；"
-    "明日方舟的干员（如 银灰/能天使/博士相关）与《原神》角色区分明显，注意不要混淆。"
-)
+TYPE_CN = {
+    "character": "角色/干员", "weapon": "武器", "artifact": "圣遗物",
+    "food": "料理", "material": "材料", "level": "关卡（活动关、肉鸽图、章节关等）",
+}
+
+
+def _game_registry_block() -> str:
+    """从游戏注册表动态生成「可服务的游戏」说明（1.1：新增游戏无需改 prompt，自动出现）"""
+    from app.knowledge.games import registry
+
+    lines = []
+    games = [g for g in registry.list_games()]
+    for g in games:
+        types = "、".join(TYPE_CN.get(t, t) for t in g["entity_types"]) or "游戏资料"
+        hints = "、".join(g["hints"][:8]) if g["hints"] else g["name"]
+        lines.append(
+            f"- {g['name']}（{g['game_id']}）：实体类型 {types}；"
+            f"官方数据源={g['wiki_desc']}；识别线索：{hints} 等"
+        )
+    if len(games) >= 2:
+        names = "与".join(f"《{g['name']}》" for g in games)
+        lines.append(f"{names}的角色/干员区分明显，注意不要混淆。")
+    return "\n".join(lines)
+
+
+def build_supported_games() -> str:
+    """可服务的游戏说明（动态生成）"""
+    return "你可以服务的游戏：\n" + _game_registry_block() + "\n" + (
+        "用户问题中会提到游戏名、角色名、武器名等，你需要判断属于哪个游戏。"
+    )
+
+
+# 支持的游戏（供判别）：由注册表动态生成（1.1 修复，原为写死两游戏）
+SUPPORTED_GAMES = build_supported_games()
 
 
 def build_agent_system_prompt(game_name: str | None = None, extra_context: str | None = None) -> str:
@@ -45,17 +71,25 @@ def build_agent_system_prompt(game_name: str | None = None, extra_context: str |
     return "\n".join(parts)
 
 
-# ---------- 子代理身份（多智能体协作） ----------
-SUBAGENT_ROLES = {
-    "genshin_agent": "你是「原神专家子代理」：由主管智能体委派处理《原神》领域任务，"
-                     "精通角色/武器/圣遗物/料理/材料与配队攻略，只回答原神相关内容。"
-                     "用户询问版本/活动/卡池/前瞻等排期时调用 get_game_events 工具获取真实事件数据，不自行编造时间。",
-    "arknights_agent": "你是「明日方舟专家子代理」：由主管智能体委派处理《明日方舟》领域任务，"
-                       "精通干员/关卡/养成材料与攻略，只回答明日方舟相关内容。"
-                       "用户询问版本/活动/卡池等排期时调用 get_game_events 工具获取真实事件数据，不自行编造时间。",
-    "knowledge_agent": "你是「通用知识子代理」：由主管智能体委派处理跨游戏知识问答与综合问题，"
-                       "基于知识库可靠资料作答。用户询问事件排期时调用 get_game_events 工具。",
-}
+# ---------- 子代理身份（多智能体协作；1.1 修复：游戏子代理由注册表动态派生） ----------
+def _build_subagent_roles() -> dict[str, str]:
+    from app.knowledge.games import registry
+
+    roles: dict[str, str] = {}
+    for g in registry.list_games():
+        roles[g["agent_id"]] = (
+            f"你是「{g['agent_label']}」：由主管智能体委派处理《{g['name']}》领域任务，"
+            f"精通{g['description']}，只回答{g['name']}相关内容。"
+            "用户询问版本/活动/卡池/前瞻等排期时调用 get_game_events 工具获取真实事件数据，不自行编造时间。"
+        )
+    roles["knowledge_agent"] = (
+        "你是「通用知识子代理」：由主管智能体委派处理跨游戏知识问答与综合问题，"
+        "基于知识库可靠资料作答。用户询问事件排期时调用 get_game_events 工具。"
+    )
+    return roles
+
+
+SUBAGENT_ROLES = _build_subagent_roles()
 
 
 def build_subagent_system_prompt(delegate_to: str, game_name: str | None = None, extra_context: str | None = None) -> str:
@@ -70,10 +104,32 @@ def build_subagent_system_prompt(delegate_to: str, game_name: str | None = None,
 
 
 # ---------- 任务指令模板 ----------
+def _entity_type_block() -> str:
+    """实体类型判别段（动态生成：每个游戏 + 实体类型说明）"""
+    from app.knowledge.games import registry
+
+    lines = []
+    for g in registry.list_games():
+        types = "、".join(TYPE_CN.get(t, t) for t in g["entity_types"]) or "游戏资料"
+        lines.append(f"- {g['name']}（{g['game_id']}）实体类型：{types}")
+    return "\n".join(lines)
+
+
+def _game_hint_block() -> str:
+    """supervisor 游戏线索段（动态生成）"""
+    from app.knowledge.games import registry
+
+    lines = []
+    for g in registry.list_games():
+        hints = "、".join(g["hints"][:10]) if g["hints"] else g["name"]
+        lines.append(f"{g['name']}（{g['game_id']}）线索：{hints}等")
+    return "；".join(lines)
+
+
 PLAN_INSTRUCTION = (
     "第一步：判断用户问题属于哪个游戏（game_id）与是否在询问该游戏的具体实体。\n"
-    "- 原神（genshin）实体类型：character（角色）/weapon（武器）/artifact（圣遗物）/food（料理）/material（材料）\n"
-    "- 明日方舟（arknights）实体类型：character（干员）/level（关卡：活动关、肉鸽图、章节关等）\n"
+    + _entity_type_block()
+    + "\n"
     "按角色/干员名、武器名、物品名、关卡名等明显线索判断游戏；无法判断时 game_id 填空字符串。\n"
     "实体判别规则：问题中出现明确的具体实体专有名词（如 胡桃/银灰/天空之翼/幽幽大行军/愚人号/傀影与猩红孤钻）→ "
     "is_entity_query=true（即使问的是推荐/搭配/适配/打法，也按实体查询处理）；\n"
@@ -97,15 +153,13 @@ PLAN_INSTRUCTION = (
 SUPERVISOR_INSTRUCTION = (
     "你是「主管智能体」，负责理解用户问题并**委派给最合适的子代理**执行。\n"
     "第一步判断：\n"
-    "1) game_id：用户问题属于哪个游戏。原神（genshin）线索：原神/旅行者/提瓦特/派蒙/璃月/蒙德/胡桃/那维莱特/天空之翼等；"
-    "明日方舟（arknights）线索：方舟/干员/罗德岛/源石/博士/银灰/能天使/愚人号等；无法判断填空字符串。\n"
+    "1) game_id：用户问题属于哪个游戏。" + _game_hint_block() + "；无法判断填空字符串。\n"
     "2) domain：任务域。具体实体查询（角色/武器/圣遗物/料理/材料/干员/关卡的具体资料、数值、配队、养成、攻略）→ entity；"
     "知识问答（跨实体比较、体系盘点、『有哪些XX』等）→ knowledge；"
     "事件排期查询（版本更新/维护、限时活动、卡池/祈愿、前瞻直播、最近有什么活动、活动/卡池什么时候开或结束）→ event。\n"
-    "3) delegate_to：委派对象。game_id=genshin 且 domain=entity → genshin_agent；"
-    "game_id=arknights 且 domain=entity → arknights_agent；"
-    "domain=event 时按 game_id 委派（genshin→genshin_agent，arknights→arknights_agent，无法判断→knowledge_agent）；"
-    "其余（含知识问答、无法判断游戏）→ knowledge_agent。\n"
+    "3) delegate_to：委派对象。domain=entity 或 event 时，委派给 game_id 对应游戏的子代理"
+    "（子代理名见上方游戏列表，如原神→genshin_agent、明日方舟→arknights_agent）；"
+    "无法判断游戏或 domain=knowledge → knowledge_agent。\n"
     "4) brief：一句话向子代理交代任务目标（如『查询胡桃的技能数值与适配武器』）。\n"
     "5) reason：一句话委派理由（如『原神角色问题，属于原神领域』）。\n"
     "同时沿用实体判别与任务分解规则：\n"

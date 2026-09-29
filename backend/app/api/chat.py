@@ -3,10 +3,11 @@
 - POST /api/chat          非流式（invoke 完成后返回完整回答）
 - POST /api/chat/stream   SSE 流式：逐节点推送 Agent 事件，前端时间线实时刷新
 """
+import asyncio
 import json
 import traceback
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from fastapi.responses import StreamingResponse
 
 from app.agents.graph import app_graph
@@ -120,17 +121,25 @@ def chat(body: ChatRequest):
 
 
 @router.post("/stream", response_class=StreamingResponse)
-def chat_stream(body: ChatRequest):
-    """SSE 流式聊天：Agent 各节点事件实时推送，最后推回答/引用/done"""
+async def chat_stream(body: ChatRequest, request: Request):
+    """SSE 流式聊天：Agent 各节点事件实时推送，最后推回答/引用/done。
+
+    2.4 修复：async 生成器 + request.is_disconnected() 断连检测——
+    客户端断开后立即停止拉取后续节点（不再发起新的 LLM 调用），
+    避免 token 浪费；正在执行的单次同步 LLM 调用无法中途取消（语言级限制，已在日志说明）。
+    """
     game, session, state = _prepare(body)
 
-    def gen():
+    async def gen():
         last_n = 0
         last_snapshot = None
         usage_before = usage_stats.snapshot()
         yield _sse("session", {"type": "session", "session_id": session["session_id"]})
         try:
-            for snapshot in app_graph.stream(state, stream_mode="values"):
+            async for snapshot in app_graph.astream(state, stream_mode="values"):
+                if await request.is_disconnected():
+                    logger.info("[sse] 客户端断开连接，停止流: %s", session["session_id"])
+                    return
                 last_snapshot = snapshot
                 events = snapshot.get("events") or []
                 for ev in events[last_n:]:
@@ -152,18 +161,19 @@ def chat_stream(body: ChatRequest):
                 if last_snapshot.get("guides"):
                     yield _sse("guides", {"type": "guides", "guides": last_snapshot["guides"]})
                 answer = last_snapshot.get("final_answer") or "（骨架）暂无回答"
-                store.add_message(session["session_id"], "user", body.message)
-                store.add_message(
-                    session["session_id"], "assistant", answer,
-                    citations=[
-                        {"doc_id": c["doc_id"], "title": c["title"], "content": c.get("content", ""), "source": c.get("source", "")}
-                        for c in cits
-                    ],
+                if await request.is_disconnected():
+                    logger.info("[sse] 客户端断开，跳过会话落库: %s", session["session_id"])
+                    return
+                await asyncio.to_thread(store.add_message, session["session_id"], "user", body.message)
+                await asyncio.to_thread(
+                    store.add_message, session["session_id"], "assistant", answer,
+                    [{"doc_id": c["doc_id"], "title": c["title"], "content": c.get("content", ""), "source": c.get("source", "")} for c in cits],
                 )
-                _write_memory(
+                await asyncio.to_thread(
+                    _write_memory,
                     session["session_id"],
                     last_snapshot.get("game_id") or game.game_id,
-                    entities=[c.get("title", "") for c in cits[:4]],
+                    [c.get("title", "") for c in cits[:4]],
                 )
             yield _sse("usage", {"type": "usage", "usage": _usage_delta(usage_before)})
             yield _sse("done", {"type": "done"})
