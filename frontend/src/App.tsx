@@ -5,6 +5,7 @@ import { ChatWindow } from './components/ChatWindow'
 import { CitationCard } from './components/CitationCard'
 import { EventCountdown } from './components/EventCountdown'
 import { SessionBar } from './components/SessionBar'
+import { SettingsModal } from './components/SettingsModal'
 import type { AgentEvent, ChatMessage, Citation, SessionInfo, UsageInfo } from './types'
 
 /** 多游戏统一对话框：不再按游戏切换模块，由 Agent 自动判别游戏（原神/明日方舟） */
@@ -14,6 +15,8 @@ export default function App() {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [events, setEvents] = useState<AgentEvent[]>([])
   const [loading, setLoading] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
+  const [keyConfigured, setKeyConfigured] = useState(false)
 
   // 初始化：加载会话列表并自动进入最近一个对话（避免每次打开新建空对话）
   useEffect(() => {
@@ -31,6 +34,7 @@ export default function App() {
         )
       }
     })
+    api.getKeyStatus().then((s) => setKeyConfigured(s.configured))
   }, [])
 
   /** 新建对话：立即创建并切换过去（与上次对话隔离） */
@@ -160,6 +164,14 @@ export default function App() {
             <div className="flex gap-2">
               <span className="rounded-full bg-green-50 px-3 py-1 text-xs text-green-600">原神 → 原神wiki</span>
               <span className="rounded-full bg-amber-50 px-3 py-1 text-xs text-amber-600">明日方舟 → PRTS</span>
+              <button
+                onClick={() => setSettingsOpen(true)}
+                className="flex items-center gap-1.5 rounded-full border border-gray-200 px-3 py-1 text-xs text-gray-600 hover:bg-gray-50"
+                title="模型设置（API Key）"
+              >
+                <span className={keyConfigured ? 'text-green-500' : 'text-amber-500'}>●</span>
+                ⚙ 设置
+              </button>
             </div>
           </div>
         </header>
@@ -179,6 +191,13 @@ export default function App() {
           </div>
         </main>
       </div>
+      <SettingsModal
+        open={settingsOpen}
+        onClose={() => {
+          setSettingsOpen(false)
+          api.getKeyStatus().then((s) => setKeyConfigured(s.configured))
+        }}
+      />
     </div>
   )
 }

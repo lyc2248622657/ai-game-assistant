@@ -55,6 +55,12 @@ def _usage_delta(before: dict) -> dict:
 
 def _prepare(body: ChatRequest):
     """校验游戏（可缺省：统一对话框由 Agent 判别）→ 获取/创建会话 → 组装初始状态"""
+    from app.core import key_manager
+
+    # 未配置 API Key 时给出明确引导（应用内设置界面填写后即时生效，无需重启）
+    model, api_key = key_manager.resolve_runtime()
+    if not api_key:
+        raise AppError(ErrorCode.CONFIG_ERROR, "尚未配置 API Key：请点击右上角 ⚙ 设置，填入 DeepSeek API Key 后即可使用", 400)
     gid = (body.game_id or "").strip() or None
     if gid:
         game = registry.get_game(gid)

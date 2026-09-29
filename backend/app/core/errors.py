@@ -13,6 +13,7 @@ class ErrorCode(IntEnum):
     LLM_CALL_FAILED = 10004   # 模型调用失败（重试后仍失败）
     TOOL_FAILED = 10005       # 工具执行失败
     RETRIEVAL_EMPTY = 10006   # 检索无结果
+    CONFIG_ERROR = 10007      # 配置缺失（如未填写 API Key）
 
 
 class AppError(Exception):

@@ -44,6 +44,22 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ game_id: gameId, entity_name: entityName, note }),
     }),
+
+  // 应用内设置：API Key（只返回打码，明文明文仅在保存时提交一次）
+  getKeyStatus: () =>
+    request<{ configured: boolean; source?: string | null; model?: string; masked_key?: string }>(
+      '/settings/key',
+    ),
+  saveKey: (apiKey: string, model: string) =>
+    request<{ ok: boolean; model: string; masked_key: string; message: string }>('/settings/key', {
+      method: 'PUT',
+      body: JSON.stringify({ api_key: apiKey, model }),
+    }),
+  testKey: (apiKey: string, model: string) =>
+    request<{ ok: boolean; message: string }>('/settings/key/test', {
+      method: 'POST',
+      body: JSON.stringify({ api_key: apiKey, model }),
+    }),
 }
 
 /**
