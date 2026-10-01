@@ -2,6 +2,10 @@
 
 基于 LangGraph 的多智能体游戏助手：支持多游戏知识包（原神 / 明日方舟）、RAG 向量检索、**6 个 Function Calling 工具（实体查询/配队分析/材料换算/攻略检索/关卡攻略/重大事件）**、SSE 流式决策链路可视化与 React 前端。官方 wiki（BWIKI / PRTS）为主要数据依据，LLM 仅补缺并交叉验证，回答可溯源防幻觉。
 
+[![CI](https://github.com/lyc2248622657/ai-game-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/lyc2248622657/ai-game-assistant/actions/workflows/ci.yml)
+[![License](https://img.shields.io/github/license/lyc2248622657/ai-game-assistant)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB)](backend/requirements.txt)
+
 ## 整体架构
 
 ```
@@ -76,7 +80,11 @@ ai-game-assistant/
 ### 前置
 
 - Python 3.10+、Node 18+
-- LLM API Key（**自动读取** `C:\Users\<用户>\Desktop\key.txt`，格式：首行 LLM 类型如 `deepseek`，次行 API Key；也支持 `backend/.env` 兜底。密钥不入库不入日志，见 `scripts/setup_env_from_file.py`）
+- LLM API Key，三选一（优先级从高到低）：
+  1. **应用内设置**（推荐）：启动后点击前端右上角 ⚙ 设置按钮，填写 Key 与模型即可，保存后即时生效、无需重启，写入 `app_data/settings.json`（不入库不入日志）；
+  2. **自动读取** `C:\Users\<用户>\Desktop\key.txt`（格式：首行 LLM 类型如 `deepseek`，次行 API Key）；
+  3. `backend/.env` 兜底（`DEEPSEEK_API_KEY / DEEPSEEK_MODEL / BASE_URL`）。
+  密钥仅在本机保存，响应与日志只显示打码形式；`.gitignore` 已忽略 `key.txt`、`app_data/`、`.env`，不会随仓库泄露。
 
 ### 后端
 
@@ -315,6 +323,7 @@ Reflection 对防幻觉贡献显著（去掉后幻觉 0.75→2.0 条），replan
 - [x] **记忆型 Agent（2026-09-24）**：Memory RAG——会话摘要 / 用户偏好 / 常问实体向量化写入 Chroma「user_memory」集合（按游戏隔离），问答前按相关性召回注入上下文（MemGPT 式 核心/工作/外部记忆分层落地子集）；`app/memory/memory_rag.py` upsert_session + retrieve，chat 流程对话结束自动写入；pytest 新增 11 项 → **40 passed**
 - [x] **武器卡池展示（2026-09-25）**：祈愿页武器池（如「神铸赋形」）生成独立 gacha_weapon 事件（5星/4星武器 + 官方时间 + estimated=false），前端新增 🗡️ 武器卡池标签（与角色池同周期）；修复 merge_gacha 未命中池保留推算事件；pytest → **44 passed**
 - [x] **EXE 启动体验（2026-09-25）**：启动横幅打印技术栈版本（LangGraph 1.2.12 / LangChain 1.4.2 / 8 节点状态图 / 6 工具）；浏览器自动打开后控制台窗口自动隐藏（ShowWindow SW_HIDE，服务后台继续运行）；日志落盘 pp_data/logs/server.log；已重打包验证（窗口句柄 0、8000 服务正常）
+- [x] **应用内设置 API Key（2026-09-29）**：前端 ⚙ 设置按钮（SettingsModal）+ 后端 `/api/settings/key`（GET 返回 masked_key / POST 校验并保存）；Key 支持**应用内填写 → key.txt → .env** 三级优先读取并即时生效；保存写入 `app_data/settings.json`，不入库不入日志，响应与日志仅显示打码形式；`app/core/key_manager.py` 统一管理来源与脱敏；已重打包 EXE 实测（设置端点 200，配置源 env_or_file）
 ## 本地一键启动（推荐，无需 Docker）
 
 ```powershell
