@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        working-directory: backend
+        run: |
+          pip install -r requirements.txt
+          pip install pytest
+
+      - name: Run pytest
+        working-directory: backend
+        run: |
+          python -m pytest tests -q --tb=short
+
+      - name: Verify RAG pipeline import
+        working-directory: backend
+        run: |
+          python -c "from app.rag import hybrid; print('RAG ok')"
+          python -c "from app.agents.graph import build_graph; print('Graph ok')"
