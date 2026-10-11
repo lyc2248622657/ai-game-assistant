@@ -180,7 +180,7 @@ SSE 流式：`POST /api/chat/stream` 增量推送节点事件（agent_start/end�
 
 ```bash
 cd backend
-.venv\Scripts\python.exe -m pytest tests -q     # 52 passed
+.venv\Scripts\python.exe -m pytest tests -q     # 68 passed
 ```
 
 - `tests/test_parsers.py`：PRTS 技能/天赋/材料解析器单测（固定 wikitext 样本，不联网）——验证 `{{*|20%|{{color|+20%}}}}` 公式清洗、技能 1-7 级+专精分级、天赋条件、精1/精2 与技能升级材料解析；
@@ -188,7 +188,10 @@ cd backend
 - `tests/test_strategy_tools.py`：B站标题清洗、材料数量「万」单位归一；
 - `tests/test_events.py`：事件倒计时引擎纯逻辑单测——6 周版本周期推算（更新日=周三）、前瞻直播早于版本更新约 14 天、upcoming/active/ended 状态判定与倒计时、优先级排序、**近 30 天窗口过滤**、**祈愿页真实卡池合并**（官方池名/角色覆盖推算、双池合并、未命中保持预计）、进行中版本带真实活动名（不联网，固定样本）；
 - `tests/test_bm25.py`：BM25 稀疏检索单测——中英混合分词（中文 bigram + 英文词）、干员名查询命中对应条目、中文复合查询命中语义相关条目（不加载向量模型，纯逻辑）；
-- `tests/test_eval_sets.py`：评测集格式校验——两游戏评测集 50 题 id 全局唯一、type 合法、key_points 非空、四种题型每种 ≥4 题。**共 52 passed**。
+- `tests/test_eval_sets.py`：评测集格式校验——两游戏评测集 50 题 id 全局唯一、type 合法、key_points 非空、四种题型每种 ≥4 题；
+- `tests/test_auto_title.py`：智能命名单测——本地规则兜底标题（去客套前缀/截 14 字）、已命名会话不覆盖、LLM 提炼失败静默回退；
+- `tests/test_recent_entities.py`：list_recent_entities 工具单测——上线时间倒序、limit 钳制（上限 10/非法值回退 5）、同名去重、方舟可用；
+- `tests/test_enhance.py`：信息补全单测——只补缺失字段不覆盖已有值、wiki 失败静默、非角色类型跳过、无缺失字段不触发 wiki 请求。**共 68 passed**。
 
 ## 评测（LLM-as-Judge）
 
@@ -224,6 +227,12 @@ LangGraph（四路混合检索 + Reflection 质检 + 引用输出）质量更稳
 
 最新全量结果（2026-09-23）：**准确率 0.962 / 忠实性 1.0 / 覆盖度 0.945 / 幻觉 0 条**（30 条，93.6k token，平均 3.1k/条）；
 收尾处置（数据补录雷电将军 + synthesize 详实化 + key_points 校准）后原 3 个低分项全部满分，30 条无低分项。
+
+最新全量结果（2026-10-11，多游戏评测体系后）：**原神 30 条 entity 0.9 / knowledge 0.86（原 0.7）/ edge 1.0 / complex 1.0（原 0.66），幻觉清零**；
+失败用例清零归因修复：tool 直接作答引用兜底、角色→配队/武器/圣遗物联动检索（related_gear）、
+万达国际入库（teams.json）、删除"XX·主C 通用队"伪配队兜底（编造来源）、列举类 top_k 4→12；
+方舟 smoke acc=0.967 / fth=0.95 / cov=1.0。**AI 辅助开发方法论已沉淀：`docs/AI-METHODOLOGY.md`**
+（提示词模板化/状态图质检/评测闭环/多路召回/官方数据管道，全部带量化证据）。
 
 ### 代码审查与修复（2026-09-25）
 
@@ -331,7 +340,10 @@ Reflection 对防幻觉贡献显著（去掉后幻觉 0.75→2.0 条），replan
 - [x] **多游戏评测体系（P0，2026-10-11）**：评测集扩展为 **原神 30 + 明日方舟 20 共 50 条**（`arknights_evaluation_set.json` 按方舟种子干员与动态工具能力设计：实体/知识/边界/复合四类）；eval_runner 新增 `--game genshin|arknights|all` 参数与 **RAG 命中率指标**（期望要点是否被引用资料覆盖）；方舟 smoke 评测实测 acc=0.95 / fth=0.925 / cov=1.0 / RAG 命中 0.9 / 零幻觉
 - [x] **RAG 多路召回增强（P0，2026-10-11）**：hybrid_retrieve 新增 **BM25 稀疏检索**（无外部依赖的 Okapi BM25 实现，中文 bigram + 英文分词，按数据文件指纹缓存索引），与名称命中、向量召回融合去重按分数排序——补齐「向量+稀疏」双路召回，检索质量可被评测 RAG 命中率观测
 - [x] **工具失败自动重试（P2，2026-10-11）**：tool 节点工具瞬时失败（网络/上游抖动）自动重试一次再标记 error，避免偶发 5xx 中断整轮链路
-- [x] **测试覆盖扩展（P1，2026-10-11）**：新增 `test_bm25.py`（分词/命中/复合查询）与 `test_eval_sets.py`（评测集格式校验），pytest **44 → 52 passed**
+- [x] **测试覆盖扩展（P1，2026-10-11）**：新增 `test_bm25.py`（分词/命中/复合查询）、`test_eval_sets.py`（评测集格式校验）、`test_auto_title.py`（智能命名）、`test_recent_entities.py`（最近实体）、`test_enhance.py`（信息补全），pytest **52 → 68 passed**
+- [x] **评测失败用例清零（P0 收尾，2026-10-11）**：引用兜底（tool 直答也出 citations）+ related_gear 联动检索 + 万达国际入库 + 删除伪配队编造兜底 + 列举类 top_k 12；原神 30 条 entity 0.9 / knowledge 0.86 / edge 1.0 / complex 1.0，**幻觉清零**，失败列表为空（commit `ca5a32f`）
+- [x] **CI 修复 + 前端构建检查（P0，2026-10-11）**：修复 RAG import 检查（`from app.rag import hybrid` 模块不存在会挂 CI → `from app.rag.retriever import hybrid_retrieve`）；新增 frontend-build job（npm ci + build）
+- [x] **AI 方法论沉淀（P1，2026-10-11）**：`docs/AI-METHODOLOGY.md`——提示词模板化 / 状态图质检 / 评测闭环（Judge 校准 MAE=0）/ 多路召回 / 官方数据管道，全部带量化证据与面试版故事
 ## 本地一键启动（推荐，无需 Docker）
 
 ```powershell

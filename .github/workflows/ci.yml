@@ -31,5 +31,21 @@ jobs:
       - name: Verify RAG pipeline import
         working-directory: backend
         run: |
-          python -c "from app.rag import hybrid; print('RAG ok')"
+          python -c "from app.rag.retriever import hybrid_retrieve; print('RAG ok')"
           python -c "from app.agents.graph import build_graph; print('Graph ok')"
+
+  frontend-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install & build
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
