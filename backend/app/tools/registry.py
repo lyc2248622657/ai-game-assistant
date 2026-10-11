@@ -117,7 +117,7 @@ class ToolRegistry:
     def get(self, name: str) -> Tool:
         return self._tools[name]
 
-    def list(self) -> list[Tool]:
+    def list_tools(self) -> list[Tool]:
         return list(self._tools.values())
 
     def schemas(self) -> list[dict]:
