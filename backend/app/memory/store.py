@@ -83,6 +83,13 @@ class SessionStore:
             "message_count": count,
         }
 
+    def update_session_title(self, session_id: str, title: str) -> None:
+        """更新会话标题（智能命名）"""
+        with self._connect() as conn:
+            conn.execute(
+                "UPDATE sessions SET title = ? WHERE session_id = ?", (title, session_id)
+            )
+
     def list_sessions(self, game_id: str | None = None) -> list[dict]:
         with self._connect() as conn:
             if game_id:
