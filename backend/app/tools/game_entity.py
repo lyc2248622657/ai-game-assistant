@@ -45,6 +45,7 @@ FILE_BY_TYPE = {
     "artifact": "artifacts.json",
     "material": "materials.json",
     "food": "foods.json",
+    "team": "teams.json",
 }
 
 # 头像命名关键词（wiki 页面图优先匹配，其次取首图）
@@ -478,6 +479,35 @@ def _save_dynamic(game: Game, entry_type: str, entry: dict):
     logger.info("[%s] 已写入动态缓存: %s", entry.get("name"), path)
 
 
+def _related_gear(game: Game, char_name: str) -> list[dict]:
+    """角色关联信息联动：从数据层找出与该角色相关的配队/武器/圣遗物条目
+    （recommended 含角色、tags 含角色名、或摘要/描述文本含角色名），
+    供问答引用与评测核验（如问胡桃圣遗物 → 一并给出炽烈的炎之魔女）。
+    """
+    rel: list[dict] = []
+    seen: set[str] = set()
+    for label in ("team", "weapon", "artifact"):
+        for e in load_entries(game.data_dir, label):
+            if not isinstance(e, dict) or not e.get("id"):
+                continue
+            tags = [str(x) for x in (e.get("tags") or [])]
+            rec = str(e.get("recommended") or "")
+            text = " ".join(
+                str(e.get(k) or "") for k in ("name", "summary", "core", "rotation", "details", "two_piece", "four_piece", "passive")
+            )
+            if char_name in tags or char_name in rec or char_name in text:
+                if e["id"] in seen:
+                    continue
+                seen.add(e["id"])
+                keep = {k: e.get(k) for k in (
+                    "id", "type", "name", "members", "core", "rotation", "difficulty", "dps_source",
+                    "two_piece", "four_piece", "recommended", "main_stat", "sub_stat", "passive",
+                    "summary", "tags", "source",
+                ) if e.get(k)}
+                rel.append(keep)
+    return rel[:6]
+
+
 def _attach_image(game: Game, entry_type: str, name: str, entry: dict) -> None:
     """从对应游戏 wiki 页面图获取实体头像直链（角色图/武器图）。
 
@@ -567,6 +597,9 @@ class QueryGameEntityTool(Tool):
             # P0-1 增量补全：缓存命中但增强字段缺失（静态库旧数据/历史缓存）
             # → 尝试从官方 wiki 补全技能/天赋/材料并写回（不阻断回答）
             _enhance_entry_from_wiki(game, entry_type, name, out, meta)
+            # 角色 → 关联配队/武器/圣遗物联动（问答与评测引用核验）
+            if entry_type == "character":
+                out["related_gear"] = _related_gear(game, out.get("name") or name)
             return {"found": True, "entity": out, "_meta": meta}
 
         # ② 未命中 → 按需生成 + 交叉验证（游戏关闭动态生成时直接返回未收录）
@@ -579,6 +612,8 @@ class QueryGameEntityTool(Tool):
         if entry.get("image_url"):
             _save_dynamic(game, entry_type, entry)
         out = {k: v for k, v in entry.items() if k != "_meta"}
+        if entry_type == "character":
+            out["related_gear"] = _related_gear(game, out.get("name") or name)
         return {"found": True, "entity": out, "_meta": meta, "note": "动态生成（LLM + wiki 交叉验证）"}
 
 

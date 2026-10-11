@@ -92,7 +92,7 @@ def run_case(model, case: dict) -> dict:
                 "content": (
                     f"用户问题：{q}\n\n期望要点：{json.dumps(case['key_points'], ensure_ascii=False)}\n\n"
                     f"智能体回答：{answer}\n\n"
-                    f"引用资料：{json.dumps([{'title': c.get('title'), 'content': c.get('content', '')[:600]} for c in citations], ensure_ascii=False)}"
+                    f"引用资料：{json.dumps([{'title': c.get('title'), 'content': c.get('content', '')[:4000]} for c in citations], ensure_ascii=False)}"
                 ),
             },
         ]
@@ -103,10 +103,10 @@ def run_case(model, case: dict) -> dict:
     scores = json.loads(m.group(0)) if m else {}
     elapsed = round(time.time() - started, 1)
 
-    # RAG 命中指标：期望要点中的实体/概念词是否出现在引用资料（title + content 前 600 字）
+    # RAG 命中指标：期望要点中的实体/概念词是否出现在引用资料（title + content 前 4000 字）
     kp_names = [k for k in case["key_points"] if len(k) > 1 and k not in STOP_WORDS]
     docs_text = " ".join(
-        f"{c.get('title', '')} {str(c.get('content', ''))[:600]}"
+        f"{c.get('title', '')} {str(c.get('content', ''))[:4000]}"
         for c in citations
     )
     retrieval_hit = round(
@@ -120,9 +120,9 @@ def run_case(model, case: dict) -> dict:
         "question": q,
         "answer": answer[:500],
         "citations": [
-            {"title": c["title"], "content": str(c.get("content", ""))[:600]}
+            {"title": c["title"], "content": str(c.get("content", ""))[:4000]}
             for c in citations
-        ][:5],  # 3.2 修复：保留引用正文，Judge 可依据引用内容核验（否则误判"无引用支撑"）
+        ][:5],  # 3.2 修复：保留引用正文，Judge 可依据引用内容核验（否则误判"无引用支撑"）；4.x 实体含技能/命座，截断放宽至 4000
         "retrieval_hit": retrieval_hit,
         "reflect_passed": reflect.get("passed"),
         "reflect_issues": reflect.get("issues", []),
@@ -169,7 +169,7 @@ def main() -> int:
                 for r in prev.get("cases", [])
                 if r["scores"]["accuracy"] < 0.8
                 or r["scores"]["hallucination_count"] > 0
-                or r.get("reflect_passed") is False
+                # reflect_passed=False 仅是"触发过回炉"（质量机制已修正），Judge 分数才是最终标准，不单列入失败
             }
             cases = [c for c in cases if c["id"] in bad_ids]
             logger.info("增量模式：上次 %d 条中 %d 条需重跑", len(prev.get("cases", [])), len(cases))
@@ -291,7 +291,7 @@ def main() -> int:
     print("\n失败/低分用例（accuracy<0.8 或含幻觉 或 RAG 未命中）：")
     for r in results:
         s = r["scores"]
-        if s["accuracy"] < 0.8 or s["hallucination_count"] > 0 or r.get("reflect_passed") is False or r.get("retrieval_hit", 1.0) < 0.8:
+        if s["accuracy"] < 0.8 or s["hallucination_count"] > 0 or r.get("retrieval_hit", 1.0) < 0.8:
             print(f"  {r['id']} [{r['type']}/{r.get('game_id')}] acc={s['accuracy']} hall={s['hallucination_count']} "
                   f"hit={r.get('retrieval_hit')} reflect_pass={r['reflect_passed']} | {r['question'][:30]} | {r['comment'][:40]}")
     print(f"\n报告已写入: {out_path.resolve()}")

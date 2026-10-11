@@ -171,6 +171,18 @@ def supervisor_node(state: AgentState) -> AgentState:
         domain = str(data.get("domain") or "").strip().lower()
         if domain not in ("entity", "knowledge", "event"):
             domain = "entity" if (is_entity and etype in valid_types) else "knowledge"
+        # 配队名兜底：entity_name 命中 teams 名称（如 万达国际/胡桃蒸发队）→ 归 knowledge 域
+        # （配队不是实体类型，避免走 query_game_entity 死路后回答"未收录"）
+        if domain == "entity" and ename:
+            try:
+                game = registry.get_game(state["game_id"])
+                from app.tools.game_entity import load_entries
+
+                team_names = {t.get("name") for t in load_entries(game.data_dir, "team") if t.get("name")}
+                if ename in team_names:
+                    domain = "knowledge"
+            except Exception:  # noqa: BLE001
+                pass
         state["task_type"] = "tool" if domain in ("entity", "event") else "knowledge"
 
         # ② 委派对象（Supervisor 决策）：domain + game_id 联合决定
@@ -248,15 +260,18 @@ def retrieve_node(state: AgentState) -> AgentState:
     _emit(state, {"type": "agent_start", "node_name": N_RETRIEVE, "message": "检索知识库…", "agent": state.get("agent_identity")})
     try:
         game = registry.get_game(state["game_id"])
+        q = state["user_message"]
+        # 列举类问题（有哪些/列出/所有…）放大召回，避免 top_k=4 截断漏角色
+        top_k = 12 if any(w in q for w in ("有哪些", "列出", "所有", "全部", "多少个", "几个")) else 4
         if state.get("ablate", {}).get("hybrid"):
             # 消融：纯向量检索（去掉名称置顶/体系词/关键词兜底）
             from app.rag.retriever import retriever
 
-            docs = retriever.retrieve(game, state["user_message"], top_k=4)
+            docs = retriever.retrieve(game, q, top_k=top_k)
         else:
             from app.rag.retriever import hybrid_retrieve
 
-            docs = hybrid_retrieve(game, state["user_message"], top_k=4)
+            docs = hybrid_retrieve(game, q, top_k=top_k)
         state["retrieved_docs"] = docs
         _emit(state, {"type": "agent_end", "node_name": N_RETRIEVE, "summary": f"检索到 {len(docs)} 条"})
         if docs:
@@ -445,6 +460,34 @@ def synthesize_node(state: AgentState) -> AgentState:
     if sr.get("issues") and state.get("reflect_retries", 0) >= 1:
         feedback = "\n上一版回答经质检发现以下问题，请逐一修正后重新回答：\n- " + "\n- ".join(sr["issues"])
 
+    # 引用兜底：无论 synthesize 是否重写回答，citations 一律从检索/工具结果生成
+    # （修复：tool 节点 LLM 直接作答时跳过本节点，此前引用为空导致 Judge/前端无法核验）
+    citations = []
+    for d in state.get("retrieved_docs", []):
+        citations.append({"doc_id": d["doc_id"], "title": d["title"], "content": d["content"][:4000], "source": d.get("source", "")})
+    for tr in state.get("tool_results", []):
+        res = tr.get("result", {})
+        if isinstance(res, dict) and res.get("entity"):
+            e = res["entity"]
+            # 关联配队/武器/圣遗物单独成引用（Judge 与前端可核验，避免 JSON 超长截断丢字段）
+            entity_cite = {k: v for k, v in e.items() if k != "related_gear"}
+            citations.append({"doc_id": e.get("id", ""), "title": e.get("name", ""), "content": json.dumps(entity_cite, ensure_ascii=False)[:4000], "source": e.get("source", "dynamic")})
+            for r in e.get("related_gear") or []:
+                citations.append({"doc_id": r.get("id", ""), "title": r.get("name", ""), "content": json.dumps(r, ensure_ascii=False)[:4000], "source": r.get("source", "static")})
+            # 实体头像图片（工具已附带 image_url/本地 image 路径 → 统一取网络直链）
+            img = e.get("image_url") or e.get("image") or ""
+            if img and not state.get("entity_image"):
+                state["entity_image"] = img
+        # 攻略检索结果（search_guides / search_stage_guides）→ 前端渲染视频/链接卡片
+        if isinstance(res, dict) and tr.get("name") in ("search_guides", "search_stage_guides") and res.get("found"):
+            state["guides"] = {
+                "videos": res.get("videos") or [],
+                "search_url": res.get("search_url"),
+                "wiki_url": res.get("wiki_url"),
+                "api_ok": res.get("api_ok", False),
+            }
+    state["citations"] = citations
+
     try:
         if materials:
             model = get_chat_model()
@@ -476,29 +519,6 @@ def synthesize_node(state: AgentState) -> AgentState:
     except Exception as e:  # noqa: BLE001
         logger.error("synthesize 失败: %s", e)
         state["final_answer"] = "抱歉，回答生成失败，请稍后再试。"
-
-    # 引用
-    citations = []
-    for d in state.get("retrieved_docs", []):
-        citations.append({"doc_id": d["doc_id"], "title": d["title"], "content": d["content"][:600], "source": d.get("source", "")})
-    for tr in state.get("tool_results", []):
-        res = tr.get("result", {})
-        if isinstance(res, dict) and res.get("entity"):
-            e = res["entity"]
-            citations.append({"doc_id": e.get("id", ""), "title": e.get("name", ""), "content": json.dumps(e, ensure_ascii=False)[:600], "source": e.get("source", "dynamic")})
-            # 实体头像图片（工具已附带 image_url/本地 image 路径 → 统一取网络直链）
-            img = e.get("image_url") or e.get("image") or ""
-            if img and not state.get("entity_image"):
-                state["entity_image"] = img
-        # 攻略检索结果（search_guides / search_stage_guides）→ 前端渲染视频/链接卡片
-        if isinstance(res, dict) and tr.get("name") in ("search_guides", "search_stage_guides") and res.get("found"):
-            state["guides"] = {
-                "videos": res.get("videos") or [],
-                "search_url": res.get("search_url"),
-                "wiki_url": res.get("wiki_url"),
-                "api_ok": res.get("api_ok", False),
-            }
-    state["citations"] = citations
 
     # 猜测适配选项：按实体类型规则生成（不消耗 LLM token）
     suggestions = _build_suggestions(state)
