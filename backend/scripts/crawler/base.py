@@ -34,7 +34,8 @@ DEFAULT_HEADERS = {
 }
 
 # 模板字段：|字段名=值 （允许出现在行首，无需前置换行；值可能含 [[]] 链接、{{}} 模板）
-_FIELD_RE = re.compile(r"(?:^|\n)\|\s*([^=|]+?)\s*=\s*([^\n|]+)", re.M)
+# 值匹配：非换行非 | 非 { 的字符，或一个完整内嵌模板 {{...}}（其内部 | 不算字段分隔符）
+_FIELD_RE = re.compile(r"(?:^|\n)\|\s*([^=|]+?)\s*=\s*((?:[^\n|{]|\{\{[^{}]*\}\})+)", re.M)
 
 
 class _TokenBucket:
@@ -197,17 +198,44 @@ class WikiClient:
         self.client.close()
 
 
+def _template_blocks(wikitext: str):
+    """迭代每个 `{{模板名\n…}}` 参数式模板块（平衡括号匹配）。
+
+    修复：原实现 `(.*?)\\}\\}` 会在值内嵌模板（如 {{术语|…}}、{{color|…}}）的
+    第一个 `}}` 处提前截断，导致截断点之后的字段（如 PRTS 干员的稀有度/职业）丢失。
+    """
+    n = len(wikitext)
+    for m in re.finditer(r"\{\{\s*([^{}\n]+?)\s*\n", wikitext):
+        depth = 0
+        j = m.start()
+        while j < n:
+            if wikitext.startswith("{{", j):
+                depth += 1
+                j += 2
+            elif wikitext.startswith("}}", j):
+                depth -= 1
+                j += 2
+                if depth == 0:
+                    break
+            else:
+                j += 1
+        if depth == 0:
+            yield wikitext[m.start():j]
+
+
 def parse_template_fields(wikitext: str) -> dict[str, str]:
     """从 wikitext 中提取模板字段。返回 {字段名: 值}（清洗掉链接/模板/注释）"""
     fields: dict[str, str] = {}
     # 逐段扫描 {{模板\n|字段=值\n|字段=值\n}}
-    for m in re.finditer(r"\{\{\s*([^{}\n]+?)\s*\n(.*?)\}\}", wikitext, re.S):
-        body = m.group(2)
-        for fm in _FIELD_RE.finditer(body):
+    for block in _template_blocks(wikitext):
+        for fm in _FIELD_RE.finditer(block):
             key = fm.group(1).strip()
             value = fm.group(2).strip()
             value = re.sub(r"\[\[([^\]|]*?)\]\]", r"\1", value)   # 去掉 [[]]
-            value = re.sub(r"\{\{[^{}]*?\}\}", "", value)          # 去掉内嵌模板
+            # 内嵌模板 → 末参数（{{术语|a|b}}→b、{{color|#fff|文字}}→文字）
+            value = re.sub(r"\{\{[^{}|]*(?:\|[^{}|]*)*\|([^{}|]*)\}\}", r"\1", value)
+            value = re.sub(r"\{\{[^{}]*?\}\}", "", value)          # 去掉其余内嵌模板
             value = re.sub(r"<!--.*?-->", "", value, flags=re.S)   # 注释
+            value = value.replace("<br/>", " ").replace("<br>", " ")
             fields.setdefault(key, value.strip())
     return fields
