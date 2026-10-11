@@ -3,7 +3,7 @@
 > 把 ai-game-assistant 的智能体平台能力暴露为标准 MCP 工具，任意 MCP 客户端（Claude Desktop / Cursor / 自研编排器）可通过 stdio 调用。
 > 对齐岗位信号：深圳德恩「MCP 工具调用、A2A 多智能体协同」（13-14K）、广州快创「Dify/Coze agent 经验」。
 
-## 一、已注册工具（9 个）
+## 一、已注册工具（10 个）
 
 | 工具 | 说明 | 演示命令 |
 |---|---|---|
@@ -16,6 +16,9 @@
 | `list_documents` | 已入库企业文档清单 | `list_documents {}` |
 | `ingest_document` | 企业文档导入并向量化 | `ingest_document {"name":"制度","content":"第一条…"}` |
 | `ask_document` | 企业文档问答（带引用，未收录如实标注） | `ask_document {"question":"病假需要什么证明？"}` |
+| `run_agent_task` | **A2A 多智能体协同**：分解→派发三域智能体→汇总带来源 | `run_agent_task {"task":"统计文档库多少块，顺便问病假证明"}` |
+
+A2A 协同（最后一个工具）的架构与端到端验证见 `docs/A2A-DEMO.md`。
 
 ## 二、启动与连接
 
