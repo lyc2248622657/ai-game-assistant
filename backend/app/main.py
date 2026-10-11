@@ -28,6 +28,12 @@ app.include_router(events.router)
 app.include_router(settings_api.router)
 
 
+@app.get("/api/health")
+def health():
+    """健康检查"""
+    return {"status": "ok", "app": settings.app_name}
+
+
 def _static_dir() -> Path:
     """前端静态资源目录：PyInstaller 打包 = _MEIPASS/frontend_dist；开发 = frontend/dist"""
     if getattr(sys, "frozen", False):
@@ -44,12 +50,6 @@ if _static.exists():
     logger.info("前端静态资源已挂载: %s", _static)
 else:
     logger.warning("前端静态目录不存在（仅 API 模式）: %s", _static)
-
-
-@app.get("/api/health")
-def health():
-    """健康检查"""
-    return {"status": "ok", "app": settings.app_name}
 
 
 @app.exception_handler(AppError)
