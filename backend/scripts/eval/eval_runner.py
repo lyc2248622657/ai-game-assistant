@@ -26,7 +26,33 @@ from app.core.usage import usage_stats  # noqa: E402
 from scripts.eval.eval_common import mean_ci, pass_rate  # noqa: E402
 
 logger = get_logger(__name__)
-EVAL_SET = Path(__file__).resolve().parent / "evaluation_set.json"
+EVAL_DIR = Path(__file__).resolve().parent
+GENSHIN_SET = EVAL_DIR / "evaluation_set.json"
+ARKNIGHTS_SET = EVAL_DIR / "arknights_evaluation_set.json"
+
+# 期望要点中的"元指令"词（不计入 RAG 命中统计）
+STOP_WORDS = {
+    "不编造", "以资料为准或如实说明", "如实说明或给出依据", "无资料时如实说明",
+    "对比", "各自特点", "理由", "推荐", "最近实装", "配队", "深渊", "四星",
+}
+
+
+def _load_cases(game: str) -> list[dict]:
+    """按 --game 加载评测集：genshin=原神 30 题，arknights=方舟 20 题，all=合并 50 题"""
+    g = (game or "all").lower()
+    sets: list[tuple[Path, str]] = []
+    if g in ("genshin", "all"):
+        sets.append((GENSHIN_SET, "genshin"))
+    if g in ("arknights", "all"):
+        sets.append((ARKNIGHTS_SET, "arknights"))
+    cases: list[dict] = []
+    for path, gid in sets:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        for c in data:
+            c["game_id"] = c.get("game_id") or gid
+            cases.append(c)
+    logger.info("评测集加载: game=%s 共 %d 条", g, len(cases))
+    return cases
 
 JUDGE_PROMPT = (
     "你是智能体回答质量的评审员。给定用户问题、期望要点与智能体的回答（含引用），逐项评分：\n"
@@ -48,7 +74,7 @@ def run_case(model, case: dict) -> dict:
     started = time.time()
     result = app_graph.invoke(
         {
-            "game_id": "genshin",
+            "game_id": case.get("game_id", "genshin"),
             "session_id": "eval",
             "user_message": q,
             "messages": [],
@@ -76,15 +102,28 @@ def run_case(model, case: dict) -> dict:
     m = re.search(r"\{.*\}", judge.content or "", re.S)
     scores = json.loads(m.group(0)) if m else {}
     elapsed = round(time.time() - started, 1)
+
+    # RAG 命中指标：期望要点中的实体/概念词是否出现在引用资料（title + content 前 600 字）
+    kp_names = [k for k in case["key_points"] if len(k) > 1 and k not in STOP_WORDS]
+    docs_text = " ".join(
+        f"{c.get('title', '')} {str(c.get('content', ''))[:600]}"
+        for c in citations
+    )
+    retrieval_hit = round(
+        sum(1 for k in kp_names if k in docs_text) / len(kp_names), 3
+    ) if kp_names else 1.0
+
     return {
         "id": case["id"],
         "type": case["type"],
+        "game_id": case.get("game_id", "genshin"),
         "question": q,
         "answer": answer[:500],
         "citations": [
             {"title": c["title"], "content": str(c.get("content", ""))[:600]}
             for c in citations
         ][:5],  # 3.2 修复：保留引用正文，Judge 可依据引用内容核验（否则误判"无引用支撑"）
+        "retrieval_hit": retrieval_hit,
         "reflect_passed": reflect.get("passed"),
         "reflect_issues": reflect.get("issues", []),
         "scores": {
@@ -112,11 +151,13 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--limit", type=int, default=0, help="只跑前 N 条（0=全量）")
     ap.add_argument("--out", type=str, default="data/eval_report.json")
+    ap.add_argument("--game", type=str, default="all", choices=["genshin", "arknights", "all"],
+                    help="评测目标游戏：genshin=原神 / arknights=方舟 / all=两者（默认）")
     ap.add_argument("--only-failed", action="store_true",
                     help="只重跑上次报告中的失败/低分/含幻觉用例（增量回归，省 token）")
     args = ap.parse_args()
 
-    cases = json.loads(EVAL_SET.read_text(encoding="utf-8"))
+    cases = _load_cases(args.game)
     out_path = Path(args.out)
     if args.only_failed:
         prev = _load_previous(out_path)
@@ -171,10 +212,12 @@ def main() -> int:
 
     summary = {
         "total": len(results),
+        "games": sorted({r.get("game_id", "genshin") for r in results}),
         "metrics": {
             "accuracy": avg("accuracy"),
             "faithfulness": avg("faithfulness"),
             "coverage": avg("coverage"),
+            "retrieval_hit": round(sum(r.get("retrieval_hit", 1.0) for r in results) / len(results), 3),
             "avg_hallucination_count": round(sum(r["scores"]["hallucination_count"] for r in results) / len(results), 2),
             "cases_with_hallucination": sum(1 for r in results if r["scores"]["hallucination_count"] > 0),
             "reflect_triggered": sum(1 for r in results if r["reflect_passed"] is False),
@@ -187,6 +230,7 @@ def main() -> int:
             "accuracy_pass": pass_rate(metric_vals["accuracy"], 0.8),
             "faithfulness_pass": pass_rate(metric_vals["faithfulness"], 0.8),
             "coverage_pass": pass_rate(metric_vals["coverage"], 0.8),
+            "retrieval_hit_pass": pass_rate([r.get("retrieval_hit", 1.0) for r in results], 0.8),
             "no_hallucination": pass_rate([0 if v > 0 else 1 for v in metric_vals.get("coverage", []) or
                                           [r["scores"]["hallucination_count"] for r in results]], 1.0),
         },
@@ -222,7 +266,7 @@ def main() -> int:
 
     # 控制台表格
     print("\n===== LLM-as-Judge 评测报告 =====")
-    print(f"总条数: {summary['total']}")
+    print(f"总条数: {summary['total']}（游戏: {'+'.join(summary['games'])}）")
     ci_show = summary["confidence_intervals"]
     pr = summary["pass_rates"]
     print(f"准确率 accuracy      : {ci_show['accuracy']['mean']}  (95%CI {ci_show['accuracy']['ci_lo']}~{ci_show['accuracy']['ci_hi']}, "
@@ -231,6 +275,7 @@ def main() -> int:
           f"通过率 {pr['faithfulness_pass']['rate']} [{pr['faithfulness_pass']['ci_lo']}~{pr['faithfulness_pass']['ci_hi']}])")
     print(f"覆盖度 coverage      : {ci_show['coverage']['mean']}  (95%CI {ci_show['coverage']['ci_lo']}~{ci_show['coverage']['ci_hi']}, "
           f"通过率 {pr['coverage_pass']['rate']} [{pr['coverage_pass']['ci_lo']}~{pr['coverage_pass']['ci_hi']}])")
+    print(f"RAG 命中 retrieval   : {summary['metrics']['retrieval_hit']}（通过率 {pr['retrieval_hit_pass']['rate']}）")
     print(f"平均幻觉条数         : {summary['metrics']['avg_hallucination_count']}（{summary['metrics']['cases_with_hallucination']} 条含幻觉，"
           f"无幻觉率 {pr['no_hallucination']['rate']} [{pr['no_hallucination']['ci_lo']}~{pr['no_hallucination']['ci_hi']}]）")
     print(f"Reflection 触发回炉  : {summary['metrics']['reflect_triggered']} 条")
@@ -243,12 +288,12 @@ def main() -> int:
     print("按类型：")
     for t, v in summary["by_type"].items():
         print(f"  {t:10s} n={v['n']:2d} acc={v['accuracy']} fth={v['faithfulness']} cov={v['coverage']}")
-    print("\n失败/低分用例（accuracy<0.8 或含幻觉）：")
+    print("\n失败/低分用例（accuracy<0.8 或含幻觉 或 RAG 未命中）：")
     for r in results:
         s = r["scores"]
-        if s["accuracy"] < 0.8 or s["hallucination_count"] > 0 or r.get("reflect_passed") is False:
-            print(f"  {r['id']} [{r['type']}] acc={s['accuracy']} hall={s['hallucination_count']} "
-                  f"reflect_pass={r['reflect_passed']} | {r['question'][:30]} | {r['comment'][:40]}")
+        if s["accuracy"] < 0.8 or s["hallucination_count"] > 0 or r.get("reflect_passed") is False or r.get("retrieval_hit", 1.0) < 0.8:
+            print(f"  {r['id']} [{r['type']}/{r.get('game_id')}] acc={s['accuracy']} hall={s['hallucination_count']} "
+                  f"hit={r.get('retrieval_hit')} reflect_pass={r['reflect_passed']} | {r['question'][:30]} | {r['comment'][:40]}")
     print(f"\n报告已写入: {out_path.resolve()}")
     return 0
 

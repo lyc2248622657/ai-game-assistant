@@ -1,5 +1,7 @@
-"""检索器：按游戏路由 + TopK 召回 + 相似度过滤"""
+"""检索器：按游戏路由 + TopK 召回 + 相似度过滤（多路召回：名称命中 + 向量 + BM25 + 关键词兜底）"""
 import json
+import math
+import re
 
 from app.core.config import settings
 from app.core.logging import get_logger
@@ -86,7 +88,103 @@ class Retriever:
 retriever = Retriever()
 
 
-# ---------- 混合检索（名称命中置顶 + 向量召回 + 关键词兜底，graph 与 ReAct 共用） ----------
+# ---------- BM25 稀疏检索（P0-2：与向量构成多路召回；无外部依赖，按数据文件指纹缓存） ----------
+def _tokenize(text: str) -> list[str]:
+    """轻量中文分词：连续英文/数字整体成词 + 中文二元组（bigram），兼容中英混合查询"""
+    tokens = [t.lower() for t in re.findall(r"[a-z0-9]+", text, flags=re.I)]
+    han = re.sub(r"[^\u4e00-\u9fa5]", "", text)
+    tokens.extend(han[i : i + 2] for i in range(max(len(han) - 1, 0)))
+    return tokens
+
+
+def _bm25_text(e: dict) -> str:
+    """BM25 索引文本：名称 + 标题 + 摘要 + 角色/元素/武器 + 标签"""
+    parts = [e.get("name", ""), e.get("title", ""), e.get("summary", ""),
+             e.get("role", ""), e.get("element", ""), e.get("weapon_type", ""),
+             " ".join(e.get("tags", []))]
+    return " ".join(str(p) for p in parts if p)
+
+
+class BM25Index:
+    """Okapi BM25（k1=1.5, b=0.75）：面向小规模知识库的轻量实现"""
+
+    def __init__(self, entries: list[dict]):
+        self.docs = entries
+        self.k1, self.b = 1.5, 0.75
+        self.tf: list[dict[str, int]] = []
+        self.df: dict[str, int] = {}
+        self.doc_lens: list[int] = []
+        for e in entries:
+            toks = _tokenize(_bm25_text(e))
+            self.doc_lens.append(len(toks))
+            f: dict[str, int] = {}
+            for t in toks:
+                f[t] = f.get(t, 0) + 1
+            self.tf.append(f)
+            for t in set(toks):
+                self.df[t] = self.df.get(t, 0) + 1
+        self.avgdl = sum(self.doc_lens) / max(len(self.doc_lens), 1)
+
+    def search(self, query: str, top_k: int = 8) -> list[tuple[int, float]]:
+        qset = list(dict.fromkeys(_tokenize(query)))
+        if not qset:
+            return []
+        n = max(len(self.docs), 1)
+        scored: list[tuple[int, float]] = []
+        for i in range(len(self.docs)):
+            s = 0.0
+            dl = self.doc_lens[i]
+            for t in qset:
+                f = self.tf[i].get(t, 0)
+                if not f:
+                    continue
+                df = self.df.get(t, 0)
+                idf = math.log(1 + (n - df + 0.5) / (df + 0.5))
+                tf_part = f * (self.k1 + 1) / (f + self.k1 * (1 - self.b + self.b * dl / self.avgdl))
+                s += idf * tf_part
+            if s > 0:
+                scored.append((i, s))
+        scored.sort(key=lambda t: -t[1])
+        return scored[:top_k]
+
+
+_bm25_cache: dict[str, tuple[float, BM25Index]] = {}
+
+
+def _get_bm25(game: Game) -> BM25Index:
+    """按（数据目录, 文件最新 mtime）缓存 BM25 索引，避免每次请求重建"""
+    mtime = max((p.stat().st_mtime for p in game.data_dir.glob("*.json")), default=0.0)
+    key = str(game.data_dir)
+    cached = _bm25_cache.get(key)
+    if cached and cached[0] == mtime:
+        return cached[1]
+    idx = BM25Index(_load_all_entries(game))
+    _bm25_cache[key] = (mtime, idx)
+    return idx
+
+
+def _bm25_retrieve(game: Game, query: str, top_k: int = 5) -> list[dict]:
+    """BM25 稀疏召回：分数归一化到 [0.55, 0.95]，名称命中(1.0)仍保持置顶"""
+    idx = _get_bm25(game)
+    hits = idx.search(query, top_k=top_k * 2)
+    if not hits:
+        return []
+    best = hits[0][1]
+    out: list[dict] = []
+    for i, raw in hits[:top_k]:
+        e = idx.docs[i]
+        norm = 0.55 + 0.40 * (raw / best) if best > 0 else 0.55
+        out.append({
+            "doc_id": e.get("id", ""),
+            "title": e.get("name", ""),
+            "content": json.dumps({k: v for k, v in e.items() if k != "_meta"}, ensure_ascii=False),
+            "source": e.get("source", "static"),
+            "score": round(min(norm, 1.0), 4),
+        })
+    return out
+
+
+# ---------- 混合检索（名称命中置顶 + 向量召回 + BM25 + 关键词兜底，graph 与 ReAct 共用） ----------
 KEYWORDS = [
     "火", "水", "雷", "冰", "风", "岩", "草", "蒸发", "融化", "永冻", "超绽放", "激化",
     "国家队", "直伤", "主C", "副C", "辅助", "治疗", "护盾", "平民", "配队",
@@ -153,16 +251,28 @@ def hybrid_retrieve(game: Game, query: str, top_k: int = 4) -> list[dict]:
         for _, e in name_hits[:3]
     ]
 
-    # ② 向量检索补充
+    # ② 多路召回：向量检索 + BM25 稀疏检索（P0-2），按分数降序融合去重（BM25 保底、向量补充语义）
     vec_docs: list[dict] = []
     try:
         vec_docs = retriever.retrieve(game, query, top_k=5)
     except Exception as e:  # noqa: BLE001
-        logger.warning("向量检索不可用，仅名称/关键词: %s", e)
+        logger.warning("向量检索不可用，仅名称/BM25/关键词: %s", e)
+
+    bm25_docs: list[dict] = []
+    try:
+        bm25_docs = _bm25_retrieve(game, query, top_k=5)
+    except Exception as e:  # noqa: BLE001
+        logger.warning("BM25 检索不可用，跳过稀疏路: %s", e)
+
+    merged: dict[str, dict] = {}
+    for d in [*bm25_docs, *vec_docs]:
+        cur = merged.get(d["doc_id"])
+        if cur is None or d["score"] > cur["score"]:
+            merged[d["doc_id"]] = d
 
     seen = {d["doc_id"] for d in name_docs}
-    docs = list(name_docs) + [d for d in vec_docs if d["doc_id"] not in seen]
-    docs = docs[:top_k]
+    docs = list(name_docs) + [merged[k] for k in merged if k not in seen]
+    docs = sorted(docs, key=lambda d: -d["score"])[:top_k]
 
     # ③ 元素 × 职能精确补充（如"雷系副C"→ element=雷 且 role 含副C 的角色）
     # 2.3 修复：体系词（永冻/蒸发/激化等）展开为元素对；经典配队简称直接补充 team 条目

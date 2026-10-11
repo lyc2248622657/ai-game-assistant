@@ -336,7 +336,18 @@ def tool_node(state: AgentState) -> AgentState:
                 try:
                     result = tool_registry.execute(name, args, ctx)
                 except Exception as e:  # noqa: BLE001
-                    result = {"error": str(e)}
+                    # P2：工具瞬时失败自动重试一次（网络/上游抖动），仍失败才标记 error
+                    logger.warning("工具 %s 首次执行失败，重试一次: %s", name, e)
+                    _emit(state, {
+                        "type": "tool_result", "node_name": N_TOOL,
+                        "tool_name": name,
+                        "result": "执行失败，正在重试…",
+                        "message": f"{name} 失败，重试中", "agent": state.get("agent_identity"),
+                    })
+                    try:
+                        result = tool_registry.execute(name, args, ctx)
+                    except Exception as e2:  # noqa: BLE001
+                        result = {"error": str(e2)}
                 _emit(state, {
                     "type": "tool_result", "node_name": N_TOOL,
                     "tool_name": name,

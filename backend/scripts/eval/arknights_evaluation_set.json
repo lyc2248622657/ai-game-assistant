@@ -1,0 +1,219 @@
+[
+  {
+    "id": "ak-ent-01",
+    "type": "entity",
+    "question": "介绍一下能天使",
+    "key_points": [
+      "能天使",
+      "6星",
+      "狙击",
+      "速射手",
+      "企鹅物流"
+    ]
+  },
+  {
+    "id": "ak-ent-02",
+    "type": "entity",
+    "question": "银灰是什么职业？",
+    "key_points": [
+      "银灰",
+      "近卫",
+      "领主",
+      "物理"
+    ]
+  },
+  {
+    "id": "ak-ent-03",
+    "type": "entity",
+    "question": "塞雷娅的定位是什么？",
+    "key_points": [
+      "塞雷娅",
+      "重装",
+      "守护者",
+      "治疗"
+    ]
+  },
+  {
+    "id": "ak-ent-04",
+    "type": "entity",
+    "question": "艾雅法拉是什么类型的干员？",
+    "key_points": [
+      "艾雅法拉",
+      "6星",
+      "术师",
+      "扩散术师",
+      "法术"
+    ]
+  },
+  {
+    "id": "ak-ent-05",
+    "type": "entity",
+    "question": "夜莺属于哪个职业分支？",
+    "key_points": [
+      "夜莺",
+      "医疗",
+      "群愈师",
+      "治疗"
+    ]
+  },
+  {
+    "id": "ak-ent-06",
+    "type": "entity",
+    "question": "阿米娅是什么职业？",
+    "key_points": [
+      "阿米娅",
+      "术师",
+      "单体",
+      "罗德岛"
+    ]
+  },
+  {
+    "id": "ak-ent-07",
+    "type": "entity",
+    "question": "棘刺有什么特点？",
+    "key_points": [
+      "棘刺",
+      "近卫",
+      "领主",
+      "物理",
+      "自回血"
+    ]
+  },
+  {
+    "id": "ak-ent-08",
+    "type": "entity",
+    "question": "浊心斯卡蒂是哪个体系的干员？",
+    "key_points": [
+      "浊心斯卡蒂",
+      "辅助",
+      "削弱者",
+      "深海"
+    ]
+  },
+  {
+    "id": "ak-knw-01",
+    "type": "knowledge",
+    "question": "2026年最近实装了哪些新干员？",
+    "key_points": [
+      "珊比",
+      "嘉辛塔",
+      "结城理",
+      "最近实装"
+    ]
+  },
+  {
+    "id": "ak-knw-02",
+    "type": "knowledge",
+    "question": "有哪些法术系输出干员？",
+    "key_points": [
+      "阿米娅",
+      "艾雅法拉",
+      "法术",
+      "术师"
+    ]
+  },
+  {
+    "id": "ak-knw-03",
+    "type": "knowledge",
+    "question": "有哪些六星近卫干员？",
+    "key_points": [
+      "银灰",
+      "棘刺",
+      "怒潮凛冬",
+      "近卫"
+    ]
+  },
+  {
+    "id": "ak-knw-04",
+    "type": "knowledge",
+    "question": "医疗干员有哪些？",
+    "key_points": [
+      "夜莺",
+      "凯尔希·思衡托",
+      "医疗"
+    ]
+  },
+  {
+    "id": "ak-edg-01",
+    "type": "edge",
+    "question": "怒潮凛冬是几星干员？",
+    "key_points": [
+      "怒潮凛冬",
+      "6星",
+      "近卫"
+    ]
+  },
+  {
+    "id": "ak-edg-02",
+    "type": "edge",
+    "question": "可露希尔的获取方式是什么？",
+    "key_points": [
+      "可露希尔",
+      "标准寻访",
+      "常驻"
+    ]
+  },
+  {
+    "id": "ak-edg-03",
+    "type": "edge",
+    "question": "凯尔希·思衡托是限定干员吗？",
+    "key_points": [
+      "凯尔希·思衡托",
+      "限定",
+      "医疗"
+    ]
+  },
+  {
+    "id": "ak-edg-04",
+    "type": "edge",
+    "question": "银灰的生日是几月几号？",
+    "key_points": [
+      "不编造",
+      "以资料为准或如实说明"
+    ]
+  },
+  {
+    "id": "ak-cpx-01",
+    "type": "complex",
+    "question": "能天使和银灰谁更适合当物理输出核心？",
+    "key_points": [
+      "能天使",
+      "银灰",
+      "物理",
+      "对比",
+      "各自特点"
+    ]
+  },
+  {
+    "id": "ak-cpx-02",
+    "type": "complex",
+    "question": "推荐一套以深海体系为核心的阵容",
+    "key_points": [
+      "浊心斯卡蒂",
+      "深海",
+      "配队"
+    ]
+  },
+  {
+    "id": "ak-cpx-03",
+    "type": "complex",
+    "question": "塞雷娅和夜莺都是治疗型干员，有什么区别？",
+    "key_points": [
+      "塞雷娅",
+      "夜莺",
+      "重装",
+      "医疗",
+      "区别"
+    ]
+  },
+  {
+    "id": "ak-cpx-04",
+    "type": "complex",
+    "question": "阿米娅、艾雅法拉、浊心斯卡蒂谁是术师职业？",
+    "key_points": [
+      "阿米娅",
+      "艾雅法拉",
+      "术师"
+    ]
+  }
+]
