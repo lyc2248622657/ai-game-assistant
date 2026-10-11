@@ -44,11 +44,12 @@ async def main() -> None:
             r5 = await session.call_tool("vector_stats", {"collection": "documents"})
             print("[stats]", r5.content[0].text[:400])
 
-            r6 = await session.call_tool("ask_document", {"question": "病假需要什么证明？", "top_k": 2})
+            r6 = await session.call_tool("ask_document", {"question": "报销流程是什么？", "top_k": 2})
             raw6 = json.loads(r6.content[0].text)
-            print("[ask_document] retrieved:", raw6.get("retrieved"), "| answer[:120]:", raw6.get("answer", "")[:120])
+            print("[ask_document] retrieved:", raw6.get("retrieved"), "| answer[:120]:", raw6.get("answer", "")[:120],
+                  "（未入库客户文档时如实返回『资料未收录』）")
 
-            r7 = await session.call_tool("run_agent_task", {"task": "统计文档库有多少块，顺便问病假需要什么证明"})
+            r7 = await session.call_tool("run_agent_task", {"task": "统计文档库有多少块，顺便查能天使强度"})
             raw7 = json.loads(r7.content[0].text)
             print("[a2a] subtasks:", [s["agent"] for s in raw7.get("subtasks", [])], "| answer[:120]:", raw7.get("answer", "")[:120])
 

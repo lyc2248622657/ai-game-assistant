@@ -95,7 +95,7 @@ def delete_vector_document(collection: str, doc: str) -> dict:
 
     Args:
         collection: 集合名，如 documents / genshin_kb。
-        doc: 文档名或游戏标识，如 示例公司员工制度手册 / genshin。
+        doc: 文档名或游戏标识，如 员工手册 / genshin。
     """
     return vector_admin.delete_document(collection, doc)
 
@@ -124,7 +124,7 @@ def ask_document(question: str, top_k: int = 4) -> dict:
     """企业文档问答：检索 → 带引用上下文 → LLM 回答（资料未覆盖内容如实标注『资料未收录』）。
 
     Args:
-        question: 自然语言问题，如 病假需要什么证明。
+        question: 自然语言问题，如 报销流程是什么。
         top_k: 引用条数上限。
     """
     return document_qa.ask(question, top_k=top_k)
@@ -137,7 +137,7 @@ def run_agent_task(task: str) -> dict:
     """A2A 多智能体协同：一个请求 → 协调者分解为子任务 → 派发独立智能体
     （game_agent 游戏域 / doc_agent 企业文档域 / vector_agent 向量运维域）执行 → 汇总带来源。
 
-    适合复合请求，如「能天使强度如何 + 顺便问病假超过几天要开证明」。
+    适合复合请求，如「能天使强度如何 + 统计文档库有多少块」。
 
     Args:
         task: 复合任务的自然语言描述。
