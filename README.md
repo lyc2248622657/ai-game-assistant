@@ -29,7 +29,7 @@
 │   └─ search_stage_guides 关卡攻略检索（活动关/肉鸽图：摆完挂机/单核/高配/低配/肉鸽N15）      │
 │   └─ get_game_events    重大事件查询（版本更新/活动/卡池/前瞻，bwiki 官方时间 + 30 分钟缓存）   │
 │                                                                                        │
-│  rag/: bge-small-zh(512维) + Chroma 按游戏隔离 + 混合检索（名称置顶/向量/关键词/元素×职能） │
+│  rag/: bge-small-zh(512维) + Chroma 按游戏隔离 + 混合检索（名称置顶/向量/BM25/关键词/元素×职能）│
 │  memory/: SQLite 会话 + 摘要滚动压缩 + 用户偏好 + Memory RAG 记忆向量召回（跨会话）         │
 └───────────────────────────────┬───────────────────────────┬─────────────────────────────┘
                                 │                           │
@@ -124,7 +124,7 @@ $env:HF_ENDPOINT="https://hf-mirror.com"; $env:HF_HUB_DISABLE_XET="1"
                ├─ analyze_teams：配队分析（库内 teams → 官方职业规则 → LLM 参考）
                ├─ calculate_materials：材料总需求聚合（精1/精2 + 技能升级，万单位归一）
                └─ search_guides：攻略检索（B站视频列表 → 前端卡片可点击跳转；API 失败降级搜索直达链接）
-         → retrieve：混合检索 = 名称命中置顶 + 向量召回（Chroma/bge-zh + 类型/元素重排）+ 元素×职能精确补充 + 关键词兜底
+         → retrieve：混合检索 = 名称命中置顶 + BM25 稀疏召回 + 向量召回（Chroma/bge-zh + 类型/元素重排）+ 元素×职能精确补充 + 关键词兜底
          → synthesize（LLM 依据资料组织回答，附引用；攻略视频/链接以 guides 卡片呈现）
          → reflect（Reflection 自检：忠实性/覆盖度/幻觉 → 不合格回炉 synthesize 一次）
 ```
@@ -180,26 +180,30 @@ SSE 流式：`POST /api/chat/stream` 增量推送节点事件（agent_start/end�
 
 ```bash
 cd backend
-.venv\Scripts\python.exe -m pytest tests -q     # 44 passed
+.venv\Scripts\python.exe -m pytest tests -q     # 52 passed
 ```
 
 - `tests/test_parsers.py`：PRTS 技能/天赋/材料解析器单测（固定 wikitext 样本，不联网）——验证 `{{*|20%|{{color|+20%}}}}` 公式清洗、技能 1-7 级+专精分级、天赋条件、精1/精2 与技能升级材料解析；
 - `tests/test_graph.py`：Agent 图可编译（6 节点齐全）、建议按钮生成（按游戏区分话术）、检索空→工具降级路由；
 - `tests/test_strategy_tools.py`：B站标题清洗、材料数量「万」单位归一；
-- `tests/test_events.py`：事件倒计时引擎纯逻辑单测——6 周版本周期推算（更新日=周三）、前瞻直播早于版本更新约 14 天、upcoming/active/ended 状态判定与倒计时、优先级排序、**近 30 天窗口过滤**、**祈愿页真实卡池合并**（官方池名/角色覆盖推算、双池合并、未命中保持预计）、进行中版本带真实活动名（不联网，固定样本）。**共 44 passed**。
+- `tests/test_events.py`：事件倒计时引擎纯逻辑单测——6 周版本周期推算（更新日=周三）、前瞻直播早于版本更新约 14 天、upcoming/active/ended 状态判定与倒计时、优先级排序、**近 30 天窗口过滤**、**祈愿页真实卡池合并**（官方池名/角色覆盖推算、双池合并、未命中保持预计）、进行中版本带真实活动名（不联网，固定样本）；
+- `tests/test_bm25.py`：BM25 稀疏检索单测——中英混合分词（中文 bigram + 英文词）、干员名查询命中对应条目、中文复合查询命中语义相关条目（不加载向量模型，纯逻辑）；
+- `tests/test_eval_sets.py`：评测集格式校验——两游戏评测集 50 题 id 全局唯一、type 合法、key_points 非空、四种题型每种 ≥4 题。**共 52 passed**。
 
 ## 评测（LLM-as-Judge）
 
 ```bash
 cd backend
-.venv\Scripts\python.exe scripts\eval\build_eval_set.py   # 生成 30 条评测集
-.venv\Scripts\python.exe scripts\eval\eval_runner.py      # 全量评测 → data/eval_report.json
-.venv\Scripts\python.exe scripts\eval\eval_runner.py --limit 5         # 只跑前 5 条（快速回归）
+.venv\Scripts\python.exe scripts\eval\build_eval_set.py   # 生成 30 条原神评测集
+.venv\Scripts\python.exe scripts\eval\eval_runner.py      # 全量评测（原神+方舟 50 条）→ data/eval_report.json
+.venv\Scripts\python.exe scripts\eval\eval_runner.py --game genshin --limit 5   # 只跑原神前 5 条（快速回归）
+.venv\Scripts\python.exe scripts\eval\eval_runner.py --game arknights           # 只跑方舟 20 条
 .venv\Scripts\python.exe scripts\eval\eval_runner.py --only-failed    # 只重跑上次失败/低分/含幻觉用例（增量，省 token）
 ```
 
-评测集 30 条（entity/knowledge/edge/complex 四类），Judge 用 DeepSeek 按四指标评分：
-准确率 / 忠实性（回答是否都有引用支撑）/ 覆盖度（期望要点覆盖比例）/ 幻觉条数。
+评测集 50 条（**原神 30 + 明日方舟 20**，entity/knowledge/edge/complex 四类），Judge 用 DeepSeek 按四指标评分：
+准确率 / 忠实性（回答是否都有引用支撑）/ 覆盖度（期望要点覆盖比例）/ 幻觉条数；
+报告额外输出 **RAG 命中率**（期望要点中的实体/概念词是否出现在引用资料，反映检索召回质量）。
 评测闭环已揪出并修复：plan 意图误判、元素反应基础知识库缺失、synthesize 编造细节、
 胡桃生日数据错误（7月15日 → 12月20日，补 wiki 验证映射）、validator 定位枚举过严。
 
@@ -324,6 +328,10 @@ Reflection 对防幻觉贡献显著（去掉后幻觉 0.75→2.0 条），replan
 - [x] **武器卡池展示（2026-09-25）**：祈愿页武器池（如「神铸赋形」）生成独立 gacha_weapon 事件（5星/4星武器 + 官方时间 + estimated=false），前端新增 🗡️ 武器卡池标签（与角色池同周期）；修复 merge_gacha 未命中池保留推算事件；pytest → **44 passed**
 - [x] **EXE 启动体验（2026-09-25）**：启动横幅打印技术栈版本（LangGraph 1.2.12 / LangChain 1.4.2 / 8 节点状态图 / 6 工具）；浏览器自动打开后控制台窗口自动隐藏（ShowWindow SW_HIDE，服务后台继续运行）；日志落盘 pp_data/logs/server.log；已重打包验证（窗口句柄 0、8000 服务正常）
 - [x] **应用内设置 API Key（2026-09-29）**：前端 ⚙ 设置按钮（SettingsModal）+ 后端 `/api/settings/key`（GET 返回 masked_key / POST 校验并保存）；Key 支持**应用内填写 → key.txt → .env** 三级优先读取并即时生效；保存写入 `app_data/settings.json`，不入库不入日志，响应与日志仅显示打码形式；`app/core/key_manager.py` 统一管理来源与脱敏；已重打包 EXE 实测（设置端点 200，配置源 env_or_file）
+- [x] **多游戏评测体系（P0，2026-10-11）**：评测集扩展为 **原神 30 + 明日方舟 20 共 50 条**（`arknights_evaluation_set.json` 按方舟种子干员与动态工具能力设计：实体/知识/边界/复合四类）；eval_runner 新增 `--game genshin|arknights|all` 参数与 **RAG 命中率指标**（期望要点是否被引用资料覆盖）；方舟 smoke 评测实测 acc=0.95 / fth=0.925 / cov=1.0 / RAG 命中 0.9 / 零幻觉
+- [x] **RAG 多路召回增强（P0，2026-10-11）**：hybrid_retrieve 新增 **BM25 稀疏检索**（无外部依赖的 Okapi BM25 实现，中文 bigram + 英文分词，按数据文件指纹缓存索引），与名称命中、向量召回融合去重按分数排序——补齐「向量+稀疏」双路召回，检索质量可被评测 RAG 命中率观测
+- [x] **工具失败自动重试（P2，2026-10-11）**：tool 节点工具瞬时失败（网络/上游抖动）自动重试一次再标记 error，避免偶发 5xx 中断整轮链路
+- [x] **测试覆盖扩展（P1，2026-10-11）**：新增 `test_bm25.py`（分词/命中/复合查询）与 `test_eval_sets.py`（评测集格式校验），pytest **44 → 52 passed**
 ## 本地一键启动（推荐，无需 Docker）
 
 ```powershell
