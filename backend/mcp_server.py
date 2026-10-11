@@ -22,6 +22,7 @@ if str(BACKEND) not in sys.path:
 
 from mcp.server.mcpserver import MCPServer  # noqa: E402
 
+from app.agents.a2a import run as a2a_run  # noqa: E402
 from app.knowledge.games import registry  # noqa: E402
 from app.rag import document_qa, vector_admin  # noqa: E402
 from app.rag.retriever import hybrid_retrieve  # noqa: E402
@@ -127,6 +128,21 @@ def ask_document(question: str, top_k: int = 4) -> dict:
         top_k: 引用条数上限。
     """
     return document_qa.ask(question, top_k=top_k)
+
+
+# ---- A2A 多智能体协同（岗位 22：南方电网 RAG+MCP+A2A）----
+
+@mcp.tool()
+def run_agent_task(task: str) -> dict:
+    """A2A 多智能体协同：一个请求 → 协调者分解为子任务 → 派发独立智能体
+    （game_agent 游戏域 / doc_agent 企业文档域 / vector_agent 向量运维域）执行 → 汇总带来源。
+
+    适合复合请求，如「能天使强度如何 + 顺便问病假超过几天要开证明」。
+
+    Args:
+        task: 复合任务的自然语言描述。
+    """
+    return a2a_run(task)
 
 
 if __name__ == "__main__":

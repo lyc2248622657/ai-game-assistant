@@ -48,6 +48,10 @@ async def main() -> None:
             raw6 = json.loads(r6.content[0].text)
             print("[ask_document] retrieved:", raw6.get("retrieved"), "| answer[:120]:", raw6.get("answer", "")[:120])
 
+            r7 = await session.call_tool("run_agent_task", {"task": "统计文档库有多少块，顺便问病假需要什么证明"})
+            raw7 = json.loads(r7.content[0].text)
+            print("[a2a] subtasks:", [s["agent"] for s in raw7.get("subtasks", [])], "| answer[:120]:", raw7.get("answer", "")[:120])
+
 
 if __name__ == "__main__":
     asyncio.run(main())

@@ -431,8 +431,9 @@ cd backend
 任意 MCP 客户端（Claude Desktop / Cursor 等）按 stdio server 接入即可获得平台能力：
 `list_games`（游戏注册表）、`query_game_entity`（按需实体查询，静态→动态→LLM 生成 + wiki 交叉验证）、
 `search_knowledge`（RAG 混合检索）、`list_vector_collections` / `vector_stats` / `delete_vector_document`（向量库运维）、
-`list_documents` / `ingest_document` / `ask_document`（企业文档问答，带引用）。
+`list_documents` / `ingest_document` / `ask_document`（企业文档问答，带引用）、
+`run_agent_task`（**A2A 多智能体协同**：一个请求 → 分解 → 派发 game/doc/vector 三域智能体 → 汇总带来源，对齐岗位 MCP+A2A 信号）。
 
-完整工具清单与端到端验证见 `docs/MCP-DEMO.md`；向量库运维 CLI 等价入口 `backend\scripts\vector_admin.py`（list / stats / delete-doc / rebuild / purge）。
+完整工具清单与端到端验证见 `docs/MCP-DEMO.md` 与 `docs/A2A-DEMO.md`；向量库运维 CLI 等价入口 `backend\scripts\vector_admin.py`（list / stats / delete-doc / rebuild / purge）；A2A 演示 CLI `backend\scripts\a2a_demo.py`（--no-llm 可离线跑通）。
 
 详细设计见《AI 游戏助手智能体平台项目方案.docx》。
