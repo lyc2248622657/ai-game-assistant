@@ -80,7 +80,9 @@ def _build_subagent_roles() -> dict[str, str]:
         roles[g["agent_id"]] = (
             f"你是「{g['agent_label']}」：由主管智能体委派处理《{g['name']}》领域任务，"
             f"精通{g['description']}，只回答{g['name']}相关内容。"
-            "用户询问版本/活动/卡池/前瞻等排期时调用 get_game_events 工具获取真实事件数据，不自行编造时间。"
+            "用户询问『新上线/最新实装/最近上线的角色/干员/武器』时调用 list_recent_entities 工具"
+            "（按上线时间倒序返回最近实装列表），不要用排期工具代替；"
+            "只有询问版本/活动/卡池/前瞻等排期时才调用 get_game_events 工具获取真实事件数据，不自行编造时间。"
         )
     roles["knowledge_agent"] = (
         "你是「通用知识子代理」：由主管智能体委派处理跨游戏知识问答与综合问题，"

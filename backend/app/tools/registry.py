@@ -103,11 +103,12 @@ class ToolRegistry:
         for tool in (CalculateTool(), GetCurrentTimeTool()):
             self._tools[tool.name] = tool
         # 延迟注册：避免 game_entity ↔ registry 循环导入
-        from app.tools.game_entity import QueryGameEntityTool
+        from app.tools.game_entity import QueryGameEntityTool, ListRecentEntitiesTool
         from app.tools.strategy_tools import AnalyzeTeamsTool, CalculateMaterialsTool, SearchGuidesTool, SearchStageGuidesTool
         from app.tools.event_tool import GetGameEventsTool
 
         self._tools[QueryGameEntityTool.name] = QueryGameEntityTool()
+        self._tools[ListRecentEntitiesTool.name] = ListRecentEntitiesTool()
         self._tools[AnalyzeTeamsTool.name] = AnalyzeTeamsTool()
         self._tools[CalculateMaterialsTool.name] = CalculateMaterialsTool()
         self._tools[SearchGuidesTool.name] = SearchGuidesTool()

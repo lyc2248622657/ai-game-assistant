@@ -580,3 +580,75 @@ class QueryGameEntityTool(Tool):
             _save_dynamic(game, entry_type, entry)
         out = {k: v for k, v in entry.items() if k != "_meta"}
         return {"found": True, "entity": out, "_meta": meta, "note": "动态生成（LLM + wiki 交叉验证）"}
+
+
+def _parse_debut_date(s) -> tuple[int, int, int] | None:
+    """解析上线时间（支持 2026-08-01 12:00 / 2026年08月01日 / 2026.8.1），返回 (年,月,日)"""
+    m = re.search(r"(\d{4})[-年.](\d{1,2})[-月.](\d{1,2})", str(s or ""))
+    if not m:
+        return None
+    try:
+        return (int(m.group(1)), int(m.group(2)), int(m.group(3)))
+    except ValueError:  # noqa: BLE001
+        return None
+
+
+class ListRecentEntitiesTool(Tool):
+    """按上线时间倒序列出最近实装的实体（新干员/新角色等）"""
+
+    name = "list_recent_entities"
+    description = (
+        "查询某游戏最近上线/最新实装的实体列表（新干员、新角色、新武器等），按上线时间倒序返回。"
+        "用户问『新上线角色』『最新干员』『最近实装』『刚出的角色』等时调用；"
+        "只有问版本/活动/卡池/前瞻等排期时才用 get_game_events。"
+    )
+    parameters = {
+        "type": "object",
+        "properties": {
+            "type": {
+                "type": "string",
+                "enum": ["character", "weapon", "artifact", "material", "food"],
+                "description": "实体类型，默认 character（角色/干员）",
+            },
+            "limit": {"type": "integer", "description": "返回条数，默认 5，最多 10"},
+        },
+    }
+
+    def run(self, args: dict, ctx: ToolContext) -> Any:
+        entry_type = str(args.get("type") or "character")
+        try:
+            limit = max(1, min(int(args.get("limit") or 5), 10))
+        except (TypeError, ValueError):  # noqa: BLE001
+            limit = 5
+        game = _resolve_game(ctx, args)
+        entries = load_entries(game.data_dir, entry_type)
+
+        # 按名称去重：dynamic 后加载覆盖 static，避免同名新旧条目并列
+        seen: dict[str, dict] = {}
+        for e in entries:
+            name = e.get("name")
+            if not name:
+                continue
+            seen[name] = e
+        dated = [e for e in seen.values() if _parse_debut_date(e.get("debut_date"))]
+        dated.sort(key=lambda e: _parse_debut_date(e.get("debut_date")) or (0, 0, 0), reverse=True)
+
+        recent = [
+            {
+                "name": e.get("name"),
+                "rarity": e.get("rarity"),
+                "role": e.get("role") or e.get("title") or "",
+                "debut_date": e.get("debut_date"),
+                "obtain": e.get("obtain", ""),
+                "summary": (e.get("summary") or "")[:140],
+            }
+            for e in dated[:limit]
+        ]
+        return {
+            "game": game.game_id,
+            "type": entry_type,
+            "count": len(recent),
+            "recent": recent,
+            "note": "按上线时间 debut_date 倒序（最新在前）",
+        }
+
