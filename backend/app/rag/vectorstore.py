@@ -66,6 +66,36 @@ class VectorStore:
     def count(self, collection: str) -> int:
         return self.get_collection(collection).count()
 
+    def list_collections(self) -> list[dict]:
+        """列出所有集合及块数（运维/诊断用）"""
+        client = self._ensure_client()
+        out = []
+        for c in client.list_collections():
+            out.append({"name": c.name, "count": c.count()})
+        return sorted(out, key=lambda x: x["name"])
+
+    def get_all(self, collection: str) -> dict:
+        """全量拉取 ids + metadatas（供统计与孤儿块检测）"""
+        col = self.get_collection(collection)
+        res = col.get(include=["metadatas"])
+        return {
+            "ids": res.get("ids", []) or [],
+            "metadatas": res.get("metadatas", []) or [],
+        }
+
+    def delete_by_metadata(self, collection: str, where: dict) -> int:
+        """按元数据过滤删除（脏数据清理），返回删除条数"""
+        col = self.get_collection(collection)
+        got = col.get(where=where, include=[])
+        ids = got.get("ids", []) or []
+        if ids:
+            col.delete(ids=ids)
+        return len(ids)
+
+    def delete_collection(self, collection: str) -> None:
+        """整集合删除（用于全量重建，谨慎调用）"""
+        self._ensure_client().delete_collection(collection)
+
 
 @lru_cache
 def get_vectorstore() -> VectorStore:

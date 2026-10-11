@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 
 from app.api import chat, docqa, events, games, knowledge, sessions
 from app.api import settings as settings_api
+from app.api import vector_admin
 from app.core.config import settings
 from app.core.errors import AppError, ErrorCode
 from app.core.logging import get_logger, setup_logging
@@ -26,6 +27,7 @@ app.include_router(chat.router)
 app.include_router(knowledge.router)
 app.include_router(events.router)
 app.include_router(docqa.router)
+app.include_router(vector_admin.router)
 app.include_router(settings_api.router)
 
 
