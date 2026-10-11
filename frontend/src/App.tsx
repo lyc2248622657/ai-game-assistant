@@ -80,7 +80,7 @@ export default function App() {
     async (text: string) => {
       if (loading) return
       setLoading(true)
-      setMessages((m) => [...m, { role: 'user', content: text }])
+      setMessages((m) => [...m, { role: 'user', content: text }, { role: 'assistant', content: '' }])
       setEvents([])
 
       try {
@@ -125,7 +125,13 @@ export default function App() {
           },
         )
       } catch (e) {
-        setMessages((m) => [...m, { role: 'assistant', content: `错误：${(e as Error).message}` }])
+        setMessages((m) => {
+          const last = m[m.length - 1]
+          if (last?.role === 'assistant' && !last.content) {
+            return [...m.slice(0, -1), { role: 'assistant', content: `错误：${(e as Error).message}` }]
+          }
+          return [...m, { role: 'assistant', content: `错误：${(e as Error).message}` }]
+        })
       } finally {
         setLoading(false)
         api.listSessions().then(setSessions)
