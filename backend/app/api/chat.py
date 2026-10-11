@@ -5,6 +5,7 @@
 """
 import asyncio
 import json
+import re
 import traceback
 
 from fastapi import APIRouter, Request
@@ -51,6 +52,40 @@ def _usage_delta(before: dict) -> dict:
         "total_tokens": now["total_tokens"] - before["total_tokens"],
         "llm_calls": now["llm_calls"] - before["llm_calls"],
     }
+
+
+def _rule_title(message: str) -> str:
+    """本地兜底标题：去掉问候前缀，取首句前 14 字"""
+    msg = re.sub(r"^(请问|帮我|我想|麻烦|请|求)?(查一下|问一下|看看|了解|介绍一下)?", "", message.strip())
+    msg = msg.split("\n")[0].strip()
+    return msg[:14] or "新会话"
+
+
+def _auto_title(session_id: str, first_message: str) -> None:
+    """智能命名：会话仍是默认标题（新对话/新会话）时，按首条用户消息生成 ≤12 字标题。
+
+    LLM 提炼（简短自然），失败/超时回退本地规则截断；任何异常静默（不阻塞对话）。
+    """
+    try:
+        s = store.get_session(session_id)
+        t = (s.get("title") or "").strip()
+        if t and not (t.startswith("新对话") or t.startswith("新会话")):
+            return  # 已命名（含用户手动改名），不覆盖
+        try:
+            from app.agents.llm import get_chat_model
+
+            resp = get_chat_model().invoke(
+                "根据用户第一句提问生成聊天会话标题。要求：不超过 12 个汉字，无标点无引号，"
+                "去掉『请问/帮我/我想知道』等客套词，直接输出标题本身。\n用户提问："
+                + first_message[:100]
+            )
+            title = (resp.content or "").strip().strip('"“”\'‘’').replace("\n", " ")[:14]
+        except Exception:  # noqa: BLE001
+            title = ""
+        store.update_session_title(session_id, title or _rule_title(first_message))
+        logger.info("[auto_title] %s -> %s", session_id, title or _rule_title(first_message))
+    except Exception as e:  # noqa: BLE001
+        logger.warning("[auto_title] 失败（忽略）: %s", e)
 
 
 def _prepare(body: ChatRequest):
@@ -107,6 +142,7 @@ def chat(body: ChatRequest):
 
     store.add_message(session["session_id"], "user", body.message)
     store.add_message(session["session_id"], "assistant", answer, citations=[c.model_dump() for c in citations])
+    _auto_title(session["session_id"], body.message)  # 智能命名（默认标题才改名，失败静默）
     _write_memory(
         session["session_id"],
         result.get("game_id") or game.game_id,
@@ -175,6 +211,7 @@ async def chat_stream(body: ChatRequest, request: Request):
                     store.add_message, session["session_id"], "assistant", answer,
                     [{"doc_id": c["doc_id"], "title": c["title"], "content": c.get("content", ""), "source": c.get("source", "")} for c in cits],
                 )
+                await asyncio.to_thread(_auto_title, session["session_id"], body.message)  # 智能命名（失败静默）
                 await asyncio.to_thread(
                     _write_memory,
                     session["session_id"],

@@ -1,11 +1,18 @@
-"""会话接口：创建 / 列表 / 历史消息"""
+"""会话接口：创建 / 列表 / 重命名 / 历史消息"""
 from fastapi import APIRouter
+from pydantic import BaseModel, Field
 
 from app.knowledge.games import registry
 from app.memory.store import store
 from app.schemas.chat import SessionCreate, SessionInfo
 
 router = APIRouter(prefix="/api/sessions", tags=["sessions"])
+
+
+class SessionRename(BaseModel):
+    """重命名会话"""
+
+    title: str = Field(..., min_length=1, max_length=60, description="新标题")
 
 
 @router.get("", response_model=list[SessionInfo])
@@ -19,6 +26,17 @@ def create_session(body: SessionCreate):
     """新建会话（校验游戏存在且启用）"""
     game = registry.get_game(body.game_id)
     return store.create_session(game.game_id, title=body.title or f"{game.name} 新会话")
+
+
+@router.put("/{session_id}", response_model=SessionInfo)
+def rename_session(session_id: str, body: SessionRename):
+    """重命名会话（智能命名 / 用户手动改名）"""
+    store.get_session(session_id)  # 不存在则抛 404 语义错误
+    title = body.title.strip()
+    if not title:
+        raise ValueError("标题不能为空")
+    store.update_session_title(session_id, title)
+    return store.get_session(session_id)
 
 
 @router.get("/{session_id}/messages")
