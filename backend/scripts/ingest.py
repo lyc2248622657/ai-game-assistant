@@ -98,13 +98,17 @@ def main():
         sys.exit(1)
 
     ids, texts, metas = [], [], []
+    # 按 doc_id 去重：dynamic 备份与主数据可能 ID 重叠，保留后加载条目（主数据更新）
+    seen: dict[str, tuple[str, dict]] = {}
     for e in entries:
         doc_id, text, meta = chunk_entry(e)
+        seen[doc_id] = (text, meta)
+    for doc_id, (text, meta) in seen.items():
         ids.append(doc_id)
         texts.append(text)
         metas.append(meta)
 
-    logger.info("向量化 %d 条（首次加载模型约需数分钟）…", len(entries))
+    logger.info("向量化 %d 条（首次加载模型约需数分钟）…", len(ids))
     emb = get_embedding()
     vectors = emb.encode(texts)
 
