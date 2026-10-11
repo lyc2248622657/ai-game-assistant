@@ -142,13 +142,13 @@ class AnalyzeTeamsTool(Tool):
                 if name in members:
                     teams.append({"name": t.get("name"), "members": members, "core": t.get("core", "")})
             if not teams:
-                source = "官方职业规则推荐"
-                role = str(entity.get("role") or entity.get("element") or "")
-                teams = [{
-                    "name": f"{name}·{role} 通用队",
-                    "members": [name],
-                    "core": f"以{name}为核心，按元素（{entity.get('element','')}）与定位（{entity.get('role','')}）搭配",
-                }]
+                # 修复：不再生成"{name}·主C 通用队"伪配队（成员仅自己、来源标注虚假会触发幻觉判定），
+                # 诚实返回未收录，交由角色关联配队（related_gear）或补充资料引导
+                return {
+                    "found": False,
+                    "teams": [],
+                    "note": f"库内暂无「{name}」的直接配队条目。可查看该角色的关联配队资料，或点击「补充资料」提交后入库。",
+                }
         else:
             # 明日方舟：按官方职业/分支规则推荐（不编造干员名）
             source = "官方职业/分支规则推荐"
