@@ -396,6 +396,30 @@ docker compose up -d --build
 - 密钥：`backend/.env` 经 `env_file` 注入，不入镜像。
 - 注：配置已就绪并通过审查；本机 Win10 19045 的 WSL2 可选组件启用被系统回滚，镜像实机构建待宿主 WSL2 可用后执行。
 
+## 企业文档问答（FDE 演示，P2）
+
+同一套 RAG 能力复用到企业文档问答场景——「导入客户文档 → 向量化 → 自然语言问答（带引用）」，
+作为对标 FDE 岗（驻客户现场把 AI 战略变成可交付产品）的轻量 Demo：
+
+```bash
+# 1) 导入文档（md/txt 文本，按段落分块向量化，Chroma「documents」集合）
+curl -X POST http://127.0.0.1:8000/api/docqa/ingest -H "Content-Type: application/json" \
+  -d '{"name":"公司制度手册","content":"...文档全文..."}'
+
+# 2) 问答（带引用，资料未覆盖的内容如实返回"资料未收录"，不编造）
+curl -X POST http://127.0.0.1:8000/api/docqa/ask -H "Content-Type: application/json" \
+  -d '{"question":"病假需要什么证明？"}'
+# → {"answer":"病假超过 3 天的需提供医院诊断证明…[1]","citations":[{title,content}…],"retrieved":4}
+
+# 3) 已入库文档清单
+curl http://127.0.0.1:8000/api/docqa/documents
+```
+
+- 实现：`backend/app/rag/document_qa.py`（分块 600 字/重叠 80、向量+全文兜底检索、LLM 回答带引用、失败降级引用摘要）+ `backend/app/api/docqa.py` 三端点；
+- 演示文档：`backend/data/documents/示例公司员工制度手册.md`（请假/报销/加班/年假/差旅等虚构示例制度）；
+- 实测：提问「病假需要什么证明？」→ 检索命中 4 块、回答引用制度原文、未规定内容如实标注「资料未收录」；
+- 单测：`tests/test_document_qa.py`（分块规则/入库参数/检索兜底/LLM 降级）。
+
 ## MCP 工具协议
 
 ```bash
