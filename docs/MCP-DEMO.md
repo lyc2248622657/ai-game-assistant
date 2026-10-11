@@ -15,8 +15,8 @@
 | `delete_vector_document` | 按文档删除向量块（脏数据清理） | `delete_vector_document {"collection":"documents","doc":"旧文档"}` |
 | `list_documents` | 已入库企业文档清单 | `list_documents {}` |
 | `ingest_document` | 企业文档导入并向量化 | `ingest_document {"name":"制度","content":"第一条…"}` |
-| `ask_document` | 企业文档问答（带引用，未收录如实标注） | `ask_document {"question":"病假需要什么证明？"}` |
-| `run_agent_task` | **A2A 多智能体协同**：分解→派发三域智能体→汇总带来源 | `run_agent_task {"task":"统计文档库多少块，顺便问病假证明"}` |
+| `ask_document` | 企业文档问答（带引用，未收录如实标注） | `ask_document {"question":"报销流程是什么？"}` |
+| `run_agent_task` | **A2A 多智能体协同**：分解→派发三域智能体→汇总带来源 | `run_agent_task {"task":"统计文档库多少块，顺便查能天使强度"}` |
 
 A2A 协同（最后一个工具）的架构与端到端验证见 `docs/A2A-DEMO.md`。
 
@@ -45,12 +45,13 @@ cd D:\PythonProject\ai-game-assistant\backend
 
 ```
 [init] server: ai-game-assistant
-[tools] 9 个工具
+[tools] 10 个工具
 [query] found: True | name: 能天使 | role: 狙击（速射手）| rarity: 6
 [retrieve] genshin 混合检索命中（doc_id=character_旅行者/草 等）
-[collections] arknights_kb 460 / documents 30 / genshin_kb 233 / user_memory 19
-[stats] documents: total=30, by_doc=示例公司员工制度手册 30, orphan=0
-[ask_document] retrieved: 2 | answer: 病假超过 3 天的需提供医院诊断证明。[1]
+[collections] arknights_kb 460 / documents 0 / genshin_kb 233 / user_memory 19
+[stats] documents: total=0, by_doc={}, orphan=0（未入库任何客户文档时如实返回空；入库后按文档统计）
+[ask_document] retrieved: 0 | answer: 资料未收录…（未入库时如实标注，不编造）
+[a2a] subtasks: ['game_agent','vector_agent'] | 汇总带来源
 ```
 
 ## 四、说明

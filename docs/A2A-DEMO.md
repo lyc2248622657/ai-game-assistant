@@ -7,7 +7,7 @@
 
 ```
 外部客户端 / MCP 客户端
-        │  run_agent_task("查能天使强度 + 顺便问病假证明")
+        │  run_agent_task("查能天使强度 + 统计文档库块数")
         ▼
 A2AOrchestrator（app/agents/a2a.py）
   decompose   →  LLM 按能力清单分解子任务（失败自动降级关键词规则）
@@ -38,15 +38,13 @@ cd D:\PythonProject\ai-game-assistant\backend
 
 ## 三、端到端验证（2026-10-11）
 
-请求：`帮我查一下明日方舟能天使的强度，顺便问一下员工病假超过几天需要开诊断证明`
+请求：`帮我查一下明日方舟能天使的强度，再统计一下文档库有多少块`
 
-- LLM 分解：`[doc_agent 企业文档问答, game_agent 游戏知识查询]`
-- 派发：doc_agent → 病假超 3 天需医院诊断证明（引用 4 条）；game_agent → 能天使检索命中（能天使/新约能天使）
-- LLM 汇总：分点回答、逐条标注来源 `[game_agent]` / `[doc_agent]`、未收录内容如实说明
+- LLM 分解：`[game_agent 游戏知识查询, vector_agent 向量库统计]`
+- 派发：game_agent → 能天使检索命中（能天使/新约能天使）；vector_agent → documents 集合统计（入库文档时返回总量/孤儿块）
+- LLM 汇总：分点回答、逐条标注来源 `[game_agent]` / `[vector_agent]`、未成功子任务如实说明
 
-请求：`统计一下文档库和方舟知识库分别有多少块`
-
-- 分解：`[vector_agent 向量库统计]`；统计：documents 共 30 块、孤儿块 0（按文档 {示例公司员工制度手册: 30}）
+doc_agent（企业文档域）演示：未入库任何客户文档时提问，如实返回「资料未收录」（不编造）；把真实客户文档放入 `backend/data/documents/` 并 ingest 后，即可带引用回答（检索→引用→LLM 回答链路与 `document_qa.ask` 一致）。
 
 离线模式（--no-llm）同样可跑：关键词分解 → 结构化拼接。
 

@@ -408,17 +408,16 @@ curl -X POST http://127.0.0.1:8000/api/docqa/ingest -H "Content-Type: applicatio
 
 # 2) 问答（带引用，资料未覆盖的内容如实返回"资料未收录"，不编造）
 curl -X POST http://127.0.0.1:8000/api/docqa/ask -H "Content-Type: application/json" \
-  -d '{"question":"病假需要什么证明？"}'
-# → {"answer":"病假超过 3 天的需提供医院诊断证明…[1]","citations":[{title,content}…],"retrieved":4}
+  -d '{"question":"请根据已入库资料回答：报销流程是什么？"}'
+# → {"answer":"资料未收录…[0]","citations":[],"retrieved":0}（未入库时如实标注，不编造）
 
 # 3) 已入库文档清单
 curl http://127.0.0.1:8000/api/docqa/documents
 ```
 
 - 实现：`backend/app/rag/document_qa.py`（分块 600 字/重叠 80、向量+全文兜底检索、LLM 回答带引用、失败降级引用摘要）+ `backend/app/api/docqa.py` 三端点；
-- 演示文档：`backend/data/documents/示例公司员工制度手册.md`（请假/报销/加班/年假/差旅等虚构示例制度）；
-- 实测：提问「病假需要什么证明？」→ 检索命中 4 块、回答引用制度原文、未规定内容如实标注「资料未收录」；
-- 单测：`tests/test_document_qa.py`（分块规则/入库参数/检索兜底/LLM 降级）。
+- 用法：把客户文档放入 `backend/data/documents/` 后 `ingest_document` / `/api/docqa/ingest` 入库即可问答（项目未捆绑虚构演示文档，未入库时如实返回「资料未收录」）；
+- 实测：未入库时提问 → 如实标注「资料未收录」（`tests/test_document_qa.py` 覆盖分块规则/入库参数/检索兜底/LLM 降级）。
 
 ## MCP 工具协议
 
