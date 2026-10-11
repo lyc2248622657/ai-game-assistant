@@ -425,11 +425,14 @@ curl http://127.0.0.1:8000/api/docqa/documents
 ```bash
 cd backend
 .venv\Scripts\python.exe mcp_server.py            # stdio 模式，等待客户端连接
-.venv\Scripts\python.exe scripts\mcp_client_test.py  # 冒烟：握手 → 列工具 → 调实体查询/检索
+.venv\Scripts\python.exe scripts\mcp_client_test.py  # 冒烟：握手 → 列工具 → 调实体查询/检索/向量运维/文档问答
 ```
 
 任意 MCP 客户端（Claude Desktop / Cursor 等）按 stdio server 接入即可获得平台能力：
 `list_games`（游戏注册表）、`query_game_entity`（按需实体查询，静态→动态→LLM 生成 + wiki 交叉验证）、
-`search_knowledge`（RAG 混合检索）。
+`search_knowledge`（RAG 混合检索）、`list_vector_collections` / `vector_stats` / `delete_vector_document`（向量库运维）、
+`list_documents` / `ingest_document` / `ask_document`（企业文档问答，带引用）。
+
+完整工具清单与端到端验证见 `docs/MCP-DEMO.md`；向量库运维 CLI 等价入口 `backend\scripts\vector_admin.py`（list / stats / delete-doc / rebuild / purge）。
 
 详细设计见《AI 游戏助手智能体平台项目方案.docx》。

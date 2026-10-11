@@ -38,6 +38,16 @@ async def main() -> None:
             raw3 = r3.content[0].text
             print("[retrieve] raw[:300]:", raw3[:300])
 
+            r4 = await session.call_tool("list_vector_collections", {})
+            print("[collections]", r4.content[0].text[:300])
+
+            r5 = await session.call_tool("vector_stats", {"collection": "documents"})
+            print("[stats]", r5.content[0].text[:400])
+
+            r6 = await session.call_tool("ask_document", {"question": "病假需要什么证明？", "top_k": 2})
+            raw6 = json.loads(r6.content[0].text)
+            print("[ask_document] retrieved:", raw6.get("retrieved"), "| answer[:120]:", raw6.get("answer", "")[:120])
+
 
 if __name__ == "__main__":
     asyncio.run(main())

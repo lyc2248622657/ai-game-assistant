@@ -23,3 +23,5 @@ sentence-transformers>=3.0 # bge-m3 向量化（首次下载模型约 2GB）
 
 # --- 测试（pytest） ---
 pytest>=8.0                # tests/ 单元测试（解析器 / Agent 图 / 策略工具）
+
+mcp>=1.0            # MCP 工具协议服务器（stdio）
