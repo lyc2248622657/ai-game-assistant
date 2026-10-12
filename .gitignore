@@ -41,3 +41,6 @@ backend/data/events_cache.json
 
 # Docker 构建中间产物（Linux wheel 离线安装包，约 700MB）
 backend/wheels/
+
+# 评测中间产物（eval_runner 运行结果，可随时重跑）
+backend/data/eval_*.json

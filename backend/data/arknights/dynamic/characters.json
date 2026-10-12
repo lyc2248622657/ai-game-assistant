@@ -205779,602 +205779,6 @@
     "summary": "6星特种·巡空者，起飞后能够阻挡2个飞行敌人"
   },
   {
-    "id": "char_能天使",
-    "type": "character",
-    "name": "能天使",
-    "title": "企鹅物流的信使",
-    "rarity": 6,
-    "element": "物理",
-    "weapon_type": "远程",
-    "role": "狙击（速射手）",
-    "region": "拉特兰",
-    "summary": "企鹅物流所属信使，拉特兰人，狙击职业速射手分支，高攻速物理输出，泛用性极高的前期主C。",
-    "constellation": "天使",
-    "debut_version": "开服",
-    "debut_date": "2019年04月30日",
-    "special_food": "",
-    "tags": [
-      "狙击",
-      "速射手",
-      "物理",
-      "企鹅物流"
-    ],
-    "source": "人工整理（二期种子数据，2026-09）",
-    "image_url": "https://media.prts.wiki/a/ad/%E5%A4%B4%E5%83%8F_%E8%83%BD%E5%A4%A9%E4%BD%BF.png",
-    "image": "https://media.prts.wiki/a/ad/%E5%A4%B4%E5%83%8F_%E8%83%BD%E5%A4%A9%E4%BD%BF.png",
-    "skills": [
-      {
-        "name": "冲锋模式",
-        "recovery": "攻击回复",
-        "levels": [
-          {
-            "level": "1",
-            "desc": "下次攻击变为3连射，每次射击造成相当于攻击力105%的伤害",
-            "initial": "0",
-            "cost": "5",
-            "duration": "|技能2描述=下次攻击变为3连射，每次射击造成相当于攻击力107%的伤害"
-          },
-          {
-            "level": "2",
-            "desc": "下次攻击变为3连射，每次射击造成相当于攻击力107%的伤害",
-            "initial": "0",
-            "cost": "5",
-            "duration": "|技能3描述=下次攻击变为3连射，每次射击造成相当于攻击力109%的伤害"
-          },
-          {
-            "level": "3",
-            "desc": "下次攻击变为3连射，每次射击造成相当于攻击力109%的伤害",
-            "initial": "0",
-            "cost": "5",
-            "duration": "|技能4描述=下次攻击变为3连射，每次射击造成相当于攻击力113%的伤害"
-          },
-          {
-            "level": "4",
-            "desc": "下次攻击变为3连射，每次射击造成相当于攻击力113%的伤害",
-            "initial": "0",
-            "cost": "4",
-            "duration": "|技能5描述=下次攻击变为3连射，每次射击造成相当于攻击力115%的伤害"
-          },
-          {
-            "level": "5",
-            "desc": "下次攻击变为3连射，每次射击造成相当于攻击力115%的伤害",
-            "initial": "0",
-            "cost": "4",
-            "duration": "|技能6描述=下次攻击变为3连射，每次射击造成相当于攻击力117%的伤害"
-          },
-          {
-            "level": "6",
-            "desc": "下次攻击变为3连射，每次射击造成相当于攻击力117%的伤害",
-            "initial": "0",
-            "cost": "4",
-            "duration": "|技能7描述=下次攻击变为3连射，每次射击造成相当于攻击力121%的伤害"
-          },
-          {
-            "level": "7",
-            "desc": "下次攻击变为3连射，每次射击造成相当于攻击力121%的伤害",
-            "initial": "0",
-            "cost": "4",
-            "duration": "|技能专精1描述=下次攻击变为3连射，每次射击造成相当于攻击力129%的伤害"
-          },
-          {
-            "level": "专精1",
-            "desc": "下次攻击变为3连射，每次射击造成相当于攻击力129%的伤害",
-            "initial": "0",
-            "cost": "4",
-            "duration": "|技能专精2描述=下次攻击变为3连射，每次射击造成相当于攻击力137%的伤害"
-          },
-          {
-            "level": "专精2",
-            "desc": "下次攻击变为3连射，每次射击造成相当于攻击力137%的伤害",
-            "initial": "0",
-            "cost": "4",
-            "duration": "|技能专精3描述=下次攻击变为3连射，每次射击造成相当于攻击力145%的伤害"
-          },
-          {
-            "level": "专精3",
-            "desc": "下次攻击变为3连射，每次射击造成相当于攻击力145%的伤害",
-            "initial": "0",
-            "cost": "4",
-            "duration": ""
-          }
-        ]
-      },
-      {
-        "name": "扫射模式",
-        "recovery": "自动回复",
-        "levels": [
-          {
-            "level": "1",
-            "desc": "攻击变为4连射，每次射击造成相当于攻击力100%的伤害",
-            "initial": "15",
-            "cost": "45",
-            "duration": "15"
-          },
-          {
-            "level": "2",
-            "desc": "攻击变为4连射，每次射击造成相当于攻击力100%的伤害",
-            "initial": "15",
-            "cost": "44",
-            "duration": "15"
-          },
-          {
-            "level": "3",
-            "desc": "攻击变为4连射，每次射击造成相当于攻击力100%的伤害",
-            "initial": "15",
-            "cost": "43",
-            "duration": "15"
-          },
-          {
-            "level": "4",
-            "desc": "攻击变为4连射，每次射击造成相当于攻击力105%的伤害",
-            "initial": "15",
-            "cost": "42",
-            "duration": "15"
-          },
-          {
-            "level": "5",
-            "desc": "攻击变为4连射，每次射击造成相当于攻击力105%的伤害",
-            "initial": "15",
-            "cost": "41",
-            "duration": "15"
-          },
-          {
-            "level": "6",
-            "desc": "攻击变为4连射，每次射击造成相当于攻击力105%的伤害",
-            "initial": "15",
-            "cost": "40",
-            "duration": "15"
-          },
-          {
-            "level": "7",
-            "desc": "攻击变为4连射，每次射击造成相当于攻击力110%的伤害",
-            "initial": "18",
-            "cost": "39",
-            "duration": "15"
-          },
-          {
-            "level": "专精1",
-            "desc": "攻击变为4连射，每次射击造成相当于攻击力115%的伤害",
-            "initial": "20",
-            "cost": "38",
-            "duration": "15"
-          },
-          {
-            "level": "专精2",
-            "desc": "攻击变为4连射，每次射击造成相当于攻击力120%的伤害",
-            "initial": "22",
-            "cost": "37",
-            "duration": "15"
-          },
-          {
-            "level": "专精3",
-            "desc": "攻击变为4连射，每次射击造成相当于攻击力125%的伤害",
-            "initial": "25",
-            "cost": "35",
-            "duration": "15"
-          }
-        ]
-      },
-      {
-        "name": "过载模式",
-        "recovery": "自动回复",
-        "levels": [
-          {
-            "level": "1",
-            "desc": "攻击变为5连射 技能会自动开启",
-            "initial": "20",
-            "cost": "50",
-            "duration": "15"
-          },
-          {
-            "level": "2",
-            "desc": "攻击变为5连射 技能会自动开启",
-            "initial": "20",
-            "cost": "48",
-            "duration": "15"
-          },
-          {
-            "level": "3",
-            "desc": "攻击变为5连射 技能会自动开启",
-            "initial": "20",
-            "cost": "46",
-            "duration": "15"
-          },
-          {
-            "level": "4",
-            "desc": "攻击变为5连射，攻击间隔 技能会自动开启",
-            "initial": "20",
-            "cost": "44",
-            "duration": "15"
-          },
-          {
-            "level": "5",
-            "desc": "攻击变为5连射，攻击间隔 技能会自动开启",
-            "initial": "20",
-            "cost": "42",
-            "duration": "15"
-          },
-          {
-            "level": "6",
-            "desc": "攻击变为5连射，攻击间隔 技能会自动开启",
-            "initial": "20",
-            "cost": "40",
-            "duration": "15"
-          },
-          {
-            "level": "7",
-            "desc": "攻击变为5连射，攻击间隔 技能会自动开启",
-            "initial": "20",
-            "cost": "38",
-            "duration": "15"
-          },
-          {
-            "level": "专精1",
-            "desc": "攻击变为5连射，攻击间隔，攻击力提升至103% 技能会自动开启",
-            "initial": "20",
-            "cost": "36",
-            "duration": "15"
-          },
-          {
-            "level": "专精2",
-            "desc": "攻击变为5连射，攻击间隔，攻击力提升至107% 技能会自动开启",
-            "initial": "20",
-            "cost": "34",
-            "duration": "15"
-          },
-          {
-            "level": "专精3",
-            "desc": "攻击变为5连射，攻击间隔，攻击力提升至110% 技能会自动开启",
-            "initial": "20",
-            "cost": "30",
-            "duration": "15"
-          }
-        ]
-      }
-    ],
-    "talents": [
-      {
-        "name": "快速弹匣",
-        "conditions": [
-          {
-            "condition": "精英1",
-            "effect": "攻击速度"
-          },
-          {
-            "condition": "精英2",
-            "effect": "攻击速度"
-          },
-          {
-            "condition": "精英2 Y模组2级",
-            "effect": "攻击速度；连续造成伤害时逐渐无视敌人防御力，最高无视150点防御力（每次造成伤害提升6点），5秒内未攻击则失去加成"
-          }
-        ]
-      },
-      {
-        "name": "天使的祝福",
-        "conditions": [
-          {
-            "condition": "精英2",
-            "effect": "攻击力6%（+6%），生命上限10%（+10%）。置入战场后这个效果会同样赋予给一名随机友方单位"
-          },
-          {
-            "condition": "精英2 X模组2级",
-            "effect": "攻击力6%（+6%），生命上限10%（+10%）。置入战场后这个效果会同样赋予给两名随机友方单位"
-          },
-          {
-            "condition": "精英2 X模组3级",
-            "effect": "攻击力8%（+8%），生命上限14%（+14%）。置入战场后这个效果会同样赋予给两名随机友方单位"
-          }
-        ]
-      }
-    ],
-    "materials": {
-      "elite": [
-        {
-          "stage": "精1",
-          "items": [
-            {
-              "material": "龙门币",
-              "count": "3w"
-            },
-            {
-              "material": "狙击芯片",
-              "count": "5"
-            },
-            {
-              "material": "固源岩",
-              "count": "12"
-            },
-            {
-              "material": "酮凝集",
-              "count": "4"
-            }
-          ]
-        },
-        {
-          "stage": "精2",
-          "items": [
-            {
-              "material": "龙门币",
-              "count": "18w"
-            },
-            {
-              "material": "狙击双芯片",
-              "count": "4"
-            },
-            {
-              "material": "聚合剂",
-              "count": "4"
-            },
-            {
-              "material": "糖聚块",
-              "count": "5"
-            }
-          ]
-        }
-      ],
-      "skill": [
-        {
-          "skill_index": 1,
-          "level": 2,
-          "items": [
-            {
-              "material": "技巧概要·卷1",
-              "count": "5"
-            }
-          ]
-        },
-        {
-          "skill_index": 1,
-          "level": 3,
-          "items": [
-            {
-              "material": "技巧概要·卷1",
-              "count": "5"
-            },
-            {
-              "material": "源岩",
-              "count": "6"
-            },
-            {
-              "material": "破损装置",
-              "count": "4"
-            }
-          ]
-        },
-        {
-          "skill_index": 1,
-          "level": 4,
-          "items": [
-            {
-              "material": "技巧概要·卷2",
-              "count": "8"
-            },
-            {
-              "material": "糖",
-              "count": "5"
-            }
-          ]
-        },
-        {
-          "skill_index": 1,
-          "level": 5,
-          "items": [
-            {
-              "material": "技巧概要·卷2",
-              "count": "8"
-            },
-            {
-              "material": "聚酸酯",
-              "count": "4"
-            },
-            {
-              "material": "异铁",
-              "count": "4"
-            }
-          ]
-        },
-        {
-          "skill_index": 1,
-          "level": 6,
-          "items": [
-            {
-              "material": "技巧概要·卷2",
-              "count": "8"
-            },
-            {
-              "material": "异铁组",
-              "count": "6"
-            }
-          ]
-        },
-        {
-          "skill_index": 1,
-          "level": 7,
-          "items": [
-            {
-              "material": "技巧概要·卷3",
-              "count": "8"
-            },
-            {
-              "material": "酮凝集组",
-              "count": "3"
-            },
-            {
-              "material": "扭转醇",
-              "count": "6"
-            }
-          ]
-        },
-        {
-          "skill_index": 1,
-          "level": 8,
-          "items": [
-            {
-              "material": "技巧概要·卷3",
-              "count": "6"
-            },
-            {
-              "material": "改量装置",
-              "count": "3"
-            },
-            {
-              "material": "异铁组",
-              "count": "4"
-            }
-          ]
-        },
-        {
-          "skill_index": 1,
-          "level": 9,
-          "items": [
-            {
-              "material": "技巧概要·卷3",
-              "count": "12"
-            },
-            {
-              "material": "五水研磨石",
-              "count": "4"
-            },
-            {
-              "material": "白马醇",
-              "count": "9"
-            }
-          ]
-        },
-        {
-          "skill_index": 1,
-          "level": 10,
-          "items": [
-            {
-              "material": "技巧概要·卷3",
-              "count": "15"
-            },
-            {
-              "material": "聚合剂",
-              "count": "6"
-            },
-            {
-              "material": "糖聚块",
-              "count": "6"
-            }
-          ]
-        },
-        {
-          "skill_index": 2,
-          "level": 8,
-          "items": [
-            {
-              "material": "技巧概要·卷3",
-              "count": "6"
-            },
-            {
-              "material": "白马醇",
-              "count": "4"
-            },
-            {
-              "material": "酮凝集组",
-              "count": "8"
-            }
-          ]
-        },
-        {
-          "skill_index": 2,
-          "level": 9,
-          "items": [
-            {
-              "material": "技巧概要·卷3",
-              "count": "12"
-            },
-            {
-              "material": "RMA70-24",
-              "count": "4"
-            },
-            {
-              "material": "三水锰矿",
-              "count": "7"
-            }
-          ]
-        },
-        {
-          "skill_index": 2,
-          "level": 10,
-          "items": [
-            {
-              "material": "技巧概要·卷3",
-              "count": "15"
-            },
-            {
-              "material": "聚合剂",
-              "count": "6"
-            },
-            {
-              "material": "白马醇",
-              "count": "7"
-            }
-          ]
-        },
-        {
-          "skill_index": 3,
-          "level": 8,
-          "items": [
-            {
-              "material": "技巧概要·卷3",
-              "count": "6"
-            },
-            {
-              "material": "三水锰矿",
-              "count": "4"
-            },
-            {
-              "material": "全新装置",
-              "count": "4"
-            }
-          ]
-        },
-        {
-          "skill_index": 3,
-          "level": 9,
-          "items": [
-            {
-              "material": "技巧概要·卷3",
-              "count": "12"
-            },
-            {
-              "material": "提纯源岩",
-              "count": "4"
-            },
-            {
-              "material": "五水研磨石",
-              "count": "9"
-            }
-          ]
-        },
-        {
-          "skill_index": 3,
-          "level": 10,
-          "items": [
-            {
-              "material": "技巧概要·卷3",
-              "count": "15"
-            },
-            {
-              "material": "D32钢",
-              "count": "6"
-            },
-            {
-              "material": "聚酸酯块",
-              "count": "6"
-            }
-          ]
-        }
-      ]
-    },
-    "_meta": {
-      "source": "official_wiki_enhanced"
-    }
-  },
-  {
     "id": "char_银灰",
     "type": "character",
     "name": "银灰",
@@ -207549,6 +206953,602 @@
             },
             {
               "material": "RMA70-24",
+              "count": "6"
+            }
+          ]
+        }
+      ]
+    },
+    "_meta": {
+      "source": "official_wiki_enhanced"
+    }
+  },
+  {
+    "id": "char_能天使",
+    "type": "character",
+    "name": "能天使",
+    "title": "企鹅物流的信使",
+    "rarity": 6,
+    "element": "物理",
+    "weapon_type": "远程",
+    "role": "狙击（速射手）",
+    "region": "拉特兰",
+    "summary": "企鹅物流所属信使，拉特兰人，狙击职业速射手分支，高攻速物理输出，泛用性极高的前期主C。",
+    "constellation": "天使",
+    "debut_version": "开服",
+    "debut_date": "2019年04月30日",
+    "special_food": "",
+    "tags": [
+      "狙击",
+      "速射手",
+      "物理",
+      "企鹅物流"
+    ],
+    "source": "人工整理（二期种子数据，2026-09）",
+    "image_url": "https://media.prts.wiki/a/ad/%E5%A4%B4%E5%83%8F_%E8%83%BD%E5%A4%A9%E4%BD%BF.png",
+    "image": "https://media.prts.wiki/a/ad/%E5%A4%B4%E5%83%8F_%E8%83%BD%E5%A4%A9%E4%BD%BF.png",
+    "skills": [
+      {
+        "name": "冲锋模式",
+        "recovery": "攻击回复",
+        "levels": [
+          {
+            "level": "1",
+            "desc": "下次攻击变为3连射，每次射击造成相当于攻击力105%的伤害",
+            "initial": "0",
+            "cost": "5",
+            "duration": "|技能2描述=下次攻击变为3连射，每次射击造成相当于攻击力107%的伤害"
+          },
+          {
+            "level": "2",
+            "desc": "下次攻击变为3连射，每次射击造成相当于攻击力107%的伤害",
+            "initial": "0",
+            "cost": "5",
+            "duration": "|技能3描述=下次攻击变为3连射，每次射击造成相当于攻击力109%的伤害"
+          },
+          {
+            "level": "3",
+            "desc": "下次攻击变为3连射，每次射击造成相当于攻击力109%的伤害",
+            "initial": "0",
+            "cost": "5",
+            "duration": "|技能4描述=下次攻击变为3连射，每次射击造成相当于攻击力113%的伤害"
+          },
+          {
+            "level": "4",
+            "desc": "下次攻击变为3连射，每次射击造成相当于攻击力113%的伤害",
+            "initial": "0",
+            "cost": "4",
+            "duration": "|技能5描述=下次攻击变为3连射，每次射击造成相当于攻击力115%的伤害"
+          },
+          {
+            "level": "5",
+            "desc": "下次攻击变为3连射，每次射击造成相当于攻击力115%的伤害",
+            "initial": "0",
+            "cost": "4",
+            "duration": "|技能6描述=下次攻击变为3连射，每次射击造成相当于攻击力117%的伤害"
+          },
+          {
+            "level": "6",
+            "desc": "下次攻击变为3连射，每次射击造成相当于攻击力117%的伤害",
+            "initial": "0",
+            "cost": "4",
+            "duration": "|技能7描述=下次攻击变为3连射，每次射击造成相当于攻击力121%的伤害"
+          },
+          {
+            "level": "7",
+            "desc": "下次攻击变为3连射，每次射击造成相当于攻击力121%的伤害",
+            "initial": "0",
+            "cost": "4",
+            "duration": "|技能专精1描述=下次攻击变为3连射，每次射击造成相当于攻击力129%的伤害"
+          },
+          {
+            "level": "专精1",
+            "desc": "下次攻击变为3连射，每次射击造成相当于攻击力129%的伤害",
+            "initial": "0",
+            "cost": "4",
+            "duration": "|技能专精2描述=下次攻击变为3连射，每次射击造成相当于攻击力137%的伤害"
+          },
+          {
+            "level": "专精2",
+            "desc": "下次攻击变为3连射，每次射击造成相当于攻击力137%的伤害",
+            "initial": "0",
+            "cost": "4",
+            "duration": "|技能专精3描述=下次攻击变为3连射，每次射击造成相当于攻击力145%的伤害"
+          },
+          {
+            "level": "专精3",
+            "desc": "下次攻击变为3连射，每次射击造成相当于攻击力145%的伤害",
+            "initial": "0",
+            "cost": "4",
+            "duration": ""
+          }
+        ]
+      },
+      {
+        "name": "扫射模式",
+        "recovery": "自动回复",
+        "levels": [
+          {
+            "level": "1",
+            "desc": "攻击变为4连射，每次射击造成相当于攻击力100%的伤害",
+            "initial": "15",
+            "cost": "45",
+            "duration": "15"
+          },
+          {
+            "level": "2",
+            "desc": "攻击变为4连射，每次射击造成相当于攻击力100%的伤害",
+            "initial": "15",
+            "cost": "44",
+            "duration": "15"
+          },
+          {
+            "level": "3",
+            "desc": "攻击变为4连射，每次射击造成相当于攻击力100%的伤害",
+            "initial": "15",
+            "cost": "43",
+            "duration": "15"
+          },
+          {
+            "level": "4",
+            "desc": "攻击变为4连射，每次射击造成相当于攻击力105%的伤害",
+            "initial": "15",
+            "cost": "42",
+            "duration": "15"
+          },
+          {
+            "level": "5",
+            "desc": "攻击变为4连射，每次射击造成相当于攻击力105%的伤害",
+            "initial": "15",
+            "cost": "41",
+            "duration": "15"
+          },
+          {
+            "level": "6",
+            "desc": "攻击变为4连射，每次射击造成相当于攻击力105%的伤害",
+            "initial": "15",
+            "cost": "40",
+            "duration": "15"
+          },
+          {
+            "level": "7",
+            "desc": "攻击变为4连射，每次射击造成相当于攻击力110%的伤害",
+            "initial": "18",
+            "cost": "39",
+            "duration": "15"
+          },
+          {
+            "level": "专精1",
+            "desc": "攻击变为4连射，每次射击造成相当于攻击力115%的伤害",
+            "initial": "20",
+            "cost": "38",
+            "duration": "15"
+          },
+          {
+            "level": "专精2",
+            "desc": "攻击变为4连射，每次射击造成相当于攻击力120%的伤害",
+            "initial": "22",
+            "cost": "37",
+            "duration": "15"
+          },
+          {
+            "level": "专精3",
+            "desc": "攻击变为4连射，每次射击造成相当于攻击力125%的伤害",
+            "initial": "25",
+            "cost": "35",
+            "duration": "15"
+          }
+        ]
+      },
+      {
+        "name": "过载模式",
+        "recovery": "自动回复",
+        "levels": [
+          {
+            "level": "1",
+            "desc": "攻击变为5连射 技能会自动开启",
+            "initial": "20",
+            "cost": "50",
+            "duration": "15"
+          },
+          {
+            "level": "2",
+            "desc": "攻击变为5连射 技能会自动开启",
+            "initial": "20",
+            "cost": "48",
+            "duration": "15"
+          },
+          {
+            "level": "3",
+            "desc": "攻击变为5连射 技能会自动开启",
+            "initial": "20",
+            "cost": "46",
+            "duration": "15"
+          },
+          {
+            "level": "4",
+            "desc": "攻击变为5连射，攻击间隔 技能会自动开启",
+            "initial": "20",
+            "cost": "44",
+            "duration": "15"
+          },
+          {
+            "level": "5",
+            "desc": "攻击变为5连射，攻击间隔 技能会自动开启",
+            "initial": "20",
+            "cost": "42",
+            "duration": "15"
+          },
+          {
+            "level": "6",
+            "desc": "攻击变为5连射，攻击间隔 技能会自动开启",
+            "initial": "20",
+            "cost": "40",
+            "duration": "15"
+          },
+          {
+            "level": "7",
+            "desc": "攻击变为5连射，攻击间隔 技能会自动开启",
+            "initial": "20",
+            "cost": "38",
+            "duration": "15"
+          },
+          {
+            "level": "专精1",
+            "desc": "攻击变为5连射，攻击间隔，攻击力提升至103% 技能会自动开启",
+            "initial": "20",
+            "cost": "36",
+            "duration": "15"
+          },
+          {
+            "level": "专精2",
+            "desc": "攻击变为5连射，攻击间隔，攻击力提升至107% 技能会自动开启",
+            "initial": "20",
+            "cost": "34",
+            "duration": "15"
+          },
+          {
+            "level": "专精3",
+            "desc": "攻击变为5连射，攻击间隔，攻击力提升至110% 技能会自动开启",
+            "initial": "20",
+            "cost": "30",
+            "duration": "15"
+          }
+        ]
+      }
+    ],
+    "talents": [
+      {
+        "name": "快速弹匣",
+        "conditions": [
+          {
+            "condition": "精英1",
+            "effect": "攻击速度"
+          },
+          {
+            "condition": "精英2",
+            "effect": "攻击速度"
+          },
+          {
+            "condition": "精英2 Y模组2级",
+            "effect": "攻击速度；连续造成伤害时逐渐无视敌人防御力，最高无视150点防御力（每次造成伤害提升6点），5秒内未攻击则失去加成"
+          }
+        ]
+      },
+      {
+        "name": "天使的祝福",
+        "conditions": [
+          {
+            "condition": "精英2",
+            "effect": "攻击力6%（+6%），生命上限10%（+10%）。置入战场后这个效果会同样赋予给一名随机友方单位"
+          },
+          {
+            "condition": "精英2 X模组2级",
+            "effect": "攻击力6%（+6%），生命上限10%（+10%）。置入战场后这个效果会同样赋予给两名随机友方单位"
+          },
+          {
+            "condition": "精英2 X模组3级",
+            "effect": "攻击力8%（+8%），生命上限14%（+14%）。置入战场后这个效果会同样赋予给两名随机友方单位"
+          }
+        ]
+      }
+    ],
+    "materials": {
+      "elite": [
+        {
+          "stage": "精1",
+          "items": [
+            {
+              "material": "龙门币",
+              "count": "3w"
+            },
+            {
+              "material": "狙击芯片",
+              "count": "5"
+            },
+            {
+              "material": "固源岩",
+              "count": "12"
+            },
+            {
+              "material": "酮凝集",
+              "count": "4"
+            }
+          ]
+        },
+        {
+          "stage": "精2",
+          "items": [
+            {
+              "material": "龙门币",
+              "count": "18w"
+            },
+            {
+              "material": "狙击双芯片",
+              "count": "4"
+            },
+            {
+              "material": "聚合剂",
+              "count": "4"
+            },
+            {
+              "material": "糖聚块",
+              "count": "5"
+            }
+          ]
+        }
+      ],
+      "skill": [
+        {
+          "skill_index": 1,
+          "level": 2,
+          "items": [
+            {
+              "material": "技巧概要·卷1",
+              "count": "5"
+            }
+          ]
+        },
+        {
+          "skill_index": 1,
+          "level": 3,
+          "items": [
+            {
+              "material": "技巧概要·卷1",
+              "count": "5"
+            },
+            {
+              "material": "源岩",
+              "count": "6"
+            },
+            {
+              "material": "破损装置",
+              "count": "4"
+            }
+          ]
+        },
+        {
+          "skill_index": 1,
+          "level": 4,
+          "items": [
+            {
+              "material": "技巧概要·卷2",
+              "count": "8"
+            },
+            {
+              "material": "糖",
+              "count": "5"
+            }
+          ]
+        },
+        {
+          "skill_index": 1,
+          "level": 5,
+          "items": [
+            {
+              "material": "技巧概要·卷2",
+              "count": "8"
+            },
+            {
+              "material": "聚酸酯",
+              "count": "4"
+            },
+            {
+              "material": "异铁",
+              "count": "4"
+            }
+          ]
+        },
+        {
+          "skill_index": 1,
+          "level": 6,
+          "items": [
+            {
+              "material": "技巧概要·卷2",
+              "count": "8"
+            },
+            {
+              "material": "异铁组",
+              "count": "6"
+            }
+          ]
+        },
+        {
+          "skill_index": 1,
+          "level": 7,
+          "items": [
+            {
+              "material": "技巧概要·卷3",
+              "count": "8"
+            },
+            {
+              "material": "酮凝集组",
+              "count": "3"
+            },
+            {
+              "material": "扭转醇",
+              "count": "6"
+            }
+          ]
+        },
+        {
+          "skill_index": 1,
+          "level": 8,
+          "items": [
+            {
+              "material": "技巧概要·卷3",
+              "count": "6"
+            },
+            {
+              "material": "改量装置",
+              "count": "3"
+            },
+            {
+              "material": "异铁组",
+              "count": "4"
+            }
+          ]
+        },
+        {
+          "skill_index": 1,
+          "level": 9,
+          "items": [
+            {
+              "material": "技巧概要·卷3",
+              "count": "12"
+            },
+            {
+              "material": "五水研磨石",
+              "count": "4"
+            },
+            {
+              "material": "白马醇",
+              "count": "9"
+            }
+          ]
+        },
+        {
+          "skill_index": 1,
+          "level": 10,
+          "items": [
+            {
+              "material": "技巧概要·卷3",
+              "count": "15"
+            },
+            {
+              "material": "聚合剂",
+              "count": "6"
+            },
+            {
+              "material": "糖聚块",
+              "count": "6"
+            }
+          ]
+        },
+        {
+          "skill_index": 2,
+          "level": 8,
+          "items": [
+            {
+              "material": "技巧概要·卷3",
+              "count": "6"
+            },
+            {
+              "material": "白马醇",
+              "count": "4"
+            },
+            {
+              "material": "酮凝集组",
+              "count": "8"
+            }
+          ]
+        },
+        {
+          "skill_index": 2,
+          "level": 9,
+          "items": [
+            {
+              "material": "技巧概要·卷3",
+              "count": "12"
+            },
+            {
+              "material": "RMA70-24",
+              "count": "4"
+            },
+            {
+              "material": "三水锰矿",
+              "count": "7"
+            }
+          ]
+        },
+        {
+          "skill_index": 2,
+          "level": 10,
+          "items": [
+            {
+              "material": "技巧概要·卷3",
+              "count": "15"
+            },
+            {
+              "material": "聚合剂",
+              "count": "6"
+            },
+            {
+              "material": "白马醇",
+              "count": "7"
+            }
+          ]
+        },
+        {
+          "skill_index": 3,
+          "level": 8,
+          "items": [
+            {
+              "material": "技巧概要·卷3",
+              "count": "6"
+            },
+            {
+              "material": "三水锰矿",
+              "count": "4"
+            },
+            {
+              "material": "全新装置",
+              "count": "4"
+            }
+          ]
+        },
+        {
+          "skill_index": 3,
+          "level": 9,
+          "items": [
+            {
+              "material": "技巧概要·卷3",
+              "count": "12"
+            },
+            {
+              "material": "提纯源岩",
+              "count": "4"
+            },
+            {
+              "material": "五水研磨石",
+              "count": "9"
+            }
+          ]
+        },
+        {
+          "skill_index": 3,
+          "level": 10,
+          "items": [
+            {
+              "material": "技巧概要·卷3",
+              "count": "15"
+            },
+            {
+              "material": "D32钢",
+              "count": "6"
+            },
+            {
+              "material": "聚酸酯块",
               "count": "6"
             }
           ]
