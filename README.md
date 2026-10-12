@@ -1,6 +1,6 @@
 # AI 游戏助手智能体平台
 
-基于 LangGraph 的多智能体游戏助手：支持多游戏知识包（原神 / 明日方舟）、RAG 向量检索、**6 个 Function Calling 工具（实体查询/配队分析/材料换算/攻略检索/关卡攻略/重大事件）**、SSE 流式决策链路可视化与 React 前端。官方 wiki（BWIKI / PRTS）为主要数据依据，LLM 仅补缺并交叉验证，回答可溯源防幻觉。
+基于 LangGraph 的多智能体游戏助手：支持多游戏知识包（原神 / 明日方舟）、RAG 向量检索、**10 个 MCP 标准工具（实体查询/配队分析/材料换算/攻略检索/关卡攻略/重大事件/向量库运维/文档问答/A2A 协同）**、SSE 流式决策链路可视化、React 前端与 **Docker 容器化部署**。官方 wiki（BWIKI / PRTS）为主要数据依据，LLM 仅补缺并交叉验证，回答可溯源防幻觉。
 
 [![CI](https://github.com/lyc2248622657/ai-game-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/lyc2248622657/ai-game-assistant/actions/workflows/ci.yml)
 [![License](https://img.shields.io/github/license/lyc2248622657/ai-game-assistant)](LICENSE)
@@ -21,13 +21,16 @@
 │     → replan(Plan-Execute-Refine 动态重规划 ≤1轮) → synthesize → reflect(自检回炉)       │
 │        → fallback(兜底)                                                                  │
 │                                                                                        │
-│  tools/（注册表驱动）                                                                   │
+│  tools/（注册表驱动，10 个 MCP 工具）                                              │
 │   ├─ query_game_entity   静态库 → 动态缓存 → 官方 wiki → LLM 补缺 → 交叉验证 → 增量补全    │
 │   ├─ analyze_teams       配队分析（库内 teams 优先 → 官方职业规则 → LLM 参考）             │
 │   ├─ calculate_materials 材料总需求统计（精1/精2 + 技能升级聚合）                          │
 │   ├─ search_guides       攻略检索：B站视频列表 + 搜索直达 + wiki 攻略页（API 失败自动降级）  │
-│   └─ search_stage_guides 关卡攻略检索（活动关/肉鸽图：摆完挂机/单核/高配/低配/肉鸽N15）      │
-│   └─ get_game_events    重大事件查询（版本更新/活动/卡池/前瞻，bwiki 官方时间 + 30 分钟缓存）   │
+│   ├─ search_stage_guides 关卡攻略检索（活动关/肉鸽图：摆完挂机/单核/高配/低配/肉鸽N15）      │
+│   ├─ get_game_events    重大事件查询（版本更新/活动/卡池/前瞻，bwiki 官方时间 + 30 分钟缓存）   │
+│   ├─ list_vector_collections / vector_stats / delete_vector_document   向量库运维          │
+│   ├─ list_documents / ingest_document / ask_document                  企业文档问答（带引用） │
+│   └─ run_agent_task     A2A 多智能体协同（分解 → 派发三域智能体 → 汇总带来源）              │
 │                                                                                        │
 │  rag/: bge-small-zh(512维) + Chroma 按游戏隔离 + 混合检索（名称置顶/向量/BM25/关键词/元素×职能）│
 │  memory/: SQLite 会话 + 摘要滚动压缩 + 用户偏好 + Memory RAG 记忆向量召回（跨会话）         │
@@ -56,7 +59,7 @@ ai-game-assistant/
 │   │   ├── agents/          # LangGraph 状态图（plan/route/retrieve/tool/synthesize/reflect/fallback）
 │   │   │   ├── prompts.py   # 上下文工程：Prompt 模板化 + 上下文预算 + 记忆注入
 │   │   │   ├── scratch_react.py  # 自研轻量 ReAct 循环（不依赖 LangGraph）
-│   │   ├── tools/           # Function Calling 工具注册表（6 工具：实体查询/配队/材料/攻略/关卡攻略/重大事件）
+│   │   ├── tools/           # MCP 工具注册表（10 工具：实体查询/配队/材料/攻略/关卡攻略/事件/向量运维/文档问答/A2A）
 │   │   │   ├── game_entity.py     # 实体查询全链路（静态→wiki→LLM 补缺→交叉验证）
 │   │   │   ├── strategy_tools.py  # 配队分析/材料换算/攻略检索（含 B站视频跳转）
 │   │   │   └── registry.py        # JSON Schema 注册 → 模型 bind_tools
@@ -71,7 +74,8 @@ ai-game-assistant/
 │       ├── components/      # GameSelector / ChatWindow / AgentTimeline / CitationCard / SessionBar
 │       ├── api/client.ts    # REST + SSE 客户端（ReadableStream 解析）
 │       └── types/
-├── docker-compose.yml       # 一键部署（阶段三完善）
+├── docker-compose.yml       # 一键部署（双容器 + 健康检查 + 离线依赖构建，已实机验证）
+├── backend/mcp_server.py    # MCP stdio 服务（10 工具）
 └── README.md
 ```
 
@@ -180,7 +184,7 @@ SSE 流式：`POST /api/chat/stream` 增量推送节点事件（agent_start/end�
 
 ```bash
 cd backend
-.venv\Scripts\python.exe -m pytest tests -q     # 68 passed
+.venv\Scripts\python.exe -m pytest tests -q     # 91 passed
 ```
 
 - `tests/test_parsers.py`：PRTS 技能/天赋/材料解析器单测（固定 wikitext 样本，不联网）——验证 `{{*|20%|{{color|+20%}}}}` 公式清洗、技能 1-7 级+专精分级、天赋条件、精1/精2 与技能升级材料解析；
@@ -191,7 +195,10 @@ cd backend
 - `tests/test_eval_sets.py`：评测集格式校验——两游戏评测集 50 题 id 全局唯一、type 合法、key_points 非空、四种题型每种 ≥4 题；
 - `tests/test_auto_title.py`：智能命名单测——本地规则兜底标题（去客套前缀/截 14 字）、已命名会话不覆盖、LLM 提炼失败静默回退；
 - `tests/test_recent_entities.py`：list_recent_entities 工具单测——上线时间倒序、limit 钳制（上限 10/非法值回退 5）、同名去重、方舟可用；
-- `tests/test_enhance.py`：信息补全单测——只补缺失字段不覆盖已有值、wiki 失败静默、非角色类型跳过、无缺失字段不触发 wiki 请求。**共 68 passed**。
+- `tests/test_enhance.py`：信息补全单测——只补缺失字段不覆盖已有值、wiki 失败静默、非角色类型跳过、无缺失字段不触发 wiki 请求。
+- `tests/test_vector_ops.py`：向量库运维单测——集合统计/文档删除/重建与脏数据清理（增量更新口径）。
+- `tests/test_mcp.py`：MCP 工具协议单测——握手/工具清单/实体查询/检索/文档问答（stdio 冒烟）。
+- `tests/test_a2a.py`：A2A 多智能体协同单测——任务分解/三域派发/汇总带来源/无 LLM 离线链路。**共 91 passed**。
 
 ## 评测（LLM-as-Judge）
 
@@ -316,8 +323,8 @@ Reflection 对防幻觉贡献显著（去掉后幻觉 0.75→2.0 条），replan
 - [x] 修复：synthesize 覆盖工具直答、retriever 缺 import 致 teams 加载失败、validate_data 两处崩溃
 - [x] 评测收尾：30 条全量 0.962 / 1.0 / 0.945 / 0 幻觉；补录雷电将军、synthesize 详实化、key_points 校准后低分项全部清零
 - [x] 阶段三 · 明日方舟二期：games.yaml 注册启用（动态生成按游戏关闭）+ 8 名干员种子数据（`backend/data/arknights/characters.json`）+ 前端游戏选择器切换实测通过（能天使问答全链路，截图 `docs/screenshots/arknights_demo.png`）
-- [x] 阶段三 · MCP 工具协议：`backend/mcp_server.py`（官方 MCP SDK，stdio）暴露 list_games / query_game_entity / search_knowledge 三个标准工具；冒烟测试 `scripts/mcp_client_test.py` 全通过（握手 / 工具列表 / 实体查询 / 检索）
-- [~] 阶段三 · docker-compose：backend/frontend Dockerfile、nginx 代理（含 SSE）、数据与模型缓存卷已就绪；本机 Win10 19045 WSL2 可选组件启用被系统回滚（「无法完成更新已撤销」），镜像实机构建待宿主 WSL2 可用（见「本地一键启动」/「Docker 部署」）
+- [x] 阶段三 · MCP 工具协议：`backend/mcp_server.py`（官方 MCP SDK，stdio）暴露 **10 个标准工具**（list_games / query_game_entity / search_knowledge / list_vector_collections / vector_stats / delete_vector_document / list_documents / ingest_document / ask_document / run_agent_task）；冒烟测试 `scripts/mcp_client_test.py` 全通过（握手 / 工具列表 / 实体查询 / 检索 / 向量运维 / 文档问答 / A2A）
+- [x] 阶段三 · Docker 容器化部署：backend/frontend Dockerfile、nginx 代理（含 SSE）、数据与模型缓存卷；**实机构建并全量验证通过**——backend 3.23GB / frontend 93.9MB，双容器 healthy，`/api/health`、前端 5173、nginx 反代均 200；容器内 PyPI 不可达 → 宿主机预下载 137 个 Linux wheel 离线安装；torch 钉版 CPU（2.5.1）避免 CUDA 依赖（commit `18f9f41`）
 - [x] 2026 数据时效（2026-09）：补录原神月之五/六新角色（法尔伽 2026-02、莉奈娅 2026-04）与明日方舟 2026 新干员（怒潮凛冬、可露希尔、凯尔希·思衡托 2026-04/05）；实测动态按需获取 2026 新角色哥伦比娅（wiki 交叉验证补全法器/仙鹤座/2026-01 月之四实装）；数据来源标注 manual-2026 / 2026 新干员
 - [x] 本地一键启动：`start-dev.ps1` / `stop-dev.ps1`（一键起后端+前端+健康检查，日志落 `.dev\*.log`，实测通过）
 - [x] **多工具扩展（P0）**：工具集 1→4——新增 `analyze_teams`（配队分析：库内 teams → 官方职业规则 → LLM 参考）、`calculate_materials`（材料总需求聚合：珊比实测 31 种材料 / 龙门币 21 万）、`search_guides`（B站视频攻略检索 + 前端卡片跳转 + wiki 攻略页，API 412 自动降级搜索直达链接）；Function Calling 多工具自主选择
@@ -344,6 +351,10 @@ Reflection 对防幻觉贡献显著（去掉后幻觉 0.75→2.0 条），replan
 - [x] **评测失败用例清零（P0 收尾，2026-10-11）**：引用兜底（tool 直答也出 citations）+ related_gear 联动检索 + 万达国际入库 + 删除伪配队编造兜底 + 列举类 top_k 12；原神 30 条 entity 0.9 / knowledge 0.86 / edge 1.0 / complex 1.0，**幻觉清零**，失败列表为空（commit `ca5a32f`）
 - [x] **CI 修复 + 前端构建检查（P0，2026-10-11）**：修复 RAG import 检查（`from app.rag import hybrid` 模块不存在会挂 CI → `from app.rag.retriever import hybrid_retrieve`）；新增 frontend-build job（npm ci + build）
 - [x] **AI 方法论沉淀（P1，2026-10-11）**：`docs/AI-METHODOLOGY.md`——提示词模板化 / 状态图质检 / 评测闭环（Judge 校准 MAE=0）/ 多路召回 / 官方数据管道，全部带量化证据与面试版故事
+- [x] **向量库增量更新 / 脏数据清理（P0，2026-10-11）**：`backend/scripts/vector_admin.py`（list / stats / delete-doc / rebuild / purge）+ MCP 工具 `list_vector_collections / vector_stats / delete_vector_document`；真库实测 arknights_kb 460 / genshin_kb 233 / user_memory 19 / documents 30 块，0 孤儿；pytest 新增 8 项 → **81 passed**
+- [x] **MCP 工具演示扩展（P1，2026-10-11）**：MCP 工具 3 → 10（+向量运维 3 + 文档问答 3 + A2A 1），`docs/MCP-DEMO.md` 同步；冒烟全通过（commit `d4202fa` / `b15906ff`）
+- [x] **A2A 多智能体协同演示（P2，2026-10-11）**：`run_agent_task` 工具 + `app/agents/a2a.py`——一个请求分解 → 派发 game/doc/vector 三域智能体 → 汇总带来源；`docs/A2A-DEMO.md` + `scripts/a2a_demo.py`（--no-llm 离线可跑）；pytest 新增 10 项 → **91 passed**（commit `207561a`）
+- [x] **Docker 容器化部署（2026-10-12）**：双容器 healthy 全量验证通过，commit `18f9f41` 已推送（详见「Docker 部署」章节）
 ## 本地一键启动（推荐，无需 Docker）
 
 ```powershell
@@ -390,11 +401,11 @@ docker compose up -d --build
 # 前端 http://localhost:5173，后端 http://localhost:8000/api/health
 ```
 
-- `backend/Dockerfile`：python:3.11-slim，依赖层缓存 + 应用代码；
+- `backend/Dockerfile`：python:3.11-slim，**离线 wheel 安装**（`COPY wheels /wheels` + `pip install --no-index --find-links=/wheels`，规避容器内 PyPI 不可达）；
 - `frontend/Dockerfile`：node:20-alpine 构建 → nginx:alpine 托管（`nginx.conf` 反向代理 `/api` → backend:8000，SSE 关闭 buffering）；
 - 卷：`backend/data`（知识包 + Chroma + SQLite 持久化）、`backend/models`（bge embedding 缓存复用，避免容器内重新下载）；
-- 密钥：`backend/.env` 经 `env_file` 注入，不入镜像。
-- 注：配置已就绪并通过审查；本机 Win10 19045 的 WSL2 可选组件启用被系统回滚，镜像实机构建待宿主 WSL2 可用后执行。
+- 密钥：`backend/.env` 经 `env_file` 注入，不入镜像；
+- **实机验证（2026-10-12）**：双容器 healthy（backend 3.23GB / frontend 93.9MB），`/api/health` → `{"status":"ok","app":"AI 游戏助手智能体平台"}`、前端 200、nginx 反代 200；构建中间产物 `backend/wheels/`（137 个 Linux wheel，约 700MB）已 gitignore 不入库。
 
 ## 企业文档问答（FDE 演示，P2）
 
