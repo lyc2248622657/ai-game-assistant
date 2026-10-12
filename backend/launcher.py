@@ -134,17 +134,16 @@ def hide_console() -> None:
 def print_stack_banner() -> None:
     """启动横幅：打印核心技术栈（简历演示截图可见 LangGraph / FastAPI / 工具数）"""
     try:
-        import langgraph
-        import langchain
+        import importlib.metadata as _md
+        lg_ver = _md.version("langgraph")
+        lc_ver = _md.version("langchain")
     except Exception:  # noqa: BLE001
-        langgraph = langchain = None
-    lg_ver = getattr(langgraph, "__version__", "?") if langgraph else "?"
-    lc_ver = getattr(langchain, "__version__", "?") if langchain else "?"
+        lg_ver = lc_ver = "?"
     print("=" * 56)
     print("  多游戏 AI 助手智能体平台  ·  一键启动")
     print(f"  Agent 编排: LangGraph {lg_ver} + LangChain {lc_ver}（8 节点状态图）")
     print("  后端: FastAPI · SSE 流式  |  前端: React 18 + TS + Vite")
-    print("  RAG: Chroma + bge-small-zh（按游戏隔离） |  Function Calling 工具 × 6")
+    print("  RAG: Chroma + bge-small-zh（按游戏隔离） |  MCP 工具 × 10（含向量运维/文档问答/A2A）")
     print("  主模型: DeepSeek（OpenAI 兼容） |  数据: bwiki 官方 wiki 交叉验证")
     print("=" * 56)
 
