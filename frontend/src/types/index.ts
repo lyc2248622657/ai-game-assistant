@@ -35,6 +35,10 @@ export interface ChatMessage {
   content: string
   citations?: Citation[]
   usage?: UsageInfo
+  /** 用户随消息上传的截图：本地路径（提交给后端 image_path） */
+  image_path?: string
+  /** 用户截图的预览 URL（/uploads/xxx，前端渲染缩略图） */
+  user_image?: string
   /** 实体头像图片 URL（问角色→角色图、问武器→武器图） */
   image_url?: string
   /** 猜测适配选项（可点击追问按钮，如"查看该角色适配队伍"） */

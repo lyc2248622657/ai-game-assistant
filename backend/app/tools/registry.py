@@ -114,6 +114,10 @@ class ToolRegistry:
         self._tools[SearchGuidesTool.name] = SearchGuidesTool()
         self._tools[SearchStageGuidesTool.name] = SearchStageGuidesTool()
         self._tools[GetGameEventsTool.name] = GetGameEventsTool()
+        # 多模态：游戏截图识别（DeepSeek flash 视觉）
+        from app.tools.vision_tool import AnalyzeScreenshotTool
+
+        self._tools[AnalyzeScreenshotTool.name] = AnalyzeScreenshotTool()
 
     def get(self, name: str) -> Tool:
         return self._tools[name]

@@ -316,6 +316,17 @@ def tool_node(state: AgentState) -> AgentState:
         )
     messages.append({"role": "user", "content": user_msg})
 
+    # 多模态：用户随消息上传了截图 → 引导 LLM 先调 analyze_screenshot 识别再回答
+    if state.get("image_path"):
+        messages.append({
+            "role": "user",
+            "content": (
+                f"【截图】用户上传了游戏截图，本地路径: {state['image_path']}。"
+                "请先调用 analyze_screenshot 工具识别截图内容"
+                "（识别其中的角色/干员/武器名与文字），再基于识别结果回答用户问题。"
+            ),
+        })
+
     # 任务分解引导：把 plan 阶段识别的子任务清单注入（LLM 自主决策，规划仅作蓝图）
     task_plan = _build_task_plan_prompt(state.get("subtasks") or [])
     if task_plan:
@@ -324,6 +335,12 @@ def tool_node(state: AgentState) -> AgentState:
     # 动态重规划补充计划（第二轮执行）：上轮已完成结果 + 本轮需补做的子任务
     if state.get("replan_tasks"):
         messages.append({"role": "user", "content": _build_replan_prompt(state)})
+        # 多模态：截图已识别过 → 禁止重复调用（避免重复消耗视觉 token）
+        if any(t.get("name") == "analyze_screenshot" for t in state.get("tool_results", [])):
+            messages.append({
+                "role": "user",
+                "content": "【注意】截图已在上轮识别完成，请直接使用识别结果，不要再次调用 analyze_screenshot。",
+            })
 
     tool_results: list[dict] = []
     final_text = ""

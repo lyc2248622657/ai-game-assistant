@@ -28,6 +28,7 @@ from app.rag import document_qa, vector_admin  # noqa: E402
 from app.rag.retriever import hybrid_retrieve  # noqa: E402
 from app.tools.base import ToolContext  # noqa: E402
 from app.tools.game_entity import QueryGameEntityTool  # noqa: E402
+from app.tools.vision_tool import analyze_screenshot  # noqa: E402
 
 mcp = MCPServer("ai-game-assistant", instructions="AI 游戏助手智能体平台：查询游戏实体、检索知识库、运维向量库、企业文档问答。")
 
@@ -128,6 +129,18 @@ def ask_document(question: str, top_k: int = 4) -> dict:
         top_k: 引用条数上限。
     """
     return document_qa.ask(question, top_k=top_k)
+
+
+# ---- 多模态：游戏截图识别（DeepSeek flash 原生视觉）----
+
+@mcp.tool()
+def analyze_screenshot(image_path: str) -> dict:
+    """识别游戏截图（角色面板/干员图鉴/卡池/背包），提取截图中的角色、干员、武器名与关键文字。
+
+    Args:
+        image_path: 截图本地路径（如 /api/vision/upload 上传后返回的 image_path）。
+    """
+    return analyze_screenshot(image_path)
 
 
 # ---- A2A 多智能体协同（岗位 22：南方电网 RAG+MCP+A2A）----

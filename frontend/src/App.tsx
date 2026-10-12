@@ -77,10 +77,14 @@ export default function App() {
   )
 
   const handleSend = useCallback(
-    async (text: string) => {
+    async (text: string, imagePath?: string, imageUrl?: string) => {
       if (loading) return
       setLoading(true)
-      setMessages((m) => [...m, { role: 'user', content: text }, { role: 'assistant', content: '' }])
+      setMessages((m) => [
+        ...m,
+        { role: 'user', content: text, image_path: imagePath, user_image: imageUrl },
+        { role: 'assistant', content: '' },
+      ])
       setEvents([])
 
       try {
@@ -88,6 +92,7 @@ export default function App() {
           null,
           text,
           currentSession?.session_id ?? null, // 已有会话 → 在老窗口续聊；无会话 → 后端新建
+          imagePath ?? null,
           (ev) => {
             setEvents((prev) => [...prev, ev])
             const patch = (fn: (last: ChatMessage) => ChatMessage) => {

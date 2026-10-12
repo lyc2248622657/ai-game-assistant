@@ -21,7 +21,7 @@
 │     → replan(Plan-Execute-Refine 动态重规划 ≤1轮) → synthesize → reflect(自检回炉)       │
 │        → fallback(兜底)                                                                  │
 │                                                                                        │
-│  tools/（注册表驱动，10 个 MCP 工具）                                              │
+│  tools/（注册表驱动，11 个 MCP 工具）                                              │
 │   ├─ query_game_entity   静态库 → 动态缓存 → 官方 wiki → LLM 补缺 → 交叉验证 → 增量补全    │
 │   ├─ analyze_teams       配队分析（库内 teams 优先 → 官方职业规则 → LLM 参考）             │
 │   ├─ calculate_materials 材料总需求统计（精1/精2 + 技能升级聚合）                          │
@@ -59,7 +59,7 @@ ai-game-assistant/
 │   │   ├── agents/          # LangGraph 状态图（plan/route/retrieve/tool/synthesize/reflect/fallback）
 │   │   │   ├── prompts.py   # 上下文工程：Prompt 模板化 + 上下文预算 + 记忆注入
 │   │   │   ├── scratch_react.py  # 自研轻量 ReAct 循环（不依赖 LangGraph）
-│   │   ├── tools/           # MCP 工具注册表（10 工具：实体查询/配队/材料/攻略/关卡攻略/事件/向量运维/文档问答/A2A）
+│   │   ├── tools/           # MCP 工具注册表（11 工具：实体查询/配队/材料/攻略/关卡攻略/事件/向量运维/文档问答/A2A/多模态截图识别）
 │   │   │   ├── game_entity.py     # 实体查询全链路（静态→wiki→LLM 补缺→交叉验证）
 │   │   │   ├── strategy_tools.py  # 配队分析/材料换算/攻略检索（含 B站视频跳转）
 │   │   │   └── registry.py        # JSON Schema 注册 → 模型 bind_tools
@@ -323,10 +323,11 @@ Reflection 对防幻觉贡献显著（去掉后幻觉 0.75→2.0 条），replan
 - [x] 修复：synthesize 覆盖工具直答、retriever 缺 import 致 teams 加载失败、validate_data 两处崩溃
 - [x] 评测收尾：30 条全量 0.962 / 1.0 / 0.945 / 0 幻觉；补录雷电将军、synthesize 详实化、key_points 校准后低分项全部清零
 - [x] 阶段三 · 明日方舟二期：games.yaml 注册启用（动态生成按游戏关闭）+ 8 名干员种子数据（`backend/data/arknights/characters.json`）+ 前端游戏选择器切换实测通过（能天使问答全链路，截图 `docs/screenshots/arknights_demo.png`）
-- [x] 阶段三 · MCP 工具协议：`backend/mcp_server.py`（官方 MCP SDK，stdio）暴露 **10 个标准工具**（list_games / query_game_entity / search_knowledge / list_vector_collections / vector_stats / delete_vector_document / list_documents / ingest_document / ask_document / run_agent_task）；冒烟测试 `scripts/mcp_client_test.py` 全通过（握手 / 工具列表 / 实体查询 / 检索 / 向量运维 / 文档问答 / A2A）
+- [x] 阶段三 · MCP 工具协议：`backend/mcp_server.py`（官方 MCP SDK，stdio）暴露 **11 个标准工具**（list_games / query_game_entity / search_knowledge / list_vector_collections / vector_stats / delete_vector_document / list_documents / ingest_document / ask_document / run_agent_task / analyze_screenshot）；冒烟测试 `scripts/mcp_client_test.py` 全通过（握手 / 工具列表 / 实体查询 / 检索 / 向量运维 / 文档问答 / A2A / 多模态）
 - [x] 阶段三 · Docker 容器化部署：backend/frontend Dockerfile、nginx 代理（含 SSE）、数据与模型缓存卷；**实机构建并全量验证通过**——backend 3.23GB / frontend 93.9MB，双容器 healthy，`/api/health`、前端 5173、nginx 反代均 200；容器内 PyPI 不可达 → 宿主机预下载 137 个 Linux wheel 离线安装；torch 钉版 CPU（2.5.1）避免 CUDA 依赖（commit `18f9f41`）
 - [x] 2026 数据时效（2026-09）：补录原神月之五/六新角色（法尔伽 2026-02、莉奈娅 2026-04）与明日方舟 2026 新干员（怒潮凛冬、可露希尔、凯尔希·思衡托 2026-04/05）；实测动态按需获取 2026 新角色哥伦比娅（wiki 交叉验证补全法器/仙鹤座/2026-01 月之四实装）；数据来源标注 manual-2026 / 2026 新干员
 - [x] 本地一键启动：`start-dev.ps1` / `stop-dev.ps1`（一键起后端+前端+健康检查，日志落 `.dev\*.log`，实测通过）
+- [x] **多模态扩展（2026-10）**：DeepSeek flash 原生视觉接入游戏截图识别——`/api/vision/upload` 上传接口 + `analyze_screenshot` Agent/MCP 工具 + 前端截图按钮与预览；实测神里绫华面板截图 → 识别 → 配队/武器推荐全链路（`app_graph` 直调 + HTTP SSE 双通道验证）；MCP 工具 10→11
 - [x] **多工具扩展（P0）**：工具集 1→4——新增 `analyze_teams`（配队分析：库内 teams → 官方职业规则 → LLM 参考）、`calculate_materials`（材料总需求聚合：珊比实测 31 种材料 / 龙门币 21 万）、`search_guides`（B站视频攻略检索 + 前端卡片跳转 + wiki 攻略页，API 412 自动降级搜索直达链接）；Function Calling 多工具自主选择
 - [x] **pytest 测试套件**：14 个测试全绿（PRTS 解析器 / Agent 图编译与路由 / 建议生成 / 工具清洗与归一）
 - [x] **README 升级**：架构全景图 + 多工具链路 + 攻略检索章节 + 测试章节 + key 自动读取说明
