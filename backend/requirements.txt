@@ -19,7 +19,9 @@ langgraph>=0.2
 
 # --- RAG（可延迟到 RAG 阶段启用） ---
 chromadb>=0.5              # 本地向量库
-sentence-transformers>=3.0 # bge-m3 向量化（首次下载模型约 2GB）
+torch==2.5.1               # 钉住 CPU 版本：2.6+ 的 Linux wheel 会强制拉取 cuda-toolkit（数 GB），CPU 推理无需
+sentence-transformers>=3.0 # 可选重型向量化（bge-m3，约 2GB）；默认走 fastembed 轻量方案
+fastembed>=0.9             # 实际默认向量化：bge-small-zh-v1.5（ONNX，约 95MB，首次下载自动缓存到 models/embeddings）
 
 # --- 测试（pytest） ---
 pytest>=8.0                # tests/ 单元测试（解析器 / Agent 图 / 策略工具）
