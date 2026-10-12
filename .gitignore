@@ -44,3 +44,6 @@ backend/wheels/
 
 # 评测中间产物（eval_runner 运行结果，可随时重跑）
 backend/data/eval_*.json
+
+# 多模态：用户上传的游戏截图（不入库）
+backend/data/uploads/

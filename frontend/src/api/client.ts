@@ -60,6 +60,19 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ api_key: apiKey, model }),
     }),
+
+  // 多模态：上传游戏截图（返回本地路径供聊天消息携带 + 预览 URL）
+  uploadImage: (file: File) => {
+    const form = new FormData()
+    form.append('file', file)
+    return fetch(`${BASE}/vision/upload`, { method: 'POST', body: form }).then(async (res) => {
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        throw new Error(body?.message || `上传失败: ${res.status}`)
+      }
+      return res.json() as Promise<{ ok: boolean; image_path: string; image_url: string; size: number }>
+    })
+  },
 }
 
 /**
@@ -71,13 +84,14 @@ export async function streamChat(
   gameId: string | null,
   message: string,
   sessionId: string | null,
+  imagePath: string | null,
   onEvent: (ev: AgentEvent) => void,
   signal?: AbortSignal,
 ): Promise<void> {
   const res = await fetch(`${BASE}/chat/stream`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ game_id: gameId, message, session_id: sessionId }),
+    body: JSON.stringify({ game_id: gameId, message, session_id: sessionId, image_path: imagePath }),
     signal,
   })
   if (!res.ok) {

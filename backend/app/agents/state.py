@@ -45,6 +45,7 @@ class AgentState(TypedDict, total=False):
     session_id: Optional[str]
     user_message: str               # 本轮用户输入
     messages: list[dict]            # 历史消息（记忆注入用）
+    image_path: Optional[str]       # 本轮用户上传的游戏截图本地路径（多模态）
     ablate: dict                    # 组件消融开关（3.3：{"replan"/"reflect"/"hybrid"/"memory": True 时禁用该组件）
 
     # 规划与路由
@@ -89,12 +90,14 @@ def initial_state(
     session_id: str | None,
     user_message: str,
     messages: list[dict],
+    image_path: str | None = None,
 ) -> AgentState:
     return {
         "game_id": game_id,
         "session_id": session_id,
         "user_message": user_message,
         "messages": messages,
+        "image_path": image_path,
         "ablate": {},
         "task_type": None,
         "plan": None,

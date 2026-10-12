@@ -143,7 +143,7 @@ def print_stack_banner() -> None:
     print("  多游戏 AI 助手智能体平台  ·  一键启动")
     print(f"  Agent 编排: LangGraph {lg_ver} + LangChain {lc_ver}（8 节点状态图）")
     print("  后端: FastAPI · SSE 流式  |  前端: React 18 + TS + Vite")
-    print("  RAG: Chroma + bge-small-zh（按游戏隔离） |  MCP 工具 × 10（含向量运维/文档问答/A2A）")
+    print("  RAG: Chroma + bge-small-zh（按游戏隔离） |  MCP 工具 × 11（含向量运维/文档问答/A2A/多模态截图识别）")
     print("  主模型: DeepSeek（OpenAI 兼容） |  数据: bwiki 官方 wiki 交叉验证")
     print("=" * 56)
 

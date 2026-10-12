@@ -10,6 +10,7 @@ class ChatRequest(BaseModel):
     game_id: Optional[str] = Field(None, description="游戏标识（可空：Agent 自动判别原神/明日方舟）")
     message: str = Field(..., min_length=1, max_length=4000, description="用户消息")
     session_id: Optional[str] = Field(None, description="会话 ID；缺省时自动新建")
+    image_path: Optional[str] = Field(None, description="随消息上传的游戏截图本地路径（/api/vision/upload 返回）")
 
 
 class GuideInfo(BaseModel):

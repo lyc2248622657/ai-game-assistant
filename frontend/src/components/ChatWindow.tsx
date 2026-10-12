@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import type { ChatMessage } from '../types'
 import { api } from '../api/client'
 import { renderMarkdown } from '../utils/markdown'
@@ -7,7 +7,7 @@ interface Props {
   messages: ChatMessage[]
   loading: boolean
   gameId: string | null
-  onSend: (text: string) => void
+  onSend: (text: string, imagePath?: string, imageUrl?: string) => void
 }
 
 /** 聊天窗口：消息流 + 输入框（SSE 流式渲染接入点）
@@ -16,12 +16,30 @@ interface Props {
 export function ChatWindow({ messages, loading, gameId, onSend }: Props) {
   const [input, setInput] = useState('')
   const [feedbacks, setFeedbacks] = useState<Set<string>>(new Set())
+  const [pendingImage, setPendingImage] = useState<{ path: string; url: string } | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  const pickImage = async (f: File | undefined) => {
+    if (!f || uploading) return
+    setUploading(true)
+    try {
+      const r = await api.uploadImage(f)
+      setPendingImage({ path: r.image_path, url: r.image_url })
+    } catch (e) {
+      alert((e as Error).message || '上传失败')
+    } finally {
+      setUploading(false)
+    }
+  }
 
   const submit = () => {
     const text = input.trim()
     if (!text || loading) return
     setInput('')
-    onSend(text)
+    const img = pendingImage
+    setPendingImage(null)
+    onSend(text, img?.path, img?.url)
   }
 
   const submitFeedback = async (entity: string) => {
@@ -57,6 +75,13 @@ export function ChatWindow({ messages, loading, gameId, onSend }: Props) {
                   : 'border border-gray-100 bg-white text-gray-800'
               }`}
             >
+              {m.role === 'user' && m.user_image && (
+                <img
+                  src={m.user_image}
+                  alt="上传截图"
+                  className="mb-2 max-h-40 rounded-lg border border-blue-200 object-cover"
+                />
+              )}
               {m.role === 'assistant' && m.image_url ? (
                 // 助手消息带实体头像：圆形图片 + 文字并排
                 <div className="mb-2 flex items-start gap-3">
@@ -171,21 +196,53 @@ export function ChatWindow({ messages, loading, gameId, onSend }: Props) {
           </div>
         )}
       </div>
-      <div className="flex gap-2 border-t p-3">
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && submit()}
-          placeholder="输入消息，Enter 发送（可问原神或明日方舟）"
-          className="flex-1 rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <button
-          onClick={submit}
-          disabled={loading || !input.trim()}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-50"
-        >
-          发送
-        </button>
+      <div className="border-t p-3">
+        {pendingImage && (
+          <div className="mb-2 flex items-center gap-2 rounded-lg bg-blue-50 p-2">
+            <img src={pendingImage.url} alt="待发送截图" className="h-14 w-14 rounded object-cover" />
+            <span className="flex-1 truncate text-xs text-gray-500">截图已就绪，随消息发送</span>
+            <button
+              onClick={() => setPendingImage(null)}
+              className="rounded-full border border-gray-200 bg-white px-2 py-0.5 text-xs text-gray-500 hover:bg-gray-100"
+            >
+              移除
+            </button>
+          </div>
+        )}
+        <div className="flex gap-2">
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            className="hidden"
+            onChange={(e) => {
+              pickImage(e.target.files?.[0])
+              e.target.value = ''
+            }}
+          />
+          <button
+            onClick={() => fileRef.current?.click()}
+            disabled={loading || uploading}
+            className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-500 transition hover:bg-gray-50 disabled:opacity-50"
+            title="上传游戏截图（多模态识别）"
+          >
+            {uploading ? '上传中…' : '📷 截图'}
+          </button>
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && submit()}
+            placeholder="输入消息，Enter 发送（可问原神或明日方舟；可附游戏截图识别）"
+            className="flex-1 rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <button
+            onClick={submit}
+            disabled={loading || !input.trim()}
+            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-50"
+          >
+            发送
+          </button>
+        </div>
       </div>
     </div>
   )

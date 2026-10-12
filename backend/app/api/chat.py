@@ -112,6 +112,7 @@ def _prepare(body: ChatRequest):
         session_id=session["session_id"],
         user_message=body.message,
         messages=history,
+        image_path=body.image_path,
     )
     return game, session, state
 
