@@ -3,9 +3,10 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# 依赖层（利用层缓存）
+# 依赖层（利用层缓存）：预下载的 Linux cp311 wheel 离线安装，避免容器内访问 PyPI 网络慢
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY wheels /wheels
+RUN pip install --no-cache-dir --no-index --find-links=/wheels -r requirements.txt
 
 # 应用代码
 COPY app ./app

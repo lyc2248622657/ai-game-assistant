@@ -49,3 +49,20 @@ jobs:
         run: |
           npm ci
           npm run build
+
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build backend image
+        working-directory: backend
+        run: |
+          docker build -t ai-game-assistant-backend:ci .
+          echo "backend image built OK"
+
+      - name: Build frontend image
+        working-directory: frontend
+        run: |
+          docker build -t ai-game-assistant-frontend:ci .
+          echo "frontend image built OK"

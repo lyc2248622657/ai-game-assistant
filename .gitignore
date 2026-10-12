@@ -38,3 +38,6 @@ backend/data/events_cache.json
 
 # 日志
 *.log
+
+# Docker 构建中间产物（Linux wheel 离线安装包，约 700MB）
+backend/wheels/
