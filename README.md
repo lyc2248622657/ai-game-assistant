@@ -351,7 +351,7 @@ Reflection 对防幻觉贡献显著（去掉后幻觉 0.75→2.0 条），replan
 - [x] **测试覆盖扩展（P1，2026-10-11）**：新增 `test_bm25.py`（分词/命中/复合查询）、`test_eval_sets.py`（评测集格式校验）、`test_auto_title.py`（智能命名）、`test_recent_entities.py`（最近实体）、`test_enhance.py`（信息补全），pytest **52 → 68 passed**
 - [x] **评测失败用例清零（P0 收尾，2026-10-11）**：引用兜底（tool 直答也出 citations）+ related_gear 联动检索 + 万达国际入库 + 删除伪配队编造兜底 + 列举类 top_k 12；原神 30 条 entity 0.9 / knowledge 0.86 / edge 1.0 / complex 1.0，**幻觉清零**，失败列表为空（commit `ca5a32f`）
 - [x] **CI 修复 + 前端构建检查（P0，2026-10-11）**：修复 RAG import 检查（`from app.rag import hybrid` 模块不存在会挂 CI → `from app.rag.retriever import hybrid_retrieve`）；新增 frontend-build job（npm ci + build）
-- [x] **AI 方法论沉淀（P1，2026-10-11）**：`docs/AI-METHODOLOGY.md`——提示词模板化 / 状态图质检 / 评测闭环（Judge 校准 MAE=0）/ 多路召回 / 官方数据管道，全部带量化证据与面试版故事
+- [x] **AI 方法论沉淀（P1，2026-10-11）**：`docs/AI-METHODOLOGY.md`——提示词模板化 / 状态图质检 / 评测闭环（Judge 校准 MAE=0）/ 多路召回 / 官方数据管道，全部带量化证据
 - [x] **向量库增量更新 / 脏数据清理（P0，2026-10-11）**：`backend/scripts/vector_admin.py`（list / stats / delete-doc / rebuild / purge）+ MCP 工具 `list_vector_collections / vector_stats / delete_vector_document`；真库实测 arknights_kb 460 / genshin_kb 233 / user_memory 19 / documents 30 块，0 孤儿；pytest 新增 8 项 → **81 passed**
 - [x] **MCP 工具演示扩展（P1，2026-10-11）**：MCP 工具 3 → 10（+向量运维 3 + 文档问答 3 + A2A 1），`docs/MCP-DEMO.md` 同步；冒烟全通过（commit `d4202fa` / `b15906ff`）
 - [x] **A2A 多智能体协同演示（P2，2026-10-11）**：`run_agent_task` 工具 + `app/agents/a2a.py`——一个请求分解 → 派发 game/doc/vector 三域智能体 → 汇总带来源；`docs/A2A-DEMO.md` + `scripts/a2a_demo.py`（--no-llm 离线可跑）；pytest 新增 10 项 → **91 passed**（commit `207561a`）
