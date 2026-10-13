@@ -1,0 +1,22 @@
+# 后端镜像（CI 在线安装版）：FastAPI + LangGraph Agent + RAG（Chroma / bge-small-zh）
+# 专供 GitHub Actions docker-build job 使用：CI checkout 不含离线 wheels 目录
+# （backend/wheels/ 已被 .gitignore 忽略），故走在线 pip 安装。
+# 本地一键部署仍使用 Dockerfile（离线 wheel，避免容器内访问 PyPI 慢）。
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# 依赖层（利用层缓存）
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# 应用代码
+COPY app ./app
+COPY config ./config
+COPY scripts ./scripts
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+EXPOSE 8000
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
