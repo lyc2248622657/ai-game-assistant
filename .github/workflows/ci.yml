@@ -57,8 +57,9 @@ jobs:
 
       - name: Build backend image
         working-directory: backend
+        # 使用 Dockerfile.ci（在线 pip 安装）：backend/wheels/ 被 gitignore，CI checkout 无离线包
         run: |
-          docker build -t ai-game-assistant-backend:ci .
+          docker build -f Dockerfile.ci -t ai-game-assistant-backend:ci .
           echo "backend image built OK"
 
       - name: Build frontend image
