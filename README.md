@@ -2,6 +2,9 @@
 
 基于 LangGraph 的多智能体游戏助手：支持多游戏知识包（原神 / 明日方舟）、RAG 向量检索、**10 个 MCP 标准工具（实体查询/配队分析/材料换算/攻略检索/关卡攻略/重大事件/向量库运维/文档问答/A2A 协同）**、SSE 流式决策链路可视化、React 前端与 **Docker 容器化部署**。官方 wiki（BWIKI / PRTS）为主要数据依据，LLM 仅补缺并交叉验证，回答可溯源、多路校验以降低幻觉风险。
 
+> 架构选型的动机与取舍（为什么用 LangGraph / 为什么工具循环 ≤3 轮 / 为什么不用 RRF /
+> 记忆分层与压缩保真 / 失败修复记录）见 **[docs/DESIGN-DECISIONS.md](docs/DESIGN-DECISIONS.md)**。
+
 [![CI](https://github.com/lyc2248622657/ai-game-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/lyc2248622657/ai-game-assistant/actions/workflows/ci.yml)
 [![License](https://img.shields.io/github/license/lyc2248622657/ai-game-assistant)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB)](backend/requirements.txt)
