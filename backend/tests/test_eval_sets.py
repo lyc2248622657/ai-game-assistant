@@ -1,10 +1,11 @@
 """评测集格式校验：两游戏评测集 id 唯一 / type 合法 / key_points 非空 / 覆盖四种题型"""
+import json
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from scripts.eval.eval_runner import _load_cases  # noqa: E402
+from scripts.eval.eval_runner import V2_SET, _load_cases  # noqa: E402
 
 VALID_TYPES = {"entity", "knowledge", "edge", "complex"}
 
@@ -34,3 +35,18 @@ def test_eval_types_distributed():
     types = [c["type"] for c in cases]
     for t in VALID_TYPES:
         assert types.count(t) >= 4, f"类型 {t} 用例过少（{types.count(t)}）"
+
+
+def test_eval_v2_set_format():
+    """v2 扩展集（223 条）：id 唯一、type 合法、plan 用例带 ground_truth"""
+    data = json.loads(V2_SET.read_text(encoding="utf-8"))
+    ids = [c["id"] for c in data]
+    assert len(ids) == len(set(ids)), "v2 评测集 id 重复"
+    valid = VALID_TYPES | {"numeric", "plan"}
+    for c in data:
+        assert c["type"] in valid, f"{c['id']} type 非法: {c['type']}"
+        assert c.get("key_points"), f"{c['id']} key_points 为空"
+    plan = [c for c in data if c.get("type") == "plan"]
+    assert len(plan) >= 3, "plan 用例不足"
+    for c in plan:
+        assert c.get("ground_truth"), f"{c['id']} plan 用例缺少 ground_truth"

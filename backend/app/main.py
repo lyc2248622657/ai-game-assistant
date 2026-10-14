@@ -5,7 +5,7 @@ from pathlib import Path
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
-from app.api import chat, docqa, events, games, knowledge, sessions
+from app.api import chat, docqa, events, games, knowledge, plans, sessions
 from app.api import settings as settings_api
 from app.api import vector_admin, vision
 from app.core.config import settings
@@ -30,6 +30,7 @@ app.include_router(docqa.router)
 app.include_router(vector_admin.router)
 app.include_router(settings_api.router)
 app.include_router(vision.router)
+app.include_router(plans.router)
 
 # 多模态：上传截图静态访问（/uploads/xxx 预览）
 _uploads = Path(__file__).resolve().parent.parent / "data" / "uploads"

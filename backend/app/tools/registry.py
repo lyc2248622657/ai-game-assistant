@@ -114,6 +114,11 @@ class ToolRegistry:
         self._tools[SearchGuidesTool.name] = SearchGuidesTool()
         self._tools[SearchStageGuidesTool.name] = SearchStageGuidesTool()
         self._tools[GetGameEventsTool.name] = GetGameEventsTool()
+        # 养成规划：资源预算 + 多步排期 + 写操作闭环（A→B）
+        from app.tools.build_plan import BuildBuildPlanTool, SaveBuildPlanTool
+
+        self._tools[BuildBuildPlanTool.name] = BuildBuildPlanTool()
+        self._tools[SaveBuildPlanTool.name] = SaveBuildPlanTool()
         # 多模态：游戏截图识别（DeepSeek flash 视觉）
         from app.tools.vision_tool import AnalyzeScreenshotTool
 

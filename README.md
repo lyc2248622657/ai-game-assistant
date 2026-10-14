@@ -1,6 +1,6 @@
 # AI 游戏助手智能体平台
 
-基于 LangGraph 的多智能体游戏助手：支持多游戏知识包（原神 / 明日方舟）、RAG 向量检索、**10 个 MCP 标准工具（实体查询/配队分析/材料换算/攻略检索/关卡攻略/重大事件/向量库运维/文档问答/A2A 协同）**、SSE 流式决策链路可视化、React 前端与 **Docker 容器化部署**。官方 wiki（BWIKI / PRTS）为主要数据依据，LLM 仅补缺并交叉验证，回答可溯源、多路校验以降低幻觉风险。
+基于 LangGraph 的多智能体游戏助手：支持多游戏知识包（原神 / 明日方舟）、RAG 向量检索、**12 个 Agent 工具（实体查询/配队分析/材料换算/攻略检索/关卡攻略/重大事件/养成规划/计划保存/向量库运维/文档问答/A2A 协同/截图识别）**、SSE 流式决策链路可视化、React 前端与 **Docker 容器化部署**。官方 wiki（BWIKI / PRTS）为主要数据依据，LLM 仅补缺并交叉验证，回答可溯源、多路校验以降低幻觉风险。
 
 > 架构选型的动机与取舍（为什么用 LangGraph / 为什么工具循环 ≤3 轮 / 为什么不用 RRF /
 > 记忆分层与压缩保真 / 失败修复记录）见 **[docs/DESIGN-DECISIONS.md](docs/DESIGN-DECISIONS.md)**。
@@ -24,7 +24,7 @@
 │     → replan(Plan-Execute-Refine 动态重规划 ≤1轮) → synthesize → reflect(自检回炉)       │
 │        → fallback(兜底)                                                                  │
 │                                                                                        │
-│  tools/（注册表驱动，11 个 MCP 工具）                                              │
+│  tools/（注册表驱动，12 个 Agent 工具）                                              │
 │   ├─ query_game_entity   静态库 → 动态缓存 → 官方 wiki → LLM 补缺 → 交叉验证 → 增量补全    │
 │   ├─ analyze_teams       配队分析（库内 teams 优先 → 官方职业规则 → LLM 参考）             │
 │   ├─ calculate_materials 材料总需求统计（精1/精2 + 技能升级聚合）                          │
@@ -33,7 +33,10 @@
 │   ├─ get_game_events    重大事件查询（版本更新/活动/卡池/前瞻，bwiki 官方时间 + 30 分钟缓存）   │
 │   ├─ list_vector_collections / vector_stats / delete_vector_document   向量库运维          │
 │   ├─ list_documents / ingest_document / ask_document                  企业文档问答（带引用） │
-│   └─ run_agent_task     A2A 多智能体协同（分解 → 派发三域智能体 → 汇总带来源）              │
+│   ├─ run_agent_task     A2A 多智能体协同（分解 → 派发三域智能体 → 汇总带来源）              │
+│   ├─ build_build_plan / save_build_plan  养成规划：资源预算（原石够不够抽当期卡池 + 可攒估算）│
+│   │                     + 材料清单（摩拉/经验/元素宝石/特产/天赋书）+ 多步排期；确认后写入   │
+│   │                     SQLite plans 表，/api/plans 按会话回读/删除（读→推理→写→状态回读）  │
 │                                                                                        │
 │  rag/: bge-small-zh(512维) + Chroma 按游戏隔离 + 混合检索（名称置顶/向量/BM25/关键词/元素×职能）│
 │  memory/: SQLite 会话 + 摘要滚动压缩 + 用户偏好 + Memory RAG 记忆向量召回（跨会话）         │
@@ -62,7 +65,7 @@ ai-game-assistant/
 │   │   ├── agents/          # LangGraph 状态图（plan/route/retrieve/tool/synthesize/reflect/fallback）
 │   │   │   ├── prompts.py   # 上下文工程：Prompt 模板化 + 上下文预算 + 记忆注入
 │   │   │   ├── scratch_react.py  # 自研轻量 ReAct 循环（不依赖 LangGraph）
-│   │   ├── tools/           # MCP 工具注册表（11 工具：实体查询/配队/材料/攻略/关卡攻略/事件/向量运维/文档问答/A2A/多模态截图识别）
+│   │   ├── tools/           # Agent 工具注册表（12 工具：实体查询/配队/材料/攻略/关卡攻略/事件/养成规划/计划保存/向量运维/文档问答/A2A/截图识别）
 │   │   │   ├── game_entity.py     # 实体查询全链路（静态→wiki→LLM 补缺→交叉验证）
 │   │   │   ├── strategy_tools.py  # 配队分析/材料换算/攻略检索（含 B站视频跳转）
 │   │   │   └── registry.py        # JSON Schema 注册 → 模型 bind_tools
@@ -78,7 +81,7 @@ ai-game-assistant/
 │       ├── api/client.ts    # REST + SSE 客户端（ReadableStream 解析）
 │       └── types/
 ├── docker-compose.yml       # 一键部署（双容器 + 健康检查 + 离线依赖构建，已实机验证）
-├── backend/mcp_server.py    # MCP stdio 服务（10 工具）
+├── backend/mcp_server.py    # MCP stdio 演示服务（10 工具，独立入口；Agent 注册表含 12 工具）
 └── README.md
 ```
 
@@ -219,16 +222,16 @@ npm test        # 11 条 smoke/单元测试（vitest + jsdom + Testing Library�
 
 ```bash
 cd backend
-.venv\Scripts\python.exe scripts\eval\build_eval_set_v2.py      # 生成 220 条扩展评测集（seed=42，可复现）
+.venv\Scripts\python.exe scripts\eval\build_eval_set_v2.py      # 生成 223 条扩展评测集（seed=42，可复现）
 .venv\Scripts\python.exe scripts\eval\eval_runner.py            # 全量评测（numeric 规则判定 + judge 交叉）→ data/eval_report_v5.json
 .venv\Scripts\python.exe scripts\eval\eval_runner.py --limit 5  # 只跑前 5 条（快速回归）
 .venv\Scripts\python.exe scripts\eval\eval_runner.py --judge-model <模型名>  # 指定 Judge 模型（交叉验证，避免同源偏见）
 .venv\Scripts\python.exe scripts\eval\eval_runner.py --only-failed    # 只重跑上次失败/低分/含幻觉用例（增量，省 token）
 ```
 
-**评测集 220 条（2026-10 扩展，替代原 50 条）**：
+**评测集 223 条（2026-10 扩展，替代原 50 条）**：
 
-- **numeric 170 条（可判定 ground truth，规则比对，不依赖 LLM）**：原神角色属性（星级/元素/武器/生日/一命/命座）133 条 + 生日 20 条 + 方舟干员属性 33 条；每条带 `ground_truth`，`eval_runner` 对回答做清洗后子串匹配，准确率为 0/1 硬指标；
+- **numeric 173 条（可判定 ground truth，规则比对，不依赖 LLM）**：原神角色属性（星级/元素/武器/生日/一命/命座）133 条 + 生日 20 条 + 方舟干员属性 33 条 + **plan 养成规划 3 条（"胡桃/甘雨养成材料、小保底预算"，断言角色元素宝石与保底结论出现在回答中）**；每条带 `ground_truth`，`eval_runner` 对回答做清洗后子串匹配，准确率为 0/1 硬指标；
 - **judge 50 条（原 30 + 方舟 20，entity/knowledge/edge/complex 四类）**：LLM-as-Judge 按准确率/忠实性/覆盖度/幻觉条数四指标评分；Judge 可经 `--judge-model` 换用独立模型交叉，缓解"同模型评同模型"的同源偏差；
 - 报告输出 **numeric / judge 两块独立统计**（各带 Wilson 95% 置信区间），并附 **RAG 命中率**（judge 题的期望要点是否被引用资料覆盖）与失败用例清单；
 - 评测闭环已揪出并修复：plan 意图误判、元素反应基础知识库缺失、synthesize 编造细节、
@@ -238,7 +241,7 @@ cd backend
 > 这些数字仅反映当时 30 条自建集（且 Judge 与生成同模型）。样本小、单条波动大，"忠实性 1.0"
 > 与"幻觉清零"类表述不适合作为对外能力声明，故 2026-10 起改为：扩展集 + 规则判定 + 交叉 Judge + 置信区间。
 
-**最新全量结果（2026-10-14，220 条，`data/eval_report_v5.json`）**：
+**最新全量结果（2026-10-14，220 条全量报告，`data/eval_report_v5.json`）**：
 - **numeric 170 条规则判定准确率 0.947**（95%CI 0.913~0.981，不依赖 LLM 评判）；
 - **judge 50 条 LLM 评审准确率 0.868**（95%CI 0.791~0.945，含失败重跑后聚合）；
 - 整体（220 条）准确率 0.929（95%CI 0.897~0.961）／忠实性 0.938（judge 子集）／覆盖度 0.872／RAG 命中 0.947；
@@ -246,6 +249,7 @@ cd backend
 - 类型拆分（judge 50）：entity 0.978 / knowledge 0.671 / edge 1.0 / complex 0.822——**knowledge 类是当前短板**（
   元素反应/圣遗物套件等知识题检索覆盖不足），已列入后续优化；
 - 成本：本轮 1103 次 LLM 调用，3,049,334 token（输入 2,957,062 / 输出 92,272，平均 13.9k/条）。
+- 新增 plan 3 条已单条走 Agent 图验证规则命中（3/3），待下次全量评测并入整体报告。
 
 **质量对比**（LangGraph 全链路 vs 自研 ReAct）：
 ```bash

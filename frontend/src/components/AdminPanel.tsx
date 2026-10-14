@@ -30,6 +30,24 @@ export function AdminPanel() {
   const [searchHits, setSearchHits] = useState<SearchHit[]>([])
   const [searching, setSearching] = useState(false)
 
+  // 养成计划（写操作闭环回读）
+  const [planSession, setPlanSession] = useState('')
+  const [plans, setPlans] = useState<any[]>([])
+  const [planBusy, setPlanBusy] = useState(false)
+
+  const loadPlans = async (sid: string) => {
+    if (!sid.trim()) return
+    setPlanBusy(true)
+    try {
+      const { plans: rows } = await api.listPlans(sid.trim())
+      setPlans(rows)
+    } catch {
+      setPlans([])
+    } finally {
+      setPlanBusy(false)
+    }
+  }
+
   const refreshStats = (name: string) => {
     api
       .getVectorStats(name)
@@ -314,6 +332,62 @@ export function AdminPanel() {
                 {h.content && (
                   <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-gray-500">{h.content}</p>
                 )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 养成计划（写操作闭环回读） */}
+        <div className="app-card app-card-hover p-3">
+          <h3 className="gradient-text text-sm font-bold">📋 养成计划（会话内保存回读）</h3>
+          <div className="mt-2 flex gap-2">
+            <input
+              value={planSession}
+              onChange={(e) => setPlanSession(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && loadPlans(planSession)}
+              placeholder="输入会话 ID（对话中确认保存计划后，在此回读）"
+              className="min-w-0 flex-1 rounded-xl border border-gray-200 px-3 py-1.5 text-xs outline-none transition focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200/60"
+            />
+            <button
+              onClick={() => loadPlans(planSession)}
+              disabled={planBusy || !planSession.trim()}
+              className="btn-brand shrink-0 rounded-xl px-3 py-1.5 text-xs font-medium"
+            >
+              {planBusy ? '加载中…' : '查询'}
+            </button>
+          </div>
+          <div className="mt-2 space-y-1.5">
+            {plans.length === 0 && !planBusy && (
+              <p className="text-xs text-gray-400">输入会话 ID 后显示该会话保存的养成计划</p>
+            )}
+            {plans.map((p) => (
+              <div
+                key={p.id}
+                className="rounded-xl border border-teal-100 bg-gradient-to-r from-teal-50/50 to-cyan-50/30 px-3 py-2"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-xs font-medium text-gray-700" title={p.plan?.character || p.character}>
+                      #{p.id} {p.character} · {p.goal}
+                    </div>
+                    <div className="mt-0.5 truncate text-[10px] text-gray-400" title={p.plan?.budget?.conclusion || ''}>
+                      {p.plan?.budget?.conclusion || p.plan?.disclaimer || '（无预算信息）'}
+                    </div>
+                    <div className="mt-0.5 truncate text-[10px] text-gray-400">
+                      材料：{(p.plan?.materials || []).slice(0, 4).map((m: any) => `${m.name}×${m.count}`).join(' / ')}
+                      {(p.plan?.materials || []).length > 4 ? ' …' : ''}
+                    </div>
+                  </div>
+                  <button
+                    onClick={async () => {
+                      await api.deletePlan(p.id)
+                      loadPlans(planSession)
+                    }}
+                    className="shrink-0 rounded-md border border-red-200 bg-red-50 px-2 py-0.5 text-[10px] text-red-600 transition hover:bg-red-100"
+                  >
+                    删除
+                  </button>
+                </div>
               </div>
             ))}
           </div>
