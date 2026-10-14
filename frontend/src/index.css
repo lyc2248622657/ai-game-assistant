@@ -2,10 +2,128 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 全局基础样式 */
+/* ===== 全局基础样式 ===== */
 html,
 body,
 #root {
   height: 100%;
   margin: 0;
+}
+
+/* ===== 设计 token（A 档外观升级） ===== */
+:root {
+  /* 品牌渐变：靛 → 紫 → 粉（主交互色） */
+  --brand-grad: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
+  --brand-grad-soft: linear-gradient(135deg, #eef2ff 0%, #f5f3ff 50%, #fdf4ff 100%);
+  /* 卡片阴影层级 */
+  --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 12px rgba(99, 102, 241, 0.06);
+  --shadow-pop: 0 2px 4px rgba(15, 23, 42, 0.05), 0 12px 28px rgba(99, 102, 241, 0.12);
+  --radius-card: 0.875rem;
+}
+
+@layer components {
+  /* 统一卡片：圆角 + 轻阴影 + 悬浮微升 */
+  .app-card {
+    border-radius: var(--radius-card);
+    border: 1px solid rgb(226 232 240);
+    background: #fff;
+    box-shadow: var(--shadow-card);
+    transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  }
+  .app-card-hover:hover {
+    border-color: rgb(199 210 254);
+    box-shadow: var(--shadow-pop);
+    transform: translateY(-1px);
+  }
+
+  /* 渐变文字（大标题/大数字） */
+  .gradient-text {
+    background: var(--brand-grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* 主按钮渐变 */
+  .btn-brand {
+    background-image: var(--brand-grad);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(139, 92, 246, 0.25);
+    transition: opacity 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+  }
+  .btn-brand:hover:not(:disabled) {
+    opacity: 0.92;
+    box-shadow: 0 4px 14px rgba(139, 92, 246, 0.35);
+  }
+  .btn-brand:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* 用户气泡：渐变底 */
+  .bubble-user {
+    background-image: var(--brand-grad);
+    color: #fff;
+    border-radius: 1rem 1rem 0.25rem 1rem;
+    box-shadow: 0 4px 14px rgba(139, 92, 246, 0.28);
+  }
+  /* 助手气泡：白卡 */
+  .bubble-assistant {
+    background: #fff;
+    border: 1px solid rgb(241 245 249);
+    border-radius: 1rem 1rem 1rem 0.25rem;
+    box-shadow: var(--shadow-card);
+  }
+
+  /* 决策链路：执行中节点发光圆点 */
+  .dot-active {
+    background: #6366f1;
+    box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.6);
+    animation: dot-pulse 1.6s ease-out infinite;
+  }
+  .dot-idle {
+    background: #c7d2fe;
+  }
+  @keyframes dot-pulse {
+    0% {
+      box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.55);
+    }
+    70% {
+      box-shadow: 0 0 0 6px rgba(99, 102, 241, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(99, 102, 241, 0);
+    }
+  }
+
+  /* 管理台：迷你占比条 */
+  .mini-bar {
+    height: 5px;
+    border-radius: 9999px;
+    background-image: var(--brand-grad);
+    opacity: 0.85;
+  }
+
+  /* 玻璃拟态 header */
+  .glass-header {
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+  }
+
+  /* 滚动条细化（WebKit） */
+  .nice-scroll::-webkit-scrollbar {
+    width: 6px;
+  }
+  .nice-scroll::-webkit-scrollbar-thumb {
+    border-radius: 9999px;
+    background: rgb(203 213 225);
+  }
+  .nice-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgb(148 163 184);
+  }
+  .nice-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
 }

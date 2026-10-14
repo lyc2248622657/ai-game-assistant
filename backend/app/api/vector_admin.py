@@ -11,6 +11,23 @@ class RebuildRequest(BaseModel):
     content: str | None = None
 
 
+class SearchRequest(BaseModel):
+    game_id: str = "genshin"
+    query: str
+    top_k: int = 4
+
+
+@router.post("/search")
+def search(req: SearchRequest):
+    """检索测试：对指定游戏知识库执行混合检索，返回带相似度的结果（管理控制台用）"""
+    from app.knowledge.games import registry
+    from app.rag.retriever import hybrid_retrieve
+
+    game = registry.get_game(req.game_id)
+    docs = hybrid_retrieve(game, req.query.strip(), top_k=max(1, min(req.top_k, 10)))
+    return {"game_id": req.game_id, "query": req.query, "docs": docs}
+
+
 @router.get("/collections")
 def collections():
     """列出全部向量集合及块数"""

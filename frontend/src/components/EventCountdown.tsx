@@ -69,7 +69,7 @@ export function EventCountdown() {
 
   if (games.length === 0) {
     return (
-      <div className="rounded-lg border bg-white p-3">
+      <div className="app-card p-3">
         <h3 className="text-sm font-semibold">⏳ 游戏重大事件</h3>
         <p className="mt-1 text-xs text-gray-400">事件数据加载中…</p>
       </div>
@@ -90,7 +90,7 @@ export function EventCountdown() {
   const activeTabMeta = TABS.find((t) => t.key === activeTab)
 
   return (
-    <div className="rounded-lg border bg-white p-3">
+    <div className="app-card app-card-hover p-3">
       <button
         className="flex w-full items-center justify-between text-left"
         onClick={() => setCollapsed((c) => !c)}

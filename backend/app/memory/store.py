@@ -44,12 +44,18 @@ class SessionStore:
                     role TEXT NOT NULL,
                     content TEXT NOT NULL,
                     citations TEXT,          -- JSON 数组
+                    images TEXT,             -- 相关图片 URL 列表（JSON 数组，回答配图 A/B）
                     created_at TEXT NOT NULL
                 );
                 CREATE INDEX IF NOT EXISTS idx_messages_session
                     ON messages(session_id, id);
                 """
             )
+        # 兼容旧库：早版本 messages 无 images 列 → 增量补列
+        with self._connect() as conn:
+            cols = [r["name"] for r in conn.execute("PRAGMA table_info(messages)").fetchall()]
+            if "images" not in cols:
+                conn.execute("ALTER TABLE messages ADD COLUMN images TEXT")
 
     @staticmethod
     def _now() -> str:
@@ -114,13 +120,15 @@ class SessionStore:
 
     # --- 消息 ---
     def add_message(
-        self, session_id: str, role: str, content: str, citations: list | None = None
+        self, session_id: str, role: str, content: str, citations: list | None = None,
+        images: list | None = None,
     ) -> None:
         now = self._now()
         with self._connect() as conn:
             conn.execute(
-                "INSERT INTO messages(session_id, role, content, citations, created_at) VALUES (?,?,?,?,?)",
-                (session_id, role, content, json.dumps(citations or [], ensure_ascii=False), now),
+                "INSERT INTO messages(session_id, role, content, citations, images, created_at) VALUES (?,?,?,?,?,?)",
+                (session_id, role, content, json.dumps(citations or [], ensure_ascii=False),
+                 json.dumps(images or [], ensure_ascii=False), now),
             )
             conn.execute(
                 "UPDATE sessions SET updated_at = ? WHERE session_id = ?", (now, session_id)
@@ -143,6 +151,7 @@ class SessionStore:
                 "role": r["role"],
                 "content": r["content"],
                 "citations": json.loads(r["citations"] or "[]"),
+                "images": json.loads(r["images"] or "[]"),
             }
             for r in rows
         ]

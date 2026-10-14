@@ -30,7 +30,8 @@ class ChatResponse(BaseModel):
     answer: str
     citations: list["Citation"] = []
     suggestions: list[str] = []       # 猜测适配选项（前端渲染为可点击追问按钮）
-    image_url: Optional[str] = None   # 实体头像图片（角色图/武器图）
+    image_url: Optional[str] = None   # 主实体图片（角色图/武器图，兼容单图）
+    images: list[str] = []            # 回答相关图片列表（主实体 + 关联实体多图）
     related_entities: list[str] = []  # 未收录时相关实体提示（前端渲染"补充资料"入口）
     guides: Optional[GuideInfo] = None  # 攻略检索结果（视频跳转/链接）
     usage: Optional[dict] = None  # 本轮对话 LLM token 消耗（input/output/total/calls）
@@ -56,7 +57,7 @@ EventType = Literal[
     "retrieval",   # 检索结果（docs 摘要）
     "answer",      # 回答增量（delta 文本，流式）
     "suggestions", # 猜测适配选项（suggestions 数组，前端渲染为可点击按钮）
-    "image",       # 实体头像图片（image_url）
+    "image",       # 相关图片（image_url 主图 + images 多图列表）
     "related_entities", # 未收录相关实体提示
     "guides",      # 攻略检索结果（视频跳转/链接）
     "citations",   # 最终引用列表

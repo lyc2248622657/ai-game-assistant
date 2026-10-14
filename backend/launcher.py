@@ -132,7 +132,7 @@ def hide_console() -> None:
 
 
 def print_stack_banner() -> None:
-    """启动横幅：打印核心技术栈（简历演示截图可见 LangGraph / FastAPI / 工具数）"""
+    """启动横幅：打印当前加载的核心技术栈（LangGraph / FastAPI / 工具数）"""
     try:
         import importlib.metadata as _md
         lg_ver = _md.version("langgraph")

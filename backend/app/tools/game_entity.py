@@ -514,7 +514,7 @@ def _attach_image(game: Game, entry_type: str, name: str, entry: dict) -> None:
     优先"立绘/头像"命名的图片，失败取页面首图；无 wiki 或抓取失败静默跳过
     （不阻断回答，后续图形化功能按此字段渲染）。
     """
-    if entry.get("image_url") or entry.get("image"):
+    if str(entry.get("image_url") or entry.get("image") or "").startswith(("http://", "https://")):
         return
     wiki_base = game.wiki_base_url
     if not wiki_base:
@@ -526,11 +526,17 @@ def _attach_image(game: Game, entry_type: str, name: str, entry: dict) -> None:
         if not files:
             logger.info("[%s] wiki 页面无图片", name)
             return
-        pick = next((f for f in files if any(k in f for k in _IMAGE_KEYWORDS)), files[0])
+        # 选图优先级：文件名含实体名（最可靠，如 护摩之杖.png）→ 通用图片关键词 → 放弃
+        pick = next((f for f in files if name in f), None)
+        if not pick:
+            pick = next((f for f in files if any(k in f for k in _IMAGE_KEYWORDS)), None)
+        if not pick:
+            logger.warning("[%s] 页面图库无实体专属图，跳过（不硬塞错误图）", name)
+            return
         url = wiki.image_url(pick)
         if url:
             entry["image_url"] = url
-            if not entry.get("image"):
+            if not entry.get("image") or not str(entry["image"]).startswith(("http://", "https://")):
                 entry["image"] = url
             logger.info("[%s] 头像图片: %s", name, url)
     except Exception as e:  # noqa: BLE001
@@ -589,8 +595,8 @@ class QueryGameEntityTool(Tool):
         if hit:
             meta = hit.get("_meta") or {"source": "static"}
             out = {k: v for k, v in hit.items() if k != "_meta"}
-            # 缓存条目缺图 → 尝试补抓头像并写回（不影响回答）
-            if not out.get("image_url") and not out.get("image") and game.wiki_base_url:
+            # 缓存条目缺图/图为本地相对路径 → 尝试补抓头像并写回（不影响回答）
+            if not str(out.get("image_url") or out.get("image") or "").startswith(("http://", "https://")) and game.wiki_base_url:
                 _attach_image(game, entry_type, name, out)
                 if out.get("image_url") and hit.get("_meta"):
                     _save_dynamic(game, entry_type, {**hit, **out})

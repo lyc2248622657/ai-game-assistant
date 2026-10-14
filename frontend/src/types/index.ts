@@ -41,6 +41,8 @@ export interface ChatMessage {
   user_image?: string
   /** 实体头像图片 URL（问角色→角色图、问武器→武器图） */
   image_url?: string
+  /** 回答相关图片列表（主实体 + 关联实体多图，A/B 全覆盖） */
+  images?: string[]
   /** 猜测适配选项（可点击追问按钮，如"查看该角色适配队伍"） */
   suggestions?: string[]
   /** 资料未收录时的相关实体提示（前端渲染"补充资料"入口） */
@@ -57,7 +59,15 @@ export interface UsageInfo {
   llm_calls: number
 }
 
-// Agent 决策链路事件（对应后端 AgentEvent）
+/** RAG 检索来源卡片（retrieval 事件 docs，决策链路深化：带相似度与摘要） */
+export interface RetrievalDoc {
+  title: string
+  source?: string
+  score?: number
+  snippet?: string
+}
+
+/** Agent 决策链路事件（对应后端 AgentEvent） */
 export type AgentEventType =
   | 'session'
   | 'agent_start'
@@ -94,7 +104,9 @@ export interface AgentEvent {
   tool_name?: string
   arguments?: Record<string, unknown>
   result?: string
-  docs?: Array<Record<string, unknown>>
+  docs?: RetrievalDoc[]
+  /** 事件产生时刻（后端统一打点，前端据此统计节点耗时/进行中高亮） */
+  ts?: number
   tasks?: SubTask[]
   /** 多智能体委派：被委派的子代理标识（原神子代理/明日方舟子代理/通用知识子代理） */
   identity?: string
@@ -105,6 +117,8 @@ export interface AgentEvent {
   delta?: string
   suggestions?: string[]
   image_url?: string
+  /** 相关图片列表（image 事件，主实体 + 关联实体多图） */
+  images?: string[]
   related_entities?: string[]
   guides?: GuideInfo
   citations?: Citation[]
@@ -112,4 +126,29 @@ export interface AgentEvent {
   session_id?: string
   code?: number
   error_message?: string
+}
+
+// ---- 管理控制台（方向 1）----
+
+/** 向量集合（Chroma collection 名称 + 块数） */
+export interface VectorCollection {
+  name: string
+  count: number
+}
+
+/** 集合统计（按文档/来源分布 + 孤儿块） */
+export interface VectorStats {
+  collection: string
+  total: number
+  by_doc: Record<string, number>
+  by_source: Record<string, number>
+  orphan_docs: string[]
+  orphan_chunk_count: number
+}
+
+/** 文档问答已入库文档（data/documents/*.md） */
+export interface DocqaDocument {
+  name: string
+  path: string
+  size: number
 }

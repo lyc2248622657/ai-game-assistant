@@ -143,7 +143,7 @@ def analyze_screenshot(image_path: str) -> dict:
     return analyze_screenshot(image_path)
 
 
-# ---- A2A 多智能体协同（岗位 22：南方电网 RAG+MCP+A2A）----
+# ---- A2A 多智能体协同 ----
 
 @mcp.tool()
 def run_agent_task(task: str) -> dict:

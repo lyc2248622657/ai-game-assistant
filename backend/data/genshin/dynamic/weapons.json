@@ -3,7 +3,6 @@
     "id": "weapon_天空之翼",
     "type": "weapon",
     "name": "天空之翼",
-    "image": "https://patchwiki.biligame.com/images/ys/2/2b/rbmrxt4t11u67sr50far44n8su5a0h7.png",
     "source": "DeepSeek LLM 生成（生成-校验双 Agent 工作流，2026-09）",
     "category": "弓",
     "rarity": 5,
@@ -27,7 +26,6 @@
       ],
       "errors": [],
       "retried": true
-    },
-    "image_url": "https://patchwiki.biligame.com/images/ys/2/2b/rbmrxt4t11u67sr50far44n8su5a0h7.png"
+    }
   }
 ]

@@ -142,7 +142,11 @@ def chat(body: ChatRequest):
     ]
 
     store.add_message(session["session_id"], "user", body.message)
-    store.add_message(session["session_id"], "assistant", answer, citations=[c.model_dump() for c in citations])
+    store.add_message(
+        session["session_id"], "assistant", answer,
+        citations=[c.model_dump() for c in citations],
+        images=result.get("entity_images") or [],
+    )
     _auto_title(session["session_id"], body.message)  # 智能命名（默认标题才改名，失败静默）
     _write_memory(
         session["session_id"],
@@ -157,6 +161,7 @@ def chat(body: ChatRequest):
         citations=citations,
         suggestions=result.get("suggestions") or [],
         image_url=result.get("entity_image"),
+        images=result.get("entity_images") or [],
         related_entities=result.get("related_entities") or [],
         guides=result.get("guides"),
         usage=_usage_delta(usage_before),
@@ -197,8 +202,14 @@ async def chat_stream(body: ChatRequest, request: Request):
                 # suggestions / image 若已在图内 emit 则重复推送无妨（前端幂等覆盖）；未 emit 时兜底
                 if last_snapshot.get("suggestions"):
                     yield _sse("suggestions", {"type": "suggestions", "suggestions": last_snapshot["suggestions"]})
-                if last_snapshot.get("entity_image"):
-                    yield _sse("image", {"type": "image", "image_url": last_snapshot["entity_image"]})
+                if last_snapshot.get("entity_images"):
+                    yield _sse("image", {
+                        "type": "image",
+                        "image_url": last_snapshot.get("entity_image") or last_snapshot["entity_images"][0],
+                        "images": last_snapshot["entity_images"],
+                    })
+                elif last_snapshot.get("entity_image"):
+                    yield _sse("image", {"type": "image", "image_url": last_snapshot["entity_image"], "images": [last_snapshot["entity_image"]]})
                 if last_snapshot.get("related_entities"):
                     yield _sse("related_entities", {"type": "related_entities", "related_entities": last_snapshot["related_entities"]})
                 if last_snapshot.get("guides"):
@@ -211,6 +222,7 @@ async def chat_stream(body: ChatRequest, request: Request):
                 await asyncio.to_thread(
                     store.add_message, session["session_id"], "assistant", answer,
                     [{"doc_id": c["doc_id"], "title": c["title"], "content": c.get("content", ""), "source": c.get("source", "")} for c in cits],
+                    last_snapshot.get("entity_images") or [],
                 )
                 await asyncio.to_thread(_auto_title, session["session_id"], body.message)  # 智能命名（失败静默）
                 await asyncio.to_thread(

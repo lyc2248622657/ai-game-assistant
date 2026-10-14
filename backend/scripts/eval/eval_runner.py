@@ -29,6 +29,7 @@ logger = get_logger(__name__)
 EVAL_DIR = Path(__file__).resolve().parent
 GENSHIN_SET = EVAL_DIR / "evaluation_set.json"
 ARKNIGHTS_SET = EVAL_DIR / "arknights_evaluation_set.json"
+V2_SET = EVAL_DIR / "evaluation_set_v2.json"  # 扩展集：numeric(规则判定) + judge(LLM)
 
 # 期望要点中的"元指令"词（不计入 RAG 命中统计）
 STOP_WORDS = {
@@ -37,8 +38,24 @@ STOP_WORDS = {
 }
 
 
-def _load_cases(game: str) -> list[dict]:
-    """按 --game 加载评测集：genshin=原神 30 题，arknights=方舟 20 题，all=合并 50 题"""
+def _load_cases(game: str, use_v2: bool = False) -> list[dict]:
+    """加载评测集：
+    use_v2 → evaluation_set_v2.json（numeric 规则判定 + judge LLM，220 条）
+    否则 → 原版 30+20 条（全部 LLM Judge）"""
+    if use_v2:
+        cases: list[dict] = []
+        data = json.loads(V2_SET.read_text(encoding="utf-8"))
+        for c in data:
+            c["game_id"] = c.get("game_id") or "genshin"
+            if game and game != "all" and c["game_id"] != game:
+                continue
+            cases.append(c)
+        logger.info("评测集加载: game=%s v2 共 %d 条（numeric %d + judge %d）",
+                    game or "all", len(cases),
+                    sum(1 for c in cases if c.get("ground_truth")),
+                    sum(1 for c in cases if not c.get("ground_truth")))
+        return cases
+
     g = (game or "all").lower()
     sets: list[tuple[Path, str]] = []
     if g in ("genshin", "all"):
@@ -68,8 +85,20 @@ JUDGE_PROMPT = (
 )
 
 
+def _gt_in_answer(gt: str, answer: str) -> bool:
+    """规则判定：ground_truth 是否出现在回答中（清洗引号/空白后匹配）"""
+    if not gt:
+        return False
+    g = gt.strip().strip("「」『』\"'“”")
+    if not g:
+        return False
+    return g in (answer or "")
+
+
 def run_case(model, case: dict) -> dict:
-    """跑单条：Agent 图 → Judge 打分"""
+    """跑单条：Agent 图 → 判定。
+    numeric（含 ground_truth）→ 规则判定 accuracy，不调用 LLM Judge；
+    judge 题 → LLM-as-Judge 四指标。"""
     q = case["question"]
     started = time.time()
     result = app_graph.invoke(
@@ -84,6 +113,39 @@ def run_case(model, case: dict) -> dict:
     citations = result.get("citations") or []
     reflect = result.get("self_reflect") or {}
 
+    # ---- numeric 题：确定性规则判定 ----
+    gt = case.get("ground_truth")
+    if gt:
+        elapsed = round(time.time() - started, 1)
+        hit = _gt_in_answer(gt, answer)
+        # RAG 命中（numeric）：回答是否携带引用资料（实体工具/检索均会产生引用）
+        retrieval_hit = 1.0 if citations else 0.0
+        return {
+            "id": case["id"],
+            "type": "numeric",
+            "game_id": case.get("game_id", "genshin"),
+            "question": q,
+            "answer": answer[:500],
+            "citations": [
+                {"title": c["title"], "content": str(c.get("content", ""))[:4000]}
+                for c in citations
+            ][:5],
+            "retrieval_hit": retrieval_hit,
+            "reflect_passed": reflect.get("passed"),
+            "reflect_issues": reflect.get("issues", []),
+            "scores": {
+                "accuracy": 1.0 if hit else 0.0,
+                "faithfulness": None,
+                "coverage": None,
+                "hallucination_count": None,
+                "rule_based": True,
+                "ground_truth": gt,
+            },
+            "comment": "规则判定命中" if hit else f"规则判定未命中（期望: {gt}）",
+            "elapsed": elapsed,
+        }
+
+    # ---- judge 题：LLM-as-Judge ----
     judge = model.invoke(
         [
             {"role": "system", "content": JUDGE_PROMPT},
@@ -131,6 +193,7 @@ def run_case(model, case: dict) -> dict:
             "faithfulness": float(scores.get("faithfulness", 0.0)),
             "coverage": float(scores.get("coverage", 0.0)),
             "hallucination_count": int(scores.get("hallucination_count", 0)),
+            "rule_based": False,
         },
         "comment": scores.get("comment", ""),
         "elapsed": elapsed,
@@ -153,11 +216,15 @@ def main() -> int:
     ap.add_argument("--out", type=str, default="data/eval_report.json")
     ap.add_argument("--game", type=str, default="all", choices=["genshin", "arknights", "all"],
                     help="评测目标游戏：genshin=原神 / arknights=方舟 / all=两者（默认）")
+    ap.add_argument("--set", type=str, default="v2", choices=["v1", "v2"],
+                    help="评测集：v2=扩展集（numeric 规则判定 + judge LLM，220 条，默认）/ v1=原 50 条全 Judge")
+    ap.add_argument("--judge-model", type=str, default="",
+                    help="Judge 专用模型（OpenAI 兼容 model 名，如 qwen-plus；留空则用与 Agent 相同的模型）")
     ap.add_argument("--only-failed", action="store_true",
                     help="只重跑上次报告中的失败/低分/含幻觉用例（增量回归，省 token）")
     args = ap.parse_args()
 
-    cases = _load_cases(args.game)
+    cases = _load_cases(args.game, use_v2=(args.set == "v2"))
     out_path = Path(args.out)
     if args.only_failed:
         prev = _load_previous(out_path)
@@ -183,43 +250,59 @@ def main() -> int:
     # token 统计：本轮归零，跑完取快照写入报告
     usage_stats.reset()
     model = get_chat_model()
+    judge_model = None
+    if args.judge_model:
+        from app.agents.llm import build_chat_model
+        judge_model = build_chat_model(model=args.judge_model)
     results = []
     for i, case in enumerate(cases, 1):
         logger.info("[%d/%d] %s | %s", i, len(cases), case["id"], case["question"])
         try:
-            results.append(run_case(model, case))
+            results.append(run_case(judge_model or model, case))
         except Exception as e:  # noqa: BLE001
             logger.error("用例失败: %s", e)
             results.append({
                 "id": case["id"], "type": case["type"], "question": case["question"],
                 "answer": f"<运行异常: {e}>", "citations": [], "reflect_passed": None,
-                "reflect_issues": [], "scores": {"accuracy": 0.0, "faithfulness": 0.0,
-                                                  "coverage": 0.0, "hallucination_count": 0},
+                "reflect_issues": [], "scores": {"accuracy": 0.0, "faithfulness": None,
+                                                  "coverage": None, "hallucination_count": None,
+                                                  "rule_based": False},
                 "comment": "运行异常", "elapsed": 0.0,
             })
     usage = usage_stats.snapshot()
 
     # 汇总（3.1 修复：均值 + 95% 置信区间 + 阈值通过率 Wilson CI）
-    def avg(key):
-        vals = [r["scores"][key] for r in results if r["scores"].get(key) is not None]
+    def avg(key, pool=None):
+        rs = pool if pool is not None else results
+        vals = [r["scores"][key] for r in rs if r["scores"].get(key) is not None]
         return round(sum(vals) / len(vals), 3) if vals else 0.0
 
+    numeric_rs = [r for r in results if r["scores"].get("rule_based")]
+    judge_rs = [r for r in results if not r["scores"].get("rule_based")]
+
     metric_vals = {
-        k: [r["scores"][k] for r in results]
+        k: [r["scores"][k] for r in results if r["scores"].get(k) is not None]
         for k in ("accuracy", "faithfulness", "coverage")
     }
     ci = {k: mean_ci(vals) for k, vals in metric_vals.items()}
+    ci_numeric = mean_ci([r["scores"]["accuracy"] for r in numeric_rs]) if numeric_rs else (0.0, 0.0, 0.0)
+    ci_judge = mean_ci([r["scores"]["accuracy"] for r in judge_rs]) if judge_rs else (0.0, 0.0, 0.0)
 
     summary = {
+        "set": args.set,
         "total": len(results),
         "games": sorted({r.get("game_id", "genshin") for r in results}),
+        "numeric": {"n": len(numeric_rs), "accuracy": avg("accuracy", numeric_rs),
+                    "accuracy_ci": {"mean": ci_numeric[0], "ci_lo": ci_numeric[1], "ci_hi": ci_numeric[2]}},
+        "judge": {"n": len(judge_rs), "accuracy": avg("accuracy", judge_rs),
+                  "accuracy_ci": {"mean": ci_judge[0], "ci_lo": ci_judge[1], "ci_hi": ci_judge[2]}},
         "metrics": {
             "accuracy": avg("accuracy"),
             "faithfulness": avg("faithfulness"),
             "coverage": avg("coverage"),
             "retrieval_hit": round(sum(r.get("retrieval_hit", 1.0) for r in results) / len(results), 3),
-            "avg_hallucination_count": round(sum(r["scores"]["hallucination_count"] for r in results) / len(results), 2),
-            "cases_with_hallucination": sum(1 for r in results if r["scores"]["hallucination_count"] > 0),
+            "avg_hallucination_count": round(sum(r["scores"]["hallucination_count"] for r in judge_rs if r["scores"].get("hallucination_count") is not None) / len(judge_rs), 2) if judge_rs else 0.0,
+            "cases_with_hallucination": sum(1 for r in judge_rs if r["scores"].get("hallucination_count", 0) > 0),
             "reflect_triggered": sum(1 for r in results if r["reflect_passed"] is False),
         },
         "confidence_intervals": {
@@ -231,8 +314,8 @@ def main() -> int:
             "faithfulness_pass": pass_rate(metric_vals["faithfulness"], 0.8),
             "coverage_pass": pass_rate(metric_vals["coverage"], 0.8),
             "retrieval_hit_pass": pass_rate([r.get("retrieval_hit", 1.0) for r in results], 0.8),
-            "no_hallucination": pass_rate([0 if v > 0 else 1 for v in metric_vals.get("coverage", []) or
-                                          [r["scores"]["hallucination_count"] for r in results]], 1.0),
+            "no_hallucination": pass_rate([0 if v > 0 else 1 for v in
+                                          [r["scores"]["hallucination_count"] for r in judge_rs]], 1.0),
         },
         "usage": {
             "input_tokens": usage["input_tokens"],
@@ -266,11 +349,15 @@ def main() -> int:
 
     # 控制台表格
     print("\n===== LLM-as-Judge 评测报告 =====")
-    print(f"总条数: {summary['total']}（游戏: {'+'.join(summary['games'])}）")
+    print(f"总条数: {summary['total']}（游戏: {'+'.join(summary['games'])}，评测集 {args.set}）")
+    n_ci = summary["numeric"]["accuracy_ci"]
+    j_ci = summary["judge"]["accuracy_ci"]
+    print(f"numeric 规则判定准确率: {summary['numeric']['accuracy']}  (n={summary['numeric']['n']}, "
+          f"95%CI {n_ci['ci_lo']}~{n_ci['ci_hi']})  ← 属性/数值题，ground truth 比对，不依赖 LLM")
+    print(f"judge   LLM 评审准确率 : {summary['judge']['accuracy']}  (n={summary['judge']['n']}, "
+          f"95%CI {j_ci['ci_lo']}~{j_ci['ci_hi']})")
     ci_show = summary["confidence_intervals"]
     pr = summary["pass_rates"]
-    print(f"准确率 accuracy      : {ci_show['accuracy']['mean']}  (95%CI {ci_show['accuracy']['ci_lo']}~{ci_show['accuracy']['ci_hi']}, "
-          f"通过率 {pr['accuracy_pass']['rate']} [{pr['accuracy_pass']['ci_lo']}~{pr['accuracy_pass']['ci_hi']}])")
     print(f"忠实性 faithfulness  : {ci_show['faithfulness']['mean']}  (95%CI {ci_show['faithfulness']['ci_lo']}~{ci_show['faithfulness']['ci_hi']}, "
           f"通过率 {pr['faithfulness_pass']['rate']} [{pr['faithfulness_pass']['ci_lo']}~{pr['faithfulness_pass']['ci_hi']}])")
     print(f"覆盖度 coverage      : {ci_show['coverage']['mean']}  (95%CI {ci_show['coverage']['ci_lo']}~{ci_show['coverage']['ci_hi']}, "
@@ -288,10 +375,12 @@ def main() -> int:
     print("按类型：")
     for t, v in summary["by_type"].items():
         print(f"  {t:10s} n={v['n']:2d} acc={v['accuracy']} fth={v['faithfulness']} cov={v['coverage']}")
-    print("\n失败/低分用例（accuracy<0.8 或含幻觉 或 RAG 未命中）：")
+    print("\n失败/低分用例（accuracy<0.8 或含幻觉 或 judge 题 RAG 未命中）：")
     for r in results:
         s = r["scores"]
-        if s["accuracy"] < 0.8 or s["hallucination_count"] > 0 or r.get("retrieval_hit", 1.0) < 0.8:
+        if s["accuracy"] < 0.8 or (s.get("hallucination_count") or 0) > 0 or (
+            not s.get("rule_based") and r.get("retrieval_hit", 1.0) < 0.8
+        ):
             print(f"  {r['id']} [{r['type']}/{r.get('game_id')}] acc={s['accuracy']} hall={s['hallucination_count']} "
                   f"hit={r.get('retrieval_hit')} reflect_pass={r['reflect_passed']} | {r['question'][:30]} | {r['comment'][:40]}")
     print(f"\n报告已写入: {out_path.resolve()}")

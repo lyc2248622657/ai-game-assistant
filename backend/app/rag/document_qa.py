@@ -1,11 +1,11 @@
-"""FDE 演示：企业文档问答（Document QA）
+"""企业文档问答（Document QA）
 
 独立于游戏知识库的通用文档问答：
 - ingest：保存文档（md/txt）到 data/documents/，按段落分块后向量化入库（Chroma「documents」集合）；
-- ask：向量检索 + 关键词过滤 → 组装带引用上下文 → LLM 生成回答（引用 title+content 输出，防幻觉）。
+- ask：向量检索 + 关键词过滤 → 组装带引用上下文 → LLM 生成回答（引用 title+content 输出，降低幻觉）。
 
-设计意图（对标 FDE 岗「拆需求 → RAG 落地 → 可交付产品」）：同一套 RAG 能力复用到
-企业文档问答场景（制度/产品手册/知识库），作为「客户问题 → 可交付产品」的轻量 Demo。
+设计意图：同一套 RAG 能力复用到企业文档问答场景（制度/产品手册/知识库），
+验证检索能力脱离游戏领域的可迁移性。
 """
 import json
 import re

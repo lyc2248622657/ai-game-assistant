@@ -23,7 +23,7 @@ from app.core.logging import get_logger  # noqa: E402
 from app.core.usage import usage_stats  # noqa: E402
 
 logger = get_logger(__name__)
-EVAL_SET = Path(__file__).resolve().parent / "evaluation_set.json"
+EVAL_SET = Path(__file__).resolve().parent / "evaluation_set_v2.json"  # 扩展集：numeric + judge
 
 CONFIGS = {
     "all": {},
@@ -50,7 +50,7 @@ def run_case(model, case: dict, ablate: dict) -> dict:
     started = time.time()
     result = app_graph.invoke(
         {
-            "game_id": "genshin",
+            "game_id": case.get("game_id", "genshin"),
             "session_id": "ablation",
             "user_message": q,
             "messages": [],
@@ -59,6 +59,26 @@ def run_case(model, case: dict, ablate: dict) -> dict:
     )
     answer = result.get("final_answer") or ""
     citations = result.get("citations") or []
+
+    # numeric 题：规则判定（ground truth 比对），不依赖 LLM Judge
+    gt = case.get("ground_truth")
+    if gt:
+        g = gt.strip().strip("「」『』\"'“”")
+        hit = 1.0 if (g and g in answer) else 0.0
+        return {
+            "id": case["id"],
+            "answer": answer[:400],
+            "scores": {
+                "accuracy": hit,
+                "faithfulness": None,
+                "coverage": None,
+                "hallucination_count": None,
+                "rule_based": True,
+                "ground_truth": gt,
+            },
+            "elapsed": round(time.time() - started, 1),
+        }
+
     judge = model.invoke(
         [
             {"role": "system", "content": JUDGE_PROMPT},
@@ -82,6 +102,7 @@ def run_case(model, case: dict, ablate: dict) -> dict:
             "faithfulness": float(scores.get("faithfulness", 0.0)),
             "coverage": float(scores.get("coverage", 0.0)),
             "hallucination_count": int(scores.get("hallucination_count", 0)),
+            "rule_based": False,
         },
         "elapsed": round(time.time() - started, 1),
     }
@@ -89,7 +110,7 @@ def run_case(model, case: dict, ablate: dict) -> dict:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--cases", type=int, default=4, help="评测集前 N 条（0=全量，token 随条数增长）")
+    ap.add_argument("--cases", type=int, default=20, help="评测集前 N 条（0=全量；默认 20 条，含 numeric 规则判定，无 token 成本）")
     ap.add_argument("--config", type=str, default=",".join(CONFIGS), help="逗号分隔的配置名（默认全部）")
     ap.add_argument("--out", type=str, default="data/ablation_report.json")
     args = ap.parse_args()
@@ -122,8 +143,10 @@ def main() -> int:
         usage = usage_stats.snapshot()
 
         def avg(key):
-            vals = [r["scores"][key] for r in results]
+            vals = [r["scores"][key] for r in results if r["scores"].get(key) is not None]
             return round(sum(vals) / len(vals), 3) if vals else 0.0
+
+        hall_vals = [r["scores"]["hallucination_count"] for r in results if r["scores"].get("hallucination_count") is not None]
 
         report["configs"][cfg] = {
             "ablate": CONFIGS[cfg],
@@ -131,8 +154,8 @@ def main() -> int:
             "accuracy": avg("accuracy"),
             "faithfulness": avg("faithfulness"),
             "coverage": avg("coverage"),
-            "avg_hallucination_count": round(sum(r["scores"]["hallucination_count"] for r in results) / len(results), 2),
-            "cases_with_hallucination": sum(1 for r in results if r["scores"]["hallucination_count"] > 0),
+            "avg_hallucination_count": round(sum(hall_vals) / len(hall_vals), 2) if hall_vals else 0.0,
+            "cases_with_hallucination": sum(1 for v in hall_vals if v > 0),
             "total_tokens": usage["total_tokens"],
             "llm_calls": usage["llm_calls"],
         }
