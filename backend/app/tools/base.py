@@ -8,8 +8,9 @@ from app.knowledge.games import Game
 class ToolContext:
     """工具执行上下文：由 Agent 运行时注入，前端不可直接指定"""
 
-    def __init__(self, game: Game):
+    def __init__(self, game: Game, session_id: str | None = None):
         self.game = game
+        self.session_id = session_id
 
 
 class Tool(ABC):

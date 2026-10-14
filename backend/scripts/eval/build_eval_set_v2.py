@@ -104,13 +104,36 @@ for path, gid in (
         c["type"] = c.get("type", "judge")
         judge.append(c)
 
-cases = numeric + judge
+# 养成规划（plan）：带确定性 ground_truth，走规则判定（复用 build_build_plan 工具输出）
+plan: list[dict] = [
+    {
+        "id": "plan-genshin-001", "type": "plan", "game_id": "genshin",
+        "question": "帮我规划胡桃养成到90级、天赋9/9/9，需要准备哪些材料？",
+        "ground_truth": "燃愿玛瑙",
+        "key_points": ["胡桃", "燃愿玛瑙", "摩拉", "天赋书"],
+    },
+    {
+        "id": "plan-genshin-002", "type": "plan", "game_id": "genshin",
+        "question": "我现在攒了2万原石，胡桃当期卡池够抽到小保底吗？还剩多少天？",
+        "ground_truth": "小保底",
+        "key_points": ["小保底", "原石", "卡池"],
+    },
+    {
+        "id": "plan-genshin-003", "type": "plan", "game_id": "genshin",
+        "question": "帮我规划甘雨养成到90级、天赋10/10/10，需要多少天赋书和宝石？",
+        "ground_truth": "哀叙冰玉",
+        "key_points": ["甘雨", "哀叙冰玉", "天赋书"],
+    },
+]
+
+cases = numeric + judge + plan
 OUT.write_text(json.dumps(cases, ensure_ascii=False, indent=2), encoding="utf-8")
 
 n_numeric = len(numeric)
+n_plan = len(plan)
 n_judge = len(judge)
 by_game = {}
 for c in cases:
     by_game[c["game_id"]] = by_game.get(c["game_id"], 0) + 1
-print(f"已生成 {len(cases)} 条（numeric {n_numeric} + judge {n_judge}）→ {OUT}")
+print(f"已生成 {len(cases)} 条（numeric {n_numeric} + plan {n_plan} + judge {n_judge}）→ {OUT}")
 print(f"按游戏: {by_game}")

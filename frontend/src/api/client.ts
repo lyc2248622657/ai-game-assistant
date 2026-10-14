@@ -118,6 +118,23 @@ export const api = {
 
   // 文档问答库（FDE 演示）
   listDocDocuments: () => request<{ documents: DocqaDocument[] }>('/docqa/documents'),
+
+  // 养成计划（写操作闭环回读：保存的计划按会话查询/删除）
+  listPlans: (sessionId: string) =>
+    request<{
+      plans: Array<{
+        id: number
+        session_id: string
+        game_id: string
+        character: string
+        goal: string
+        status: string
+        created_at: string
+        plan: any
+      }>
+    }>(`/plans?session_id=${encodeURIComponent(sessionId)}`),
+  deletePlan: (planId: number) =>
+    request<{ ok: boolean }>(`/plans/${planId}`, { method: 'DELETE' }),
 }
 
 /** 解析单段 SSE 帧（event 行 + data 行），供流式解析与单元测试复用 */

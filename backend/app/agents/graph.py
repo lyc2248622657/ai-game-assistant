@@ -310,7 +310,7 @@ def tool_node(state: AgentState) -> AgentState:
     logger.info("[%s] tool", state["game_id"])
     _emit(state, {"type": "agent_start", "node_name": N_TOOL, "message": "调用工具…", "agent": state.get("agent_identity")})
     game = registry.get_game(state["game_id"])
-    ctx = ToolContext(game)
+    ctx = ToolContext(game, session_id=state.get("session_id"))
 
     model = get_chat_model().bind_tools(tool_registry.schemas())
     delegate_to = state.get("delegate_to") or ("genshin_agent" if game.game_id == "genshin" else "arknights_agent")
