@@ -1,6 +1,6 @@
 # AI 游戏助手智能体平台
 
-基于 LangGraph 的多智能体游戏助手：支持多游戏知识包（原神 / 明日方舟）、RAG 向量检索、**10 个 MCP 标准工具（实体查询/配队分析/材料换算/攻略检索/关卡攻略/重大事件/向量库运维/文档问答/A2A 协同）**、SSE 流式决策链路可视化、React 前端与 **Docker 容器化部署**。官方 wiki（BWIKI / PRTS）为主要数据依据，LLM 仅补缺并交叉验证，回答可溯源防幻觉。
+基于 LangGraph 的多智能体游戏助手：支持多游戏知识包（原神 / 明日方舟）、RAG 向量检索、**10 个 MCP 标准工具（实体查询/配队分析/材料换算/攻略检索/关卡攻略/重大事件/向量库运维/文档问答/A2A 协同）**、SSE 流式决策链路可视化、React 前端与 **Docker 容器化部署**。官方 wiki（BWIKI / PRTS）为主要数据依据，LLM 仅补缺并交叉验证，回答可溯源、多路校验以降低幻觉风险。
 
 [![CI](https://github.com/lyc2248622657/ai-game-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/lyc2248622657/ai-game-assistant/actions/workflows/ci.yml)
 [![License](https://img.shields.io/github/license/lyc2248622657/ai-game-assistant)](LICENSE)
@@ -188,7 +188,7 @@ cd backend
 ```
 
 - `tests/test_parsers.py`：PRTS 技能/天赋/材料解析器单测（固定 wikitext 样本，不联网）——验证 `{{*|20%|{{color|+20%}}}}` 公式清洗、技能 1-7 级+专精分级、天赋条件、精1/精2 与技能升级材料解析；
-- `tests/test_graph.py`：Agent 图可编译（6 节点齐全）、建议按钮生成（按游戏区分话术）、检索空→工具降级路由；
+- `tests/test_graph.py`：Agent 图可编译（6 节点齐全）、建议按钮生成（按游戏区分措辞）、检索空→工具降级路由；
 - `tests/test_strategy_tools.py`：B站标题清洗、材料数量「万」单位归一；
 - `tests/test_events.py`：事件倒计时引擎纯逻辑单测——6 周版本周期推算（更新日=周三）、前瞻直播早于版本更新约 14 天、upcoming/active/ended 状态判定与倒计时、优先级排序、**近 30 天窗口过滤**、**祈愿页真实卡池合并**（官方池名/角色覆盖推算、双池合并、未命中保持预计）、进行中版本带真实活动名（不联网，固定样本）；
 - `tests/test_bm25.py`：BM25 稀疏检索单测——中英混合分词（中文 bigram + 英文词）、干员名查询命中对应条目、中文复合查询命中语义相关条目（不加载向量模型，纯逻辑）；
@@ -200,22 +200,49 @@ cd backend
 - `tests/test_mcp.py`：MCP 工具协议单测——握手/工具清单/实体查询/检索/文档问答（stdio 冒烟）。
 - `tests/test_a2a.py`：A2A 多智能体协同单测——任务分解/三域派发/汇总带来源/无 LLM 离线链路。**共 91 passed**。
 
-## 评测（LLM-as-Judge）
+### 前端测试（vitest，2026-10）
+
+```bash
+cd frontend
+npm test        # 11 条 smoke/单元测试（vitest + jsdom + Testing Library）
+```
+
+- `src/api/client.test.ts`：SSE 帧解析（event/data 拆分、多行 data 拼接）；**连接层失败自动重试后成功**、收到部分事件后断流抛 `StreamInterruptedError` 且不自动重发（避免重复生成）、5xx 重试耗尽抛出、4xx 直接抛出；
+- `src/components/ErrorBoundary.test.tsx`：渲染级错误兜底（子组件抛错不白屏、显示重试按钮）；
+- `src/App.test.tsx`：页面挂载 smoke（标题/双 tab/侧栏渲染）。
+- **前端健壮性（2026-10）**：SSE 流式连接层自动重试（最多 3 次指数退避）+ 收到部分内容后断流给出可操作提示；全局 `ErrorBoundary` 兜底渲染异常（不再白屏）。
+
+## 评测（LLM-as-Judge + 规则判定）
 
 ```bash
 cd backend
-.venv\Scripts\python.exe scripts\eval\build_eval_set.py   # 生成 30 条原神评测集
-.venv\Scripts\python.exe scripts\eval\eval_runner.py      # 全量评测（原神+方舟 50 条）→ data/eval_report.json
-.venv\Scripts\python.exe scripts\eval\eval_runner.py --game genshin --limit 5   # 只跑原神前 5 条（快速回归）
-.venv\Scripts\python.exe scripts\eval\eval_runner.py --game arknights           # 只跑方舟 20 条
+.venv\Scripts\python.exe scripts\eval\build_eval_set_v2.py      # 生成 220 条扩展评测集（seed=42，可复现）
+.venv\Scripts\python.exe scripts\eval\eval_runner.py            # 全量评测（numeric 规则判定 + judge 交叉）→ data/eval_report_v5.json
+.venv\Scripts\python.exe scripts\eval\eval_runner.py --limit 5  # 只跑前 5 条（快速回归）
+.venv\Scripts\python.exe scripts\eval\eval_runner.py --judge-model <模型名>  # 指定 Judge 模型（交叉验证，避免同源偏见）
 .venv\Scripts\python.exe scripts\eval\eval_runner.py --only-failed    # 只重跑上次失败/低分/含幻觉用例（增量，省 token）
 ```
 
-评测集 50 条（**原神 30 + 明日方舟 20**，entity/knowledge/edge/complex 四类），Judge 用 DeepSeek 按四指标评分：
-准确率 / 忠实性（回答是否都有引用支撑）/ 覆盖度（期望要点覆盖比例）/ 幻觉条数；
-报告额外输出 **RAG 命中率**（期望要点中的实体/概念词是否出现在引用资料，反映检索召回质量）。
-评测闭环已揪出并修复：plan 意图误判、元素反应基础知识库缺失、synthesize 编造细节、
-胡桃生日数据错误（7月15日 → 12月20日，补 wiki 验证映射）、validator 定位枚举过严。
+**评测集 220 条（2026-10 扩展，替代原 50 条）**：
+
+- **numeric 170 条（可判定 ground truth，规则比对，不依赖 LLM）**：原神角色属性（星级/元素/武器/生日/一命/命座）133 条 + 生日 20 条 + 方舟干员属性 33 条；每条带 `ground_truth`，`eval_runner` 对回答做清洗后子串匹配，准确率为 0/1 硬指标；
+- **judge 50 条（原 30 + 方舟 20，entity/knowledge/edge/complex 四类）**：LLM-as-Judge 按准确率/忠实性/覆盖度/幻觉条数四指标评分；Judge 可经 `--judge-model` 换用独立模型交叉，缓解"同模型评同模型"的同源偏差；
+- 报告输出 **numeric / judge 两块独立统计**（各带 Wilson 95% 置信区间），并附 **RAG 命中率**（judge 题的期望要点是否被引用资料覆盖）与失败用例清单；
+- 评测闭环已揪出并修复：plan 意图误判、元素反应基础知识库缺失、synthesize 编造细节、
+  胡桃生日数据错误（7月15日 → 12月20日，补 wiki 验证映射）、validator 定位枚举过严。
+
+> 口径说明：早期 30 条评测集曾给出"准确率 0.962 / 忠实性 1.0 / 覆盖度 0.945 / 0 幻觉"等结果；
+> 这些数字仅反映当时 30 条自建集（且 Judge 与生成同模型）。样本小、单条波动大，"忠实性 1.0"
+> 与"幻觉清零"类表述不适合作为对外能力声明，故 2026-10 起改为：扩展集 + 规则判定 + 交叉 Judge + 置信区间。
+
+**最新全量结果（2026-10-14，220 条，`data/eval_report_v5.json`）**：
+- **numeric 170 条规则判定准确率 0.947**（95%CI 0.913~0.981，不依赖 LLM 评判）；
+- **judge 50 条 LLM 评审准确率 0.868**（95%CI 0.791~0.945，含失败重跑后聚合）；
+- 整体（220 条）准确率 0.929（95%CI 0.897~0.961）／忠实性 0.938（judge 子集）／覆盖度 0.872／RAG 命中 0.947；
+- 幻觉：judge 50 条中 3 条含幻觉（平均 0.2 条/条），失败列表为空；Reflection 回炉触发 6 条；
+- 类型拆分（judge 50）：entity 0.978 / knowledge 0.671 / edge 1.0 / complex 0.822——**knowledge 类是当前短板**（
+  元素反应/圣遗物套件等知识题检索覆盖不足），已列入后续优化；
+- 成本：本轮 1103 次 LLM 调用，3,049,334 token（输入 2,957,062 / 输出 92,272，平均 13.9k/条）。
 
 **质量对比**（LangGraph 全链路 vs 自研 ReAct）：
 ```bash
@@ -223,23 +250,14 @@ cd backend
 .venv\Scripts\python.exe scripts\eval\judge_compare.py   # 两组回答用同一 Judge 打分（ReAct 侧附工具返回 citations，忠实性可自动核验）
 ```
 LangGraph（四路混合检索 + Reflection 质检 + 引用输出）质量更稳；自研 ReAct 在核心事实正确性上
-持平（复核后 0 幻觉，Judge 两次误判经 trace 核实为工具返回数据与正确游戏机制），省约 35% 耗时与
+持平（6 条对比集内复核无幻觉，Judge 两次误判经 trace 核实为工具返回数据与正确游戏机制），省约 35% 耗时与
 ~1.6k token/条，代价是检索策略简化与无引用标注——已通过共享 `hybrid_retrieve`（含元素×职能精确补充）
 与 ReAct citations 输出收敛差距。
 
 **Token 成本硬指标**（`app/core/usage.py` 通过 LangChain 回调自动统计全部 LLM 调用）：
 评测报告自带本轮 token 汇总（总量 / 输入 / 输出 / 调用次数 / 平均每条），并与上一份报告对比增量。
-实测：每条评测 ≈ 3,900 token（Agent 链路 + Judge），全量 30 条 ≈ 11.6 万/轮；`--only-failed` 增量回归只重跑失败项，可显著节省。
+numeric 题走规则判定不消耗 Judge token；judge 题 ≈ 3,900 token/条（Agent 链路 + Judge）。
 对话级：`/api/chat` 响应与 SSE `usage` 事件携带本轮消耗（前端已渲染「⚡ 本轮消耗 N token（M 次调用）」），配合上下文预算控制长会话成本。
-
-最新全量结果（2026-09-23）：**准确率 0.962 / 忠实性 1.0 / 覆盖度 0.945 / 幻觉 0 条**（30 条，93.6k token，平均 3.1k/条）；
-收尾处置（数据补录雷电将军 + synthesize 详实化 + key_points 校准）后原 3 个低分项全部满分，30 条无低分项。
-
-最新全量结果（2026-10-11，多游戏评测体系后）：**原神 30 条 entity 0.9 / knowledge 0.86（原 0.7）/ edge 1.0 / complex 1.0（原 0.66），幻觉清零**；
-失败用例清零归因修复：tool 直接作答引用兜底、角色→配队/武器/圣遗物联动检索（related_gear）、
-万达国际入库（teams.json）、删除"XX·主C 通用队"伪配队兜底（编造来源）、列举类 top_k 4→12；
-方舟 smoke acc=0.967 / fth=0.95 / cov=1.0。**AI 辅助开发方法论已沉淀：`docs/AI-METHODOLOGY.md`**
-（提示词模板化/状态图质检/评测闭环/多路召回/官方数据管道，全部带量化证据）。
 
 ### 代码审查与修复（2026-09-25）
 
@@ -247,25 +265,33 @@ LangGraph（四路混合检索 + Reflection 质检 + 引用输出）质量更稳
 
 **① 组件级消融实验**（`scripts/eval/ablation.py` → `data/ablation_report.json`）：
 ```bash
-.venv\Scripts\python.exe scripts\eval\ablation.py --cases 4   # 5 配置 × 4 条，约 20 次链路，耗时 10+ 分钟
+.venv\Scripts\python.exe scripts\eval\ablation.py --cases 20   # 默认 20 条（v2 评测集，numeric 规则判定不耗 token）；5 配置 × 20 条
 ```
-| 配置 | acc | Δacc | fth | cov | 幻觉/条 | token |
-|---|---|---|---|---|---|---|
-| 全链路 | 0.950 | — | 0.925 | 1.0 | 0.75 | 53,525 |
-| 去 replan | 0.912 | -0.038 | 0.850 | 1.0 | 1.0 | 53,330 |
-| 去 reflect | 0.887 | -0.063 | 0.787 | 1.0 | **2.0** | 41,119 |
-| 去混合检索 | 0.725 | **-0.225** | 0.825 | 0.85 | 1.5 | 46,145 |
-| 去记忆注入 | 0.688 | **-0.262** | 0.900 | **0.75** | 0.75 | 49,358 |
+2026-09-25 首轮 4 条小样本快照显示"四组件均为正贡献"（统计意义有限，仅供趋势参考）；
+2026-10-14 扩展为 20 条 numeric 规则判定后实测（`data/ablation_report.json`）：
 
-结论：**记忆注入与混合检索贡献最大（去掉后准确率 -0.26 / -0.23 且覆盖度明显下降），
-Reflection 对防幻觉贡献显著（去掉后幻觉 0.75→2.0 条），replan 贡献中等（-0.038）——四组件均为正贡献，非过度工程**。
+| 配置 | acc | Δacc | token |
+|---|---|---|---|
+| all（全链路） | 0.950 | — | 254,958 |
+| no_replan | 1.000 | +0.050 | 269,940 |
+| no_reflect | 0.950 | +0.000 | 212,794 |
+| no_hybrid | 0.950 | +0.000 | 240,152 |
+| no_memory | 1.000 | +0.050 | 266,419 |
+
+20 条 numeric 子集上（准确率规则判定，样本仍偏小）：**replan / memory 去除后准确率反而略升（各 +0.05，即 1 条差异），
+reflect / hybrid 无差异**——在该子集上各组件未表现出显著正贡献，组件收益需在更大 judge 集上进一步验证
+（这也说明组件级贡献评测容易受样本与题型构成影响，结论不放大）。
+
+> 首轮 2026-09-25 的 4 条小样本快照（仅供趋势参考，已被上表 20 条实测取代）：
+> 去 replan -0.038 / 去 reflect 幻觉 0.75→2.0 / 去混合检索 -0.225 / 去记忆注入 -0.262 且覆盖度 -0.25。
 
 **② Judge 校准与统计口径**（`scripts/eval/judge_calibration.py` + `eval_common.py`）：
 - 评测报告新增 **Wilson 95% 置信区间** 与阈值通过率（如 acc=0.905，95%CI 0.803~1.0，通过率 0.8 [0.49~0.943]）；
 - 新建人工校准集（`calibration_set.json`，逐条人工对照期望要点打分）与校准脚本（MAE/一致率/偏差模式）；
 - 校准过程**暴露并修复了真问题**：eval 报告原先只存引用标题，Judge 看不到引用正文，
   对「资料未收录但合理作答」的用例误判编造（ent-10：0.7/0.6/2 条幻觉）→ 修复为带引用正文后
-  **Judge 与人工标注完全一致（1.0/1.0/1.0/0，MAE=0）**——这是 LLM-as-Judge 校准闭环的实证。
+  Judge 与人工标注在该 6 条校准集上一致（1.0/1.0/1.0/0，MAE=0）——校准集较小，结论仅为参考，已随
+  评测集扩展同步扩样。
 
 **③ Chroma 并发压力测试**（`scripts/stress_test_rag.py`）：
 ```bash
@@ -281,7 +307,7 @@ Reflection 对防幻觉贡献显著（去掉后幻觉 0.75→2.0 条），replan
 `_resolve_delegate` 从注册表动态派生——**新增第三个游戏只需登记 yaml + 建数据目录，不改任何 Agent 代码**。
 已有 pytest 断言覆盖（44 passed）。
 
-最新 10 条评测（2026-09-25，带 CI）：acc=0.905（CI 0.803~1.0）/ fth=0.885 / cov=0.95 / 幻觉 0.6 条。
+最新 10 条评测（2026-09-25，带 CI，10 条小样本）：acc=0.905（CI 0.803~1.0）/ fth=0.885 / cov=0.95 / 幻觉 0.6 条/条。
 
 
 ## 记忆分层与上下文工程（P1）
@@ -311,7 +337,7 @@ Reflection 对防幻觉贡献显著（去掉后幻觉 0.75→2.0 条），replan
 - [x] SSE 流式 + 决策链路实时可视化（浏览器实测通过）
 - [x] RAG 向量化：bge-small-zh（512 维，约 95MB）+ Chroma 106 条入库 + 混合检索重排（召回验证通过）
 - [x] Reflection 自检节点：synthesize → reflect → 回炉一次（浏览器实测修正链路）
-- [x] 评测闭环：30 条评测集 + LLM-as-Judge 四指标评分（0.962 / 1.0 / 0.945 / 0 幻觉）
+- [x] 评测闭环：30 条评测集 + LLM-as-Judge 四指标评分（2026-09 快照：0.962 / 1.0 / 0.945 / 0 幻觉，集内口径）
 - [x] 上下文工程：Prompt 模板化 + 上下文预算（摘要 + 最近 N 条）
 - [x] 记忆分层：会话摘要滚动压缩 + 用户偏好按游戏隔离跨会话生效（test_memory 验证 + 浏览器实测）
 - [x] 自研 ReAct 循环模块 + 与 LangGraph 对比测试（6/6 通过，平均 2.9s / ~1660 token）
@@ -321,7 +347,7 @@ Reflection 对防幻觉贡献显著（去掉后幻觉 0.75→2.0 条），replan
 - [x] ReAct citations 输出：手写 ReAct 记录工具返回依据，Judge 忠实性可自动核验（消除误判）
 - [x] 数据补录：菲谢尔 / 迪卢克 / 芭芭拉治疗定位（人工补录标注待 wiki 验证），魔女套推荐补迪卢克
 - [x] 修复：synthesize 覆盖工具直答、retriever 缺 import 致 teams 加载失败、validate_data 两处崩溃
-- [x] 评测收尾：30 条全量 0.962 / 1.0 / 0.945 / 0 幻觉；补录雷电将军、synthesize 详实化、key_points 校准后低分项全部清零
+- [x] 评测收尾：30 条全量 0.962 / 1.0 / 0.945 / 0 幻觉（2026-09，集内口径）；补录雷电将军、synthesize 详实化、key_points 校准后低分项清零
 - [x] 阶段三 · 明日方舟二期：games.yaml 注册启用（动态生成按游戏关闭）+ 8 名干员种子数据（`backend/data/arknights/characters.json`）+ 前端游戏选择器切换实测通过（能天使问答全链路，截图 `docs/screenshots/arknights_demo.png`）
 - [x] 阶段三 · MCP 工具协议：`backend/mcp_server.py`（官方 MCP SDK，stdio）暴露 **11 个标准工具**（list_games / query_game_entity / search_knowledge / list_vector_collections / vector_stats / delete_vector_document / list_documents / ingest_document / ask_document / run_agent_task / analyze_screenshot）；冒烟测试 `scripts/mcp_client_test.py` 全通过（握手 / 工具列表 / 实体查询 / 检索 / 向量运维 / 文档问答 / A2A / 多模态）
 - [x] 阶段三 · Docker 容器化部署：backend/frontend Dockerfile、nginx 代理（含 SSE）、数据与模型缓存卷；**实机构建并全量验证通过**——backend 3.23GB / frontend 93.9MB，双容器 healthy，`/api/health`、前端 5173、nginx 反代均 200；容器内 PyPI 不可达 → 宿主机预下载 137 个 Linux wheel 离线安装；torch 钉版 CPU（2.5.1）避免 CUDA 依赖（commit `18f9f41`）
@@ -345,13 +371,13 @@ Reflection 对防幻觉贡献显著（去掉后幻觉 0.75→2.0 条），replan
 - [x] **武器卡池展示（2026-09-25）**：祈愿页武器池（如「神铸赋形」）生成独立 gacha_weapon 事件（5星/4星武器 + 官方时间 + estimated=false），前端新增 🗡️ 武器卡池标签（与角色池同周期）；修复 merge_gacha 未命中池保留推算事件；pytest → **44 passed**
 - [x] **EXE 启动体验（2026-09-25）**：启动横幅打印技术栈版本（LangGraph 1.2.12 / LangChain 1.4.2 / 8 节点状态图 / 6 工具）；浏览器自动打开后控制台窗口自动隐藏（ShowWindow SW_HIDE，服务后台继续运行）；日志落盘 pp_data/logs/server.log；已重打包验证（窗口句柄 0、8000 服务正常）
 - [x] **应用内设置 API Key（2026-09-29）**：前端 ⚙ 设置按钮（SettingsModal）+ 后端 `/api/settings/key`（GET 返回 masked_key / POST 校验并保存）；Key 支持**应用内填写 → key.txt → .env** 三级优先读取并即时生效；保存写入 `app_data/settings.json`，不入库不入日志，响应与日志仅显示打码形式；`app/core/key_manager.py` 统一管理来源与脱敏；已重打包 EXE 实测（设置端点 200，配置源 env_or_file）
-- [x] **多游戏评测体系（P0，2026-10-11）**：评测集扩展为 **原神 30 + 明日方舟 20 共 50 条**（`arknights_evaluation_set.json` 按方舟种子干员与动态工具能力设计：实体/知识/边界/复合四类）；eval_runner 新增 `--game genshin|arknights|all` 参数与 **RAG 命中率指标**（期望要点是否被引用资料覆盖）；方舟 smoke 评测实测 acc=0.95 / fth=0.925 / cov=1.0 / RAG 命中 0.9 / 零幻觉
+- [x] **多游戏评测体系（P0，2026-10-11）**：评测集扩展为 **原神 30 + 明日方舟 20 共 50 条**（`arknights_evaluation_set.json` 按方舟种子干员与动态工具能力设计：实体/知识/边界/复合四类）；eval_runner 新增 `--game genshin|arknights|all` 参数与 **RAG 命中率指标**（期望要点是否被引用资料覆盖）；方舟 smoke 评测实测 acc=0.95 / fth=0.925 / cov=1.0 / RAG 命中 0.9（20 条集内，无幻觉用例）
 - [x] **RAG 多路召回增强（P0，2026-10-11）**：hybrid_retrieve 新增 **BM25 稀疏检索**（无外部依赖的 Okapi BM25 实现，中文 bigram + 英文分词，按数据文件指纹缓存索引），与名称命中、向量召回融合去重按分数排序——补齐「向量+稀疏」双路召回，检索质量可被评测 RAG 命中率观测
 - [x] **工具失败自动重试（P2，2026-10-11）**：tool 节点工具瞬时失败（网络/上游抖动）自动重试一次再标记 error，避免偶发 5xx 中断整轮链路
 - [x] **测试覆盖扩展（P1，2026-10-11）**：新增 `test_bm25.py`（分词/命中/复合查询）、`test_eval_sets.py`（评测集格式校验）、`test_auto_title.py`（智能命名）、`test_recent_entities.py`（最近实体）、`test_enhance.py`（信息补全），pytest **52 → 68 passed**
-- [x] **评测失败用例清零（P0 收尾，2026-10-11）**：引用兜底（tool 直答也出 citations）+ related_gear 联动检索 + 万达国际入库 + 删除伪配队编造兜底 + 列举类 top_k 12；原神 30 条 entity 0.9 / knowledge 0.86 / edge 1.0 / complex 1.0，**幻觉清零**，失败列表为空（commit `ca5a32f`）
+- [x] **评测失败用例清零（P0 收尾，2026-10-11）**：引用兜底（tool 直答也出 citations）+ related_gear 联动检索 + 万达国际入库 + 删除伪配队编造兜底 + 列举类 top_k 12；原神 30 条 entity 0.9 / knowledge 0.86 / edge 1.0 / complex 1.0，失败列表为空（30 条集内）（commit `ca5a32f`）
 - [x] **CI 修复 + 前端构建检查（P0，2026-10-11）**：修复 RAG import 检查（`from app.rag import hybrid` 模块不存在会挂 CI → `from app.rag.retriever import hybrid_retrieve`）；新增 frontend-build job（npm ci + build）
-- [x] **AI 方法论沉淀（P1，2026-10-11）**：`docs/AI-METHODOLOGY.md`——提示词模板化 / 状态图质检 / 评测闭环（Judge 校准 MAE=0）/ 多路召回 / 官方数据管道，全部带量化证据
+- [x] **AI 方法论沉淀（P1，2026-10-11）**：`docs/AI-METHODOLOGY.md`——提示词模板化 / 状态图质检 / 评测闭环（含人工校准集）/ 多路召回 / 官方数据管道，全部带量化证据
 - [x] **向量库增量更新 / 脏数据清理（P0，2026-10-11）**：`backend/scripts/vector_admin.py`（list / stats / delete-doc / rebuild / purge）+ MCP 工具 `list_vector_collections / vector_stats / delete_vector_document`；真库实测 arknights_kb 460 / genshin_kb 233 / user_memory 19 / documents 30 块，0 孤儿；pytest 新增 8 项 → **81 passed**
 - [x] **MCP 工具演示扩展（P1，2026-10-11）**：MCP 工具 3 → 10（+向量运维 3 + 文档问答 3 + A2A 1），`docs/MCP-DEMO.md` 同步；冒烟全通过（commit `d4202fa` / `b15906ff`）
 - [x] **A2A 多智能体协同演示（P2，2026-10-11）**：`run_agent_task` 工具 + `app/agents/a2a.py`——一个请求分解 → 派发 game/doc/vector 三域智能体 → 汇总带来源；`docs/A2A-DEMO.md` + `scripts/a2a_demo.py`（--no-llm 离线可跑）；pytest 新增 10 项 → **91 passed**（commit `207561a`）
@@ -408,10 +434,10 @@ docker compose up -d --build
 - 密钥：`backend/.env` 经 `env_file` 注入，不入镜像；
 - **实机验证（2026-10-12）**：双容器 healthy（backend 3.23GB / frontend 93.9MB），`/api/health` → `{"status":"ok","app":"AI 游戏助手智能体平台"}`、前端 200、nginx 反代 200；构建中间产物 `backend/wheels/`（137 个 Linux wheel，约 700MB）已 gitignore 不入库。
 
-## 企业文档问答（FDE 演示，P2）
+## 企业文档问答（RAG 能力复用，P2）
 
 同一套 RAG 能力复用到企业文档问答场景——「导入客户文档 → 向量化 → 自然语言问答（带引用）」，
-作为对标 FDE 岗（驻客户现场把 AI 战略变成可交付产品）的轻量 Demo：
+验证检索能力脱离游戏领域的可迁移性：
 
 ```bash
 # 1) 导入文档（md/txt 文本，按段落分块向量化，Chroma「documents」集合）
@@ -443,8 +469,6 @@ cd backend
 `list_games`（游戏注册表）、`query_game_entity`（按需实体查询，静态→动态→LLM 生成 + wiki 交叉验证）、
 `search_knowledge`（RAG 混合检索）、`list_vector_collections` / `vector_stats` / `delete_vector_document`（向量库运维）、
 `list_documents` / `ingest_document` / `ask_document`（企业文档问答，带引用）、
-`run_agent_task`（**A2A 多智能体协同**：一个请求 → 分解 → 派发 game/doc/vector 三域智能体 → 汇总带来源，对齐岗位 MCP+A2A 信号）。
+`run_agent_task`（**A2A 多智能体协同**：一个请求 → 分解 → 派发 game/doc/vector 三域智能体 → 汇总带来源）。
 
 完整工具清单与端到端验证见 `docs/MCP-DEMO.md` 与 `docs/A2A-DEMO.md`；向量库运维 CLI 等价入口 `backend\scripts\vector_admin.py`（list / stats / delete-doc / rebuild / purge）；A2A 演示 CLI `backend\scripts\a2a_demo.py`（--no-llm 可离线跑通）。
-
-详细设计见《AI 游戏助手智能体平台项目方案.docx》。

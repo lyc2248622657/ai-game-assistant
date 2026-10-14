@@ -12,6 +12,8 @@
 """
 import json
 import re
+import time
+from pathlib import Path
 from typing import Any, Literal
 
 from langchain_core.messages import ToolMessage
@@ -35,6 +37,7 @@ from app.memory.memory_rag import memory_rag
 from app.memory.session_memory import session_memory
 from app.memory.user_memory import user_memory
 from app.tools.base import ToolContext
+from app.tools.game_entity import FILE_BY_TYPE, _attach_image, load_entries, search_entry
 from app.tools.registry import tool_registry
 
 logger = get_logger(__name__)
@@ -65,7 +68,11 @@ DELEGATE_IDENTITY = _delegate_identity()
 
 
 def _emit(state: AgentState, event: dict) -> None:
-    """向状态中的事件列表追加一条事件（后续由 API 层转为 SSE 转发）"""
+    """向状态中的事件列表追加一条事件（后续由 API 层转为 SSE 转发）
+
+    统一补 ts 时间戳（前端用于节点耗时统计与进行中状态高亮）。
+    """
+    event.setdefault("ts", time.time())
     state.setdefault("events", []).append(event)
 
 
@@ -277,7 +284,15 @@ def retrieve_node(state: AgentState) -> AgentState:
         if docs:
             _emit(state, {
                 "type": "retrieval", "node_name": N_RETRIEVE,
-                "docs": [{"title": d["title"], "source": d.get("source", "")} for d in docs],
+                "docs": [
+                    {
+                        "title": d["title"],
+                        "source": d.get("source", ""),
+                        "score": d.get("score"),
+                        "snippet": (d.get("content") or "")[:120],
+                    }
+                    for d in docs
+                ],
             })
     except Exception as e:  # noqa: BLE001
         logger.warning("retrieve 失败: %s", e)
@@ -466,6 +481,100 @@ def _find_related_entities(state: AgentState) -> list[str]:
 
 
 # ---------- 汇总节点 ----------
+_ENTITY_IMG_MAX = 4  # 回答最多夹带图片数（A 全覆盖 / B 多图）
+
+
+def _load_all_entries(game_dir: Path) -> list[dict]:
+    """加载某游戏全部类型条目（静态库 + 动态缓存）"""
+    out: list[dict] = []
+    for fname in FILE_BY_TYPE.values():
+        for sub in ("", "dynamic"):
+            p = game_dir / sub / fname
+            if not p.exists():
+                continue
+            try:
+                data = json.loads(p.read_text(encoding="utf-8"))
+                items = data if isinstance(data, list) else [data]
+                out.extend(x for x in items if isinstance(x, dict))
+            except Exception:  # noqa: BLE001
+                continue
+    return out
+
+
+def _entity_image_url(game, name: str) -> str:
+    """取实体图片网络直链：库内已存 http(s) 直链优先；相对路径/缺失 → 从 wiki 抓取一次（仅本次回答用，不阻塞）"""
+    for e in _load_all_entries(game.data_dir):
+        if not search_entry([e], name):
+            continue
+        u = str(e.get("image_url") or e.get("image") or "")
+        if u.startswith(("http://", "https://")):
+            return u
+        # 本地相对路径（如 images/weapons/homa.png，未落地不可直链）→ 清字段后强制 wiki 抓网络直链
+        out = {k: v for k, v in e.items() if k not in ("_meta", "image", "image_url")}
+        _attach_image(game, "", name, out)
+        u = str(out.get("image_url") or "")
+        if u.startswith(("http://", "https://")):
+            return u
+    return ""
+
+
+def _entity_candidates(state: AgentState) -> list[str]:
+    """收集候选实体名（去重、限 5）：工具结果主实体/关联实体 → 检索标题 → 用户问题"""
+    names: list[str] = []
+    seen: set[str] = set()
+    for tr in state.get("tool_results", []):
+        res = tr.get("result", {})
+        if isinstance(res, dict) and res.get("entity"):
+            e = res["entity"]
+            for n in [e.get("name"), *[r.get("name") for r in (e.get("related_gear") or [])]]:
+                n = str(n or "").strip()
+                if n and n not in seen:
+                    seen.add(n)
+                    names.append(n)
+    try:
+        game = registry.get_game(state["game_id"])
+        all_entries = _load_all_entries(game.data_dir)
+    except Exception:  # noqa: BLE001
+        all_entries = []
+    for txt in [*(str(d.get("title") or "") for d in state.get("retrieved_docs", [])), str(state.get("user_message") or "")]:
+        if not txt:
+            continue
+        for e in all_entries:
+            n = str(e.get("name") or "").strip()
+            if n and len(n) >= 2 and n not in seen and n in txt:
+                seen.add(n)
+                names.append(n)
+    return names[:_ENTITY_IMG_MAX]
+
+
+def _attach_images_to_state(state: AgentState) -> None:
+    """回答夹带相关图片（A 全覆盖 / B 多图）：
+    - 主实体图（工具结果已附带则直接入列）
+    - 关联实体（配队/武器等）与检索/问题命中实体的图（库内直链优先，缺失才抓取一次）
+    - 全部失败静默跳过，不阻断回答
+    """
+    images: list[str] = []
+    seen: set[str] = set()
+    if state.get("entity_image"):
+        images.append(state["entity_image"])
+        seen.add(state["entity_image"])
+    try:
+        game = registry.get_game(state["game_id"])
+    except Exception:  # noqa: BLE001
+        return
+    for n in _entity_candidates(state):
+        if len(images) >= _ENTITY_IMG_MAX:
+            break
+        u = _entity_image_url(game, n)
+        if u and u not in seen:
+            seen.add(u)
+            images.append(u)
+    if images:
+        state["entity_images"] = images
+        if not state.get("entity_image"):
+            state["entity_image"] = images[0]
+
+
 def synthesize_node(state: AgentState) -> AgentState:
     """LLM 依据检索/工具结果组织回答，生成引用（Reflection 回炉时带质检反馈）"""
     logger.info("[%s] synthesize", state["game_id"])
@@ -542,8 +651,15 @@ def synthesize_node(state: AgentState) -> AgentState:
     state["suggestions"] = suggestions
     if suggestions:
         _emit(state, {"type": "suggestions", "suggestions": suggestions, "message": "已生成推荐追问"})
-    if state.get("entity_image"):
-        _emit(state, {"type": "image", "image_url": state["entity_image"], "message": "已获取实体图片"})
+    # A+B：回答夹带相关图片——主实体图 + 关联实体多图 + 非实体域全覆盖
+    _attach_images_to_state(state)
+    if state.get("entity_images"):
+        _emit(state, {
+            "type": "image",
+            "image_url": state["entity_image"] or state["entity_images"][0],
+            "images": state["entity_images"],
+            "message": "已获取相关图片",
+        })
     if state.get("related_entities"):
         _emit(state, {"type": "related_entities", "related_entities": state["related_entities"], "message": "已生成相关实体提示"})
     if state.get("guides"):

@@ -81,7 +81,8 @@ class AgentState(TypedDict, total=False):
     # 输出
     final_answer: Optional[str]     # 汇总后的最终回答
     suggestions: Annotated[list[str], _dedup_extend]  # 猜测适配选项（问实体时生成）
-    entity_image: Optional[str]     # 实体头像图片 URL（角色图/武器图，前端渲染）
+    entity_image: Optional[str]     # 主实体图片 URL（角色图/武器图，前端渲染）
+    entity_images: list[str]        # 回答相关图片列表（主实体 + 关联实体多图，A/B 全覆盖）
     events: Annotated[list[dict], _dedup_extend]      # Agent 过程事件（SSE 转发给前端时间线）
 
 
@@ -119,5 +120,6 @@ def initial_state(
         "final_answer": None,
         "suggestions": [],
         "entity_image": None,
+        "entity_images": [],
         "events": [],
     }

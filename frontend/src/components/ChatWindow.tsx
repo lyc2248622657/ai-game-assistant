@@ -8,12 +8,14 @@ interface Props {
   loading: boolean
   gameId: string | null
   onSend: (text: string, imagePath?: string, imageUrl?: string) => void
+  /** 方向③：停止当前生成（中断 SSE 流） */
+  onStop?: () => void
 }
 
 /** 聊天窗口：消息流 + 输入框（SSE 流式渲染接入点）
  *  正文经 renderMarkdown 渲染：粗体/斜体/行内代码/URL 自动转超链接（新标签打开）
  */
-export function ChatWindow({ messages, loading, gameId, onSend }: Props) {
+export function ChatWindow({ messages, loading, gameId, onSend, onStop }: Props) {
   const [input, setInput] = useState('')
   const [feedbacks, setFeedbacks] = useState<Set<string>>(new Set())
   const [pendingImage, setPendingImage] = useState<{ path: string; url: string } | null>(null)
@@ -59,8 +61,8 @@ export function ChatWindow({ messages, loading, gameId, onSend }: Props) {
   }
 
   return (
-    <div className="flex flex-1 flex-col rounded-lg border bg-white">
-      <div className="flex-1 space-y-4 overflow-y-auto p-4">
+    <div className="app-card app-card-hover flex flex-1 flex-col overflow-hidden">
+      <div className="nice-scroll flex-1 space-y-4 overflow-y-auto p-4">
         {messages.length === 0 && (
           <p className="text-center text-sm text-gray-400">
             输入问题开始对话，例如：胡桃的技能数值 / 银灰的培养材料 / 天空之翼适合谁
@@ -69,10 +71,8 @@ export function ChatWindow({ messages, loading, gameId, onSend }: Props) {
         {messages.map((m, i) => (
           <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div
-              className={`max-w-[82%] rounded-xl px-4 py-2.5 text-sm shadow-sm ${
-                m.role === 'user'
-                  ? 'bg-blue-600 text-white shadow-blue-200'
-                  : 'border border-gray-100 bg-white text-gray-800'
+              className={`max-w-[82%] px-4 py-2.5 text-sm ${
+                m.role === 'user' ? 'bubble-user' : 'bubble-assistant text-gray-800'
               }`}
             >
               {m.role === 'user' && m.user_image && (
@@ -82,7 +82,27 @@ export function ChatWindow({ messages, loading, gameId, onSend }: Props) {
                   className="mb-2 max-h-40 rounded-lg border border-blue-200 object-cover"
                 />
               )}
-              {m.role === 'assistant' && m.image_url ? (
+              {m.role === 'assistant' && m.images && m.images.length > 0 ? (
+                // A/B 全覆盖：回答夹带相关图片（主实体 + 关联实体多图网格）
+                <>
+                  <div className="mb-2 flex flex-wrap gap-2">
+                    {m.images.map((u, ui) => (
+                      <img
+                        key={u}
+                        src={u}
+                        alt={m.images!.length === 1 ? '相关图片' : `相关图片 ${ui + 1}`}
+                        className={
+                          m.images!.length === 1
+                            ? 'h-24 w-24 rounded-xl border border-gray-100 object-cover shadow-sm'
+                            : 'h-20 w-20 rounded-xl border border-gray-100 object-cover shadow-sm'
+                        }
+                        onError={(e) => ((e.target as HTMLImageElement).style.display = 'none')}
+                      />
+                    ))}
+                  </div>
+                  <div className="min-w-0">{renderMarkdown(m.content)}</div>
+                </>
+              ) : m.role === 'assistant' && m.image_url ? (
                 // 助手消息带实体头像：圆形图片 + 文字并排
                 <div className="mb-2 flex items-start gap-3">
                   <img
@@ -191,7 +211,7 @@ export function ChatWindow({ messages, loading, gameId, onSend }: Props) {
         ))}
         {loading && (
           <div className="flex items-center gap-2 text-sm text-gray-400">
-            <span className="h-3 w-3 animate-spin rounded-full border-2 border-gray-300 border-t-blue-500" />
+            <span className="h-3 w-3 animate-spin rounded-full border-2 border-gray-300 border-t-indigo-500" />
             正在思考…
           </div>
         )}
@@ -233,15 +253,25 @@ export function ChatWindow({ messages, loading, gameId, onSend }: Props) {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && submit()}
             placeholder="输入消息，Enter 发送（可问原神或明日方舟；可附游戏截图识别）"
-            className="flex-1 rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none transition focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200/60"
           />
-          <button
-            onClick={submit}
-            disabled={loading || !input.trim()}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-50"
-          >
-            发送
-          </button>
+          {loading ? (
+            <button
+              onClick={onStop}
+              className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-100"
+              title="中断当前生成（Agent 立即停止后续节点）"
+            >
+              ■ 停止生成
+            </button>
+          ) : (
+            <button
+              onClick={submit}
+              disabled={!input.trim()}
+              className="btn-brand rounded-xl px-4 py-2 text-sm font-medium"
+            >
+              发送
+            </button>
+          )}
         </div>
       </div>
     </div>

@@ -1,7 +1,6 @@
 # MCP 工具演示（Model Context Protocol）
 
 > 把 ai-game-assistant 的智能体平台能力暴露为标准 MCP 工具，任意 MCP 客户端（Claude Desktop / Cursor / 自研编排器）可通过 stdio 调用。
-> 对齐岗位信号：深圳德恩「MCP 工具调用、A2A 多智能体协同」（13-14K）、广州快创「Dify/Coze agent 经验」。
 
 ## 一、已注册工具（10 个）
 

@@ -1,0 +1,2455 @@
+[
+  {
+    "id": "num-genshin-001",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "菲谢尔是几星角色？",
+    "ground_truth": "4星",
+    "key_points": [
+      "菲谢尔",
+      "4星"
+    ]
+  },
+  {
+    "id": "num-genshin-002",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "雷电将军是什么元素？",
+    "ground_truth": "雷",
+    "key_points": [
+      "雷电将军",
+      "雷"
+    ]
+  },
+  {
+    "id": "num-genshin-003",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "法尔伽使用什么类型的武器？",
+    "ground_truth": "双手剑",
+    "key_points": [
+      "法尔伽",
+      "双手剑"
+    ]
+  },
+  {
+    "id": "num-genshin-004",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "莉奈娅是几星角色？",
+    "ground_truth": "5星",
+    "key_points": [
+      "莉奈娅",
+      "5星"
+    ]
+  },
+  {
+    "id": "num-genshin-005",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "哥伦比娅是什么元素？",
+    "ground_truth": "水",
+    "key_points": [
+      "哥伦比娅",
+      "水"
+    ]
+  },
+  {
+    "id": "num-genshin-006",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "薇斯娜使用什么类型的武器？",
+    "ground_truth": "法器",
+    "key_points": [
+      "薇斯娜",
+      "法器"
+    ]
+  },
+  {
+    "id": "num-genshin-007",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "钟离是几星角色？",
+    "ground_truth": "5星",
+    "key_points": [
+      "钟离",
+      "5星"
+    ]
+  },
+  {
+    "id": "num-genshin-009",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "胡桃使用什么类型的武器？",
+    "ground_truth": "长柄武器",
+    "key_points": [
+      "胡桃",
+      "长柄武器"
+    ]
+  },
+  {
+    "id": "num-genshin-010",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "那维莱特是几星角色？",
+    "ground_truth": "5星",
+    "key_points": [
+      "那维莱特",
+      "5星"
+    ]
+  },
+  {
+    "id": "num-genshin-011",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "七七是什么元素？",
+    "ground_truth": "冰",
+    "key_points": [
+      "七七",
+      "冰"
+    ]
+  },
+  {
+    "id": "num-genshin-012",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "丝柯克使用什么类型的武器？",
+    "ground_truth": "单手剑",
+    "key_points": [
+      "丝柯克",
+      "单手剑"
+    ]
+  },
+  {
+    "id": "num-genshin-013",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "丽莎是几星角色？",
+    "ground_truth": "4星",
+    "key_points": [
+      "丽莎",
+      "4星"
+    ]
+  },
+  {
+    "id": "num-genshin-014",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "九条裟罗是什么元素？",
+    "ground_truth": "雷",
+    "key_points": [
+      "九条裟罗",
+      "雷"
+    ]
+  },
+  {
+    "id": "num-genshin-015",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "云堇使用什么类型的武器？",
+    "ground_truth": "长柄武器",
+    "key_points": [
+      "云堇",
+      "长柄武器"
+    ]
+  },
+  {
+    "id": "num-genshin-016",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "五郎是几星角色？",
+    "ground_truth": "4星",
+    "key_points": [
+      "五郎",
+      "4星"
+    ]
+  },
+  {
+    "id": "num-genshin-017",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "伊安珊是什么元素？",
+    "ground_truth": "雷",
+    "key_points": [
+      "伊安珊",
+      "雷"
+    ]
+  },
+  {
+    "id": "num-genshin-018",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "伊法使用什么类型的武器？",
+    "ground_truth": "法器",
+    "key_points": [
+      "伊法",
+      "法器"
+    ]
+  },
+  {
+    "id": "num-genshin-019",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "伊涅芙是几星角色？",
+    "ground_truth": "5星",
+    "key_points": [
+      "伊涅芙",
+      "5星"
+    ]
+  },
+  {
+    "id": "num-genshin-020",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "优菈是什么元素？",
+    "ground_truth": "冰",
+    "key_points": [
+      "优菈",
+      "冰"
+    ]
+  },
+  {
+    "id": "num-genshin-021",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "克洛琳德使用什么类型的武器？",
+    "ground_truth": "单手剑",
+    "key_points": [
+      "克洛琳德",
+      "单手剑"
+    ]
+  },
+  {
+    "id": "num-genshin-022",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "八重神子是几星角色？",
+    "ground_truth": "5星",
+    "key_points": [
+      "八重神子",
+      "5星"
+    ]
+  },
+  {
+    "id": "num-genshin-023",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "兹白是什么元素？",
+    "ground_truth": "岩",
+    "key_points": [
+      "兹白",
+      "岩"
+    ]
+  },
+  {
+    "id": "num-genshin-024",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "凝光使用什么类型的武器？",
+    "ground_truth": "法器",
+    "key_points": [
+      "凝光",
+      "法器"
+    ]
+  },
+  {
+    "id": "num-genshin-025",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "刻晴是几星角色？",
+    "ground_truth": "5星",
+    "key_points": [
+      "刻晴",
+      "5星"
+    ]
+  },
+  {
+    "id": "num-genshin-026",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "北斗是什么元素？",
+    "ground_truth": "雷",
+    "key_points": [
+      "北斗",
+      "雷"
+    ]
+  },
+  {
+    "id": "num-genshin-027",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "千织使用什么类型的武器？",
+    "ground_truth": "单手剑",
+    "key_points": [
+      "千织",
+      "单手剑"
+    ]
+  },
+  {
+    "id": "num-genshin-028",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "卡维是几星角色？",
+    "ground_truth": "4星",
+    "key_points": [
+      "卡维",
+      "4星"
+    ]
+  },
+  {
+    "id": "num-genshin-029",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "卡齐娜是什么元素？",
+    "ground_truth": "岩",
+    "key_points": [
+      "卡齐娜",
+      "岩"
+    ]
+  },
+  {
+    "id": "num-genshin-030",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "叶洛亚使用什么类型的武器？",
+    "ground_truth": "长柄武器",
+    "key_points": [
+      "叶洛亚",
+      "长柄武器"
+    ]
+  },
+  {
+    "id": "num-genshin-031",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "嘉明是几星角色？",
+    "ground_truth": "4星",
+    "key_points": [
+      "嘉明",
+      "4星"
+    ]
+  },
+  {
+    "id": "num-genshin-032",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "坎蒂丝是什么元素？",
+    "ground_truth": "水",
+    "key_points": [
+      "坎蒂丝",
+      "水"
+    ]
+  },
+  {
+    "id": "num-genshin-033",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "埃洛伊使用什么类型的武器？",
+    "ground_truth": "弓",
+    "key_points": [
+      "埃洛伊",
+      "弓"
+    ]
+  },
+  {
+    "id": "num-genshin-034",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "基尼奇是几星角色？",
+    "ground_truth": "5星",
+    "key_points": [
+      "基尼奇",
+      "5星"
+    ]
+  },
+  {
+    "id": "num-genshin-035",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "塔利雅是什么元素？",
+    "ground_truth": "水",
+    "key_points": [
+      "塔利雅",
+      "水"
+    ]
+  },
+  {
+    "id": "num-genshin-036",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "夏沃蕾使用什么类型的武器？",
+    "ground_truth": "长柄武器",
+    "key_points": [
+      "夏沃蕾",
+      "长柄武器"
+    ]
+  },
+  {
+    "id": "num-genshin-037",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "夏洛蒂是几星角色？",
+    "ground_truth": "4星",
+    "key_points": [
+      "夏洛蒂",
+      "4星"
+    ]
+  },
+  {
+    "id": "num-genshin-038",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "多莉是什么元素？",
+    "ground_truth": "雷",
+    "key_points": [
+      "多莉",
+      "雷"
+    ]
+  },
+  {
+    "id": "num-genshin-039",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "夜兰使用什么类型的武器？",
+    "ground_truth": "弓",
+    "key_points": [
+      "夜兰",
+      "弓"
+    ]
+  },
+  {
+    "id": "num-genshin-041",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "奈芙尔是什么元素？",
+    "ground_truth": "草",
+    "key_points": [
+      "奈芙尔",
+      "草"
+    ]
+  },
+  {
+    "id": "num-genshin-042",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "妮露使用什么类型的武器？",
+    "ground_truth": "单手剑",
+    "key_points": [
+      "妮露",
+      "单手剑"
+    ]
+  },
+  {
+    "id": "num-genshin-043",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "娜维娅是几星角色？",
+    "ground_truth": "5星",
+    "key_points": [
+      "娜维娅",
+      "5星"
+    ]
+  },
+  {
+    "id": "num-genshin-044",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "安柏是什么元素？",
+    "ground_truth": "火",
+    "key_points": [
+      "安柏",
+      "火"
+    ]
+  },
+  {
+    "id": "num-genshin-045",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "尼可使用什么类型的武器？",
+    "ground_truth": "法器",
+    "key_points": [
+      "尼可",
+      "法器"
+    ]
+  },
+  {
+    "id": "num-genshin-046",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "布伦妮是几星角色？",
+    "ground_truth": "4星",
+    "key_points": [
+      "布伦妮",
+      "4星"
+    ]
+  },
+  {
+    "id": "num-genshin-047",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "希格雯是什么元素？",
+    "ground_truth": "水",
+    "key_points": [
+      "希格雯",
+      "水"
+    ]
+  },
+  {
+    "id": "num-genshin-048",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "希诺宁使用什么类型的武器？",
+    "ground_truth": "单手剑",
+    "key_points": [
+      "希诺宁",
+      "单手剑"
+    ]
+  },
+  {
+    "id": "num-genshin-049",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "恰斯卡是几星角色？",
+    "ground_truth": "5星",
+    "key_points": [
+      "恰斯卡",
+      "5星"
+    ]
+  },
+  {
+    "id": "num-genshin-051",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "托马使用什么类型的武器？",
+    "ground_truth": "长柄武器",
+    "key_points": [
+      "托马",
+      "长柄武器"
+    ]
+  },
+  {
+    "id": "num-genshin-052",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "提纳里是几星角色？",
+    "ground_truth": "5星",
+    "key_points": [
+      "提纳里",
+      "5星"
+    ]
+  },
+  {
+    "id": "num-genshin-053",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "旅行者是什么元素？",
+    "ground_truth": "无",
+    "key_points": [
+      "旅行者",
+      "无"
+    ]
+  },
+  {
+    "id": "num-genshin-056",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "旅行者/水是什么元素？",
+    "ground_truth": "水",
+    "key_points": [
+      "旅行者/水",
+      "水"
+    ]
+  },
+  {
+    "id": "num-genshin-059",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "旅行者/雷是什么元素？",
+    "ground_truth": "雷",
+    "key_points": [
+      "旅行者/雷",
+      "雷"
+    ]
+  },
+  {
+    "id": "num-genshin-061",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "早柚是几星角色？",
+    "ground_truth": "4星",
+    "key_points": [
+      "早柚",
+      "4星"
+    ]
+  },
+  {
+    "id": "num-genshin-062",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "杜林是什么元素？",
+    "ground_truth": "火",
+    "key_points": [
+      "杜林",
+      "火"
+    ]
+  },
+  {
+    "id": "num-genshin-063",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "柯莱使用什么类型的武器？",
+    "ground_truth": "弓",
+    "key_points": [
+      "柯莱",
+      "弓"
+    ]
+  },
+  {
+    "id": "num-genshin-064",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "桑多涅是几星角色？",
+    "ground_truth": "5星",
+    "key_points": [
+      "桑多涅",
+      "5星"
+    ]
+  },
+  {
+    "id": "num-genshin-065",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "梦见月瑞希是什么元素？",
+    "ground_truth": "风",
+    "key_points": [
+      "梦见月瑞希",
+      "风"
+    ]
+  },
+  {
+    "id": "num-genshin-066",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "欧洛伦使用什么类型的武器？",
+    "ground_truth": "弓",
+    "key_points": [
+      "欧洛伦",
+      "弓"
+    ]
+  },
+  {
+    "id": "num-genshin-067",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "沃雅妮莎是几星角色？",
+    "ground_truth": "5星",
+    "key_points": [
+      "沃雅妮莎",
+      "5星"
+    ]
+  },
+  {
+    "id": "num-genshin-068",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "洛恩是什么元素？",
+    "ground_truth": "冰",
+    "key_points": [
+      "洛恩",
+      "冰"
+    ]
+  },
+  {
+    "id": "num-genshin-070",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "温迪是几星角色？",
+    "ground_truth": "5星",
+    "key_points": [
+      "温迪",
+      "5星"
+    ]
+  },
+  {
+    "id": "num-genshin-071",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "烟绯是什么元素？",
+    "ground_truth": "火",
+    "key_points": [
+      "烟绯",
+      "火"
+    ]
+  },
+  {
+    "id": "num-genshin-072",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "爱可菲使用什么类型的武器？",
+    "ground_truth": "长柄武器",
+    "key_points": [
+      "爱可菲",
+      "长柄武器"
+    ]
+  },
+  {
+    "id": "num-genshin-073",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "爱诺是几星角色？",
+    "ground_truth": "4星",
+    "key_points": [
+      "爱诺",
+      "4星"
+    ]
+  },
+  {
+    "id": "num-genshin-074",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "玛拉妮是什么元素？",
+    "ground_truth": "水",
+    "key_points": [
+      "玛拉妮",
+      "水"
+    ]
+  },
+  {
+    "id": "num-genshin-075",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "玛薇卡使用什么类型的武器？",
+    "ground_truth": "双手剑",
+    "key_points": [
+      "玛薇卡",
+      "双手剑"
+    ]
+  },
+  {
+    "id": "num-genshin-076",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "珊瑚宫心海是几星角色？",
+    "ground_truth": "5星",
+    "key_points": [
+      "珊瑚宫心海",
+      "5星"
+    ]
+  },
+  {
+    "id": "num-genshin-077",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "珐露珊是什么元素？",
+    "ground_truth": "风",
+    "key_points": [
+      "珐露珊",
+      "风"
+    ]
+  },
+  {
+    "id": "num-genshin-078",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "琳妮特使用什么类型的武器？",
+    "ground_truth": "单手剑",
+    "key_points": [
+      "琳妮特",
+      "单手剑"
+    ]
+  },
+  {
+    "id": "num-genshin-079",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "琴是几星角色？",
+    "ground_truth": "5星",
+    "key_points": [
+      "琴",
+      "5星"
+    ]
+  },
+  {
+    "id": "num-genshin-080",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "瑶瑶是什么元素？",
+    "ground_truth": "草",
+    "key_points": [
+      "瑶瑶",
+      "草"
+    ]
+  },
+  {
+    "id": "num-genshin-081",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "瓦雷莎使用什么类型的武器？",
+    "ground_truth": "法器",
+    "key_points": [
+      "瓦雷莎",
+      "法器"
+    ]
+  },
+  {
+    "id": "num-genshin-082",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "申鹤是几星角色？",
+    "ground_truth": "5星",
+    "key_points": [
+      "申鹤",
+      "5星"
+    ]
+  },
+  {
+    "id": "num-genshin-083",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "白术是什么元素？",
+    "ground_truth": "草",
+    "key_points": [
+      "白术",
+      "草"
+    ]
+  },
+  {
+    "id": "num-genshin-084",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "砂糖使用什么类型的武器？",
+    "ground_truth": "法器",
+    "key_points": [
+      "砂糖",
+      "法器"
+    ]
+  },
+  {
+    "id": "num-genshin-085",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "神里绫人是几星角色？",
+    "ground_truth": "5星",
+    "key_points": [
+      "神里绫人",
+      "5星"
+    ]
+  },
+  {
+    "id": "num-genshin-086",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "神里绫华是什么元素？",
+    "ground_truth": "冰",
+    "key_points": [
+      "神里绫华",
+      "冰"
+    ]
+  },
+  {
+    "id": "num-genshin-087",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "米卡使用什么类型的武器？",
+    "ground_truth": "长柄武器",
+    "key_points": [
+      "米卡",
+      "长柄武器"
+    ]
+  },
+  {
+    "id": "num-genshin-088",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "绮良良是几星角色？",
+    "ground_truth": "4星",
+    "key_points": [
+      "绮良良",
+      "4星"
+    ]
+  },
+  {
+    "id": "num-genshin-089",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "罗莎莉亚是什么元素？",
+    "ground_truth": "冰",
+    "key_points": [
+      "罗莎莉亚",
+      "冰"
+    ]
+  },
+  {
+    "id": "num-genshin-090",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "艾尔海森使用什么类型的武器？",
+    "ground_truth": "单手剑",
+    "key_points": [
+      "艾尔海森",
+      "单手剑"
+    ]
+  },
+  {
+    "id": "num-genshin-091",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "艾梅莉埃是几星角色？",
+    "ground_truth": "5星",
+    "key_points": [
+      "艾梅莉埃",
+      "5星"
+    ]
+  },
+  {
+    "id": "num-genshin-092",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "茜特菈莉是什么元素？",
+    "ground_truth": "冰",
+    "key_points": [
+      "茜特菈莉",
+      "冰"
+    ]
+  },
+  {
+    "id": "num-genshin-093",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "荒泷一斗使用什么类型的武器？",
+    "ground_truth": "双手剑",
+    "key_points": [
+      "荒泷一斗",
+      "双手剑"
+    ]
+  },
+  {
+    "id": "num-genshin-094",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "莫娜是几星角色？",
+    "ground_truth": "5星",
+    "key_points": [
+      "莫娜",
+      "5星"
+    ]
+  },
+  {
+    "id": "num-genshin-095",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "莱依拉是什么元素？",
+    "ground_truth": "冰",
+    "key_points": [
+      "莱依拉",
+      "冰"
+    ]
+  },
+  {
+    "id": "num-genshin-096",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "莱欧斯利使用什么类型的武器？",
+    "ground_truth": "法器",
+    "key_points": [
+      "莱欧斯利",
+      "法器"
+    ]
+  },
+  {
+    "id": "num-genshin-097",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "菈乌玛是几星角色？",
+    "ground_truth": "5星",
+    "key_points": [
+      "菈乌玛",
+      "5星"
+    ]
+  },
+  {
+    "id": "num-genshin-098",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "菲林斯是什么元素？",
+    "ground_truth": "雷",
+    "key_points": [
+      "菲林斯",
+      "雷"
+    ]
+  },
+  {
+    "id": "num-genshin-099",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "菲米尼使用什么类型的武器？",
+    "ground_truth": "双手剑",
+    "key_points": [
+      "菲米尼",
+      "双手剑"
+    ]
+  },
+  {
+    "id": "num-genshin-100",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "蓝砚是几星角色？",
+    "ground_truth": "4星",
+    "key_points": [
+      "蓝砚",
+      "4星"
+    ]
+  },
+  {
+    "id": "num-genshin-101",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "薇斯纳是什么元素？",
+    "ground_truth": "风",
+    "key_points": [
+      "薇斯纳",
+      "风"
+    ]
+  },
+  {
+    "id": "num-genshin-102",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "诺艾尔使用什么类型的武器？",
+    "ground_truth": "双手剑",
+    "key_points": [
+      "诺艾尔",
+      "双手剑"
+    ]
+  },
+  {
+    "id": "num-genshin-103",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "赛索斯是几星角色？",
+    "ground_truth": "4星",
+    "key_points": [
+      "赛索斯",
+      "4星"
+    ]
+  },
+  {
+    "id": "num-genshin-104",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "赛诺是什么元素？",
+    "ground_truth": "雷",
+    "key_points": [
+      "赛诺",
+      "雷"
+    ]
+  },
+  {
+    "id": "num-genshin-105",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "辛焱使用什么类型的武器？",
+    "ground_truth": "双手剑",
+    "key_points": [
+      "辛焱",
+      "双手剑"
+    ]
+  },
+  {
+    "id": "num-genshin-106",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "迪奥娜是几星角色？",
+    "ground_truth": "4星",
+    "key_points": [
+      "迪奥娜",
+      "4星"
+    ]
+  },
+  {
+    "id": "num-genshin-107",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "迪希雅是什么元素？",
+    "ground_truth": "火",
+    "key_points": [
+      "迪希雅",
+      "火"
+    ]
+  },
+  {
+    "id": "num-genshin-108",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "重云使用什么类型的武器？",
+    "ground_truth": "双手剑",
+    "key_points": [
+      "重云",
+      "双手剑"
+    ]
+  },
+  {
+    "id": "num-genshin-109",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "闲云是几星角色？",
+    "ground_truth": "5星",
+    "key_points": [
+      "闲云",
+      "5星"
+    ]
+  },
+  {
+    "id": "num-genshin-110",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "阿罗夏是什么元素？",
+    "ground_truth": "雷",
+    "key_points": [
+      "阿罗夏",
+      "雷"
+    ]
+  },
+  {
+    "id": "num-genshin-111",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "阿贝多使用什么类型的武器？",
+    "ground_truth": "单手剑",
+    "key_points": [
+      "阿贝多",
+      "单手剑"
+    ]
+  },
+  {
+    "id": "num-genshin-112",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "雅珂达是几星角色？",
+    "ground_truth": "4星",
+    "key_points": [
+      "雅珂达",
+      "4星"
+    ]
+  },
+  {
+    "id": "num-genshin-113",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "雷泽是什么元素？",
+    "ground_truth": "雷",
+    "key_points": [
+      "雷泽",
+      "雷"
+    ]
+  },
+  {
+    "id": "num-genshin-114",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "香菱使用什么类型的武器？",
+    "ground_truth": "长柄武器",
+    "key_points": [
+      "香菱",
+      "长柄武器"
+    ]
+  },
+  {
+    "id": "num-genshin-115",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "魈是几星角色？",
+    "ground_truth": "5星",
+    "key_points": [
+      "魈",
+      "5星"
+    ]
+  },
+  {
+    "id": "num-genshin-116",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "鹿野院平藏是什么元素？",
+    "ground_truth": "风",
+    "key_points": [
+      "鹿野院平藏",
+      "风"
+    ]
+  },
+  {
+    "id": "num-genshin-117",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "芙宁娜使用什么类型的武器？",
+    "ground_truth": "单手剑",
+    "key_points": [
+      "芙宁娜",
+      "单手剑"
+    ]
+  },
+  {
+    "id": "num-genshin-118",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "万达国际是几星角色？",
+    "ground_truth": "队伍包含两名五星角色（枫原万叶、达达利亚）和两名四星角色（香菱、班尼特）星",
+    "key_points": [
+      "万达国际",
+      "队伍包含两名五星角色（枫原万叶、达达利亚）和两名四星角色（香菱、班尼特）星"
+    ]
+  },
+  {
+    "id": "num-genshin-119",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "班尼特是什么元素？",
+    "ground_truth": "火",
+    "key_points": [
+      "班尼特",
+      "火"
+    ]
+  },
+  {
+    "id": "num-genshin-120",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "奥黛塔使用什么类型的武器？",
+    "ground_truth": "单手剑",
+    "key_points": [
+      "奥黛塔",
+      "单手剑"
+    ]
+  },
+  {
+    "id": "num-genshin-121",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "纳西妲是几星角色？",
+    "ground_truth": "5星",
+    "key_points": [
+      "纳西妲",
+      "5星"
+    ]
+  },
+  {
+    "id": "num-genshin-122",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "久岐忍是什么元素？",
+    "ground_truth": "雷",
+    "key_points": [
+      "久岐忍",
+      "雷"
+    ]
+  },
+  {
+    "id": "num-genshin-123",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "行秋使用什么类型的武器？",
+    "ground_truth": "单手剑",
+    "key_points": [
+      "行秋",
+      "单手剑"
+    ]
+  },
+  {
+    "id": "num-genshin-124",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "凯亚是几星角色？",
+    "ground_truth": "4星",
+    "key_points": [
+      "凯亚",
+      "4星"
+    ]
+  },
+  {
+    "id": "num-genshin-125",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "芭芭拉是什么元素？",
+    "ground_truth": "水",
+    "key_points": [
+      "芭芭拉",
+      "水"
+    ]
+  },
+  {
+    "id": "num-genshin-126",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "枫原万叶使用什么类型的武器？",
+    "ground_truth": "单手剑",
+    "key_points": [
+      "枫原万叶",
+      "单手剑"
+    ]
+  },
+  {
+    "id": "num-genshin-127",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "达达利亚是几星角色？",
+    "ground_truth": "5星",
+    "key_points": [
+      "达达利亚",
+      "5星"
+    ]
+  },
+  {
+    "id": "num-genshin-128",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "迪卢克是什么元素？",
+    "ground_truth": "火",
+    "key_points": [
+      "迪卢克",
+      "火"
+    ]
+  },
+  {
+    "id": "num-genshin-129",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "可莉使用什么类型的武器？",
+    "ground_truth": "法器",
+    "key_points": [
+      "可莉",
+      "法器"
+    ]
+  },
+  {
+    "id": "num-genshin-130",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "宵宫是几星角色？",
+    "ground_truth": "5星",
+    "key_points": [
+      "宵宫",
+      "5星"
+    ]
+  },
+  {
+    "id": "num-genshin-131",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "林尼是什么元素？",
+    "ground_truth": "火",
+    "key_points": [
+      "林尼",
+      "火"
+    ]
+  },
+  {
+    "id": "num-genshin-132",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "阿蕾奇诺使用什么类型的武器？",
+    "ground_truth": "长柄武器",
+    "key_points": [
+      "阿蕾奇诺",
+      "长柄武器"
+    ]
+  },
+  {
+    "id": "num-genshin-133",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "甘雨是几星角色？",
+    "ground_truth": "5星",
+    "key_points": [
+      "甘雨",
+      "5星"
+    ]
+  },
+  {
+    "id": "num-genshin-bd-01",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "七七的生日是哪一天？",
+    "ground_truth": "3月3日",
+    "key_points": [
+      "七七",
+      "3月3日"
+    ]
+  },
+  {
+    "id": "num-genshin-bd-02",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "行秋的生日是哪一天？",
+    "ground_truth": "10月9日",
+    "key_points": [
+      "行秋",
+      "10月9日"
+    ]
+  },
+  {
+    "id": "num-genshin-bd-03",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "爱诺的生日是哪一天？",
+    "ground_truth": "9月21日",
+    "key_points": [
+      "爱诺",
+      "9月21日"
+    ]
+  },
+  {
+    "id": "num-genshin-bd-04",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "迪卢克的生日是哪一天？",
+    "ground_truth": "4月30日",
+    "key_points": [
+      "迪卢克",
+      "4月30日"
+    ]
+  },
+  {
+    "id": "num-genshin-bd-05",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "莱欧斯利的生日是哪一天？",
+    "ground_truth": "11月23日",
+    "key_points": [
+      "莱欧斯利",
+      "11月23日"
+    ]
+  },
+  {
+    "id": "num-genshin-bd-06",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "坎蒂丝的生日是哪一天？",
+    "ground_truth": "5月3日",
+    "key_points": [
+      "坎蒂丝",
+      "5月3日"
+    ]
+  },
+  {
+    "id": "num-genshin-bd-07",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "欧洛伦的生日是哪一天？",
+    "ground_truth": "10月14日",
+    "key_points": [
+      "欧洛伦",
+      "10月14日"
+    ]
+  },
+  {
+    "id": "num-genshin-bd-08",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "艾尔海森的生日是哪一天？",
+    "ground_truth": "2月11日",
+    "key_points": [
+      "艾尔海森",
+      "2月11日"
+    ]
+  },
+  {
+    "id": "num-genshin-bd-09",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "闲云的生日是哪一天？",
+    "ground_truth": "4月11日",
+    "key_points": [
+      "闲云",
+      "4月11日"
+    ]
+  },
+  {
+    "id": "num-genshin-bd-10",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "阿罗夏的生日是哪一天？",
+    "ground_truth": "2月9日",
+    "key_points": [
+      "阿罗夏",
+      "2月9日"
+    ]
+  },
+  {
+    "id": "num-genshin-bd-11",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "琳妮特的生日是哪一天？",
+    "ground_truth": "2月2日",
+    "key_points": [
+      "琳妮特",
+      "2月2日"
+    ]
+  },
+  {
+    "id": "num-genshin-bd-12",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "甘雨的生日是哪一天？",
+    "ground_truth": "12月2日",
+    "key_points": [
+      "甘雨",
+      "12月2日"
+    ]
+  },
+  {
+    "id": "num-genshin-bd-13",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "薇斯纳的生日是哪一天？",
+    "ground_truth": "2月4日",
+    "key_points": [
+      "薇斯纳",
+      "2月4日"
+    ]
+  },
+  {
+    "id": "num-genshin-bd-14",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "基尼奇的生日是哪一天？",
+    "ground_truth": "11月11日",
+    "key_points": [
+      "基尼奇",
+      "11月11日"
+    ]
+  },
+  {
+    "id": "num-genshin-bd-15",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "伊法的生日是哪一天？",
+    "ground_truth": "3月23日",
+    "key_points": [
+      "伊法",
+      "3月23日"
+    ]
+  },
+  {
+    "id": "num-genshin-bd-16",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "多莉的生日是哪一天？",
+    "ground_truth": "12月21日",
+    "key_points": [
+      "多莉",
+      "12月21日"
+    ]
+  },
+  {
+    "id": "num-genshin-bd-17",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "沃雅妮莎的生日是哪一天？",
+    "ground_truth": "3月29日",
+    "key_points": [
+      "沃雅妮莎",
+      "3月29日"
+    ]
+  },
+  {
+    "id": "num-genshin-bd-18",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "砂糖的生日是哪一天？",
+    "ground_truth": "11月26日",
+    "key_points": [
+      "砂糖",
+      "11月26日"
+    ]
+  },
+  {
+    "id": "num-genshin-bd-19",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "柯莱的生日是哪一天？",
+    "ground_truth": "5月8日",
+    "key_points": [
+      "柯莱",
+      "5月8日"
+    ]
+  },
+  {
+    "id": "num-genshin-bd-20",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "烟绯的生日是哪一天？",
+    "ground_truth": "7月28日",
+    "key_points": [
+      "烟绯",
+      "7月28日"
+    ]
+  },
+  {
+    "id": "num-genshin-c1-01",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "希格雯的第一命座叫什么？",
+    "ground_truth": "「最快乐的精灵，可否懂得焦虑」",
+    "key_points": [
+      "希格雯",
+      "「最快乐的精灵，可否懂得焦虑」"
+    ]
+  },
+  {
+    "id": "num-genshin-c1-02",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "赛诺的第一命座叫什么？",
+    "ground_truth": "立仪·俯览昼冥",
+    "key_points": [
+      "赛诺",
+      "立仪·俯览昼冥"
+    ]
+  },
+  {
+    "id": "num-genshin-c1-03",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "瑶瑶的第一命座叫什么？",
+    "ground_truth": "妙受琼阁",
+    "key_points": [
+      "瑶瑶",
+      "妙受琼阁"
+    ]
+  },
+  {
+    "id": "num-genshin-c1-04",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "宵宫的第一命座叫什么？",
+    "ground_truth": "赤玉琉金",
+    "key_points": [
+      "宵宫",
+      "赤玉琉金"
+    ]
+  },
+  {
+    "id": "num-genshin-c1-05",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "迪卢克的第一命座叫什么？",
+    "ground_truth": "罪罚裁断",
+    "key_points": [
+      "迪卢克",
+      "罪罚裁断"
+    ]
+  },
+  {
+    "id": "num-genshin-c1-06",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "旅行者/草的第一命座叫什么？",
+    "ground_truth": "寄身的倚草",
+    "key_points": [
+      "旅行者/草",
+      "寄身的倚草"
+    ]
+  },
+  {
+    "id": "num-genshin-c1-07",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "七七的第一命座叫什么？",
+    "ground_truth": "寒苦回向",
+    "key_points": [
+      "七七",
+      "寒苦回向"
+    ]
+  },
+  {
+    "id": "num-genshin-c1-08",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "珊瑚宫心海的第一命座叫什么？",
+    "ground_truth": "决水于溪",
+    "key_points": [
+      "珊瑚宫心海",
+      "决水于溪"
+    ]
+  },
+  {
+    "id": "num-genshin-c1-09",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "北斗的第一命座叫什么？",
+    "ground_truth": "鱼龙沉四方",
+    "key_points": [
+      "北斗",
+      "鱼龙沉四方"
+    ]
+  },
+  {
+    "id": "num-genshin-c1-10",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "奥黛塔的第一命座叫什么？",
+    "ground_truth": "「不曾起舞的清晨，她望向倒影」",
+    "key_points": [
+      "奥黛塔",
+      "「不曾起舞的清晨，她望向倒影」"
+    ]
+  },
+  {
+    "id": "num-genshin-c1-11",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "莉奈娅的第一命座叫什么？",
+    "ground_truth": "未完成的分类",
+    "key_points": [
+      "莉奈娅",
+      "未完成的分类"
+    ]
+  },
+  {
+    "id": "num-genshin-c1-12",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "旅行者/水的第一命座叫什么？",
+    "ground_truth": "微澜的湖水",
+    "key_points": [
+      "旅行者/水",
+      "微澜的湖水"
+    ]
+  },
+  {
+    "id": "num-genshin-c1-13",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "伊安珊的第一命座叫什么？",
+    "ground_truth": "万事从来开头难",
+    "key_points": [
+      "伊安珊",
+      "万事从来开头难"
+    ]
+  },
+  {
+    "id": "num-genshin-c1-14",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "莱依拉的第一命座叫什么？",
+    "ground_truth": "寐领围垣",
+    "key_points": [
+      "莱依拉",
+      "寐领围垣"
+    ]
+  },
+  {
+    "id": "num-genshin-c1-15",
+    "type": "numeric",
+    "game_id": "genshin",
+    "question": "娜维娅的第一命座叫什么？",
+    "ground_truth": "淑女的距离感守则",
+    "key_points": [
+      "娜维娅",
+      "淑女的距离感守则"
+    ]
+  },
+  {
+    "id": "num-arknights-01",
+    "type": "numeric",
+    "game_id": "arknights",
+    "question": "阿米娅是几星干员？",
+    "ground_truth": "5星",
+    "key_points": [
+      "阿米娅",
+      "5星"
+    ]
+  },
+  {
+    "id": "num-arknights-02",
+    "type": "numeric",
+    "game_id": "arknights",
+    "question": "能天使造成什么类型的伤害？",
+    "ground_truth": "物理",
+    "key_points": [
+      "能天使",
+      "物理"
+    ]
+  },
+  {
+    "id": "num-arknights-03",
+    "type": "numeric",
+    "game_id": "arknights",
+    "question": "银灰是什么职业定位？",
+    "ground_truth": "近卫（领主）",
+    "key_points": [
+      "银灰",
+      "近卫（领主）"
+    ]
+  },
+  {
+    "id": "num-arknights-04",
+    "type": "numeric",
+    "game_id": "arknights",
+    "question": "塞雷娅是几星干员？",
+    "ground_truth": "6星",
+    "key_points": [
+      "塞雷娅",
+      "6星"
+    ]
+  },
+  {
+    "id": "num-arknights-05",
+    "type": "numeric",
+    "game_id": "arknights",
+    "question": "艾雅法拉造成什么类型的伤害？",
+    "ground_truth": "法术",
+    "key_points": [
+      "艾雅法拉",
+      "法术"
+    ]
+  },
+  {
+    "id": "num-arknights-06",
+    "type": "numeric",
+    "game_id": "arknights",
+    "question": "棘刺是什么职业定位？",
+    "ground_truth": "近卫（领主）",
+    "key_points": [
+      "棘刺",
+      "近卫（领主）"
+    ]
+  },
+  {
+    "id": "num-arknights-07",
+    "type": "numeric",
+    "game_id": "arknights",
+    "question": "浊心斯卡蒂是几星干员？",
+    "ground_truth": "6星",
+    "key_points": [
+      "浊心斯卡蒂",
+      "6星"
+    ]
+  },
+  {
+    "id": "num-arknights-08",
+    "type": "numeric",
+    "game_id": "arknights",
+    "question": "夜莺造成什么类型的伤害？",
+    "ground_truth": "法术",
+    "key_points": [
+      "夜莺",
+      "法术"
+    ]
+  },
+  {
+    "id": "num-arknights-09",
+    "type": "numeric",
+    "game_id": "arknights",
+    "question": "怒潮凛冬是什么职业定位？",
+    "ground_truth": "近卫（撼地者）",
+    "key_points": [
+      "怒潮凛冬",
+      "近卫（撼地者）"
+    ]
+  },
+  {
+    "id": "num-arknights-10",
+    "type": "numeric",
+    "game_id": "arknights",
+    "question": "可露希尔是几星干员？",
+    "ground_truth": "6星",
+    "key_points": [
+      "可露希尔",
+      "6星"
+    ]
+  },
+  {
+    "id": "num-arknights-11",
+    "type": "numeric",
+    "game_id": "arknights",
+    "question": "凯尔希·思衡托造成什么类型的伤害？",
+    "ground_truth": "法术",
+    "key_points": [
+      "凯尔希·思衡托",
+      "法术"
+    ]
+  },
+  {
+    "id": "ent-01",
+    "type": "entity",
+    "question": "介绍一下胡桃",
+    "key_points": [
+      "胡桃",
+      "5星",
+      "火元素",
+      "往生堂"
+    ],
+    "game_id": "genshin"
+  },
+  {
+    "id": "ent-02",
+    "type": "entity",
+    "question": "介绍一下奥黛塔",
+    "key_points": [
+      "奥黛塔",
+      "冰",
+      "单手剑",
+      "至冬",
+      "7.0"
+    ],
+    "game_id": "genshin"
+  },
+  {
+    "id": "ent-03",
+    "type": "entity",
+    "question": "芙宁娜的武器类型是什么？",
+    "key_points": [
+      "芙宁娜",
+      "单手剑",
+      "水"
+    ],
+    "game_id": "genshin"
+  },
+  {
+    "id": "ent-04",
+    "type": "entity",
+    "question": "那维莱特是什么定位？",
+    "key_points": [
+      "那维莱特",
+      "法器",
+      "水",
+      "主C"
+    ],
+    "game_id": "genshin"
+  },
+  {
+    "id": "ent-05",
+    "type": "entity",
+    "question": "护摩之杖适合哪个角色？",
+    "key_points": [
+      "护摩之杖",
+      "胡桃",
+      "专武"
+    ],
+    "game_id": "genshin"
+  },
+  {
+    "id": "ent-06",
+    "type": "entity",
+    "question": "炽烈的炎之魔女适合什么角色？",
+    "key_points": [
+      "炽烈的炎之魔女",
+      "火系",
+      "胡桃",
+      "迪卢克"
+    ],
+    "game_id": "genshin"
+  },
+  {
+    "id": "ent-07",
+    "type": "entity",
+    "question": "文火慢炖腌笃鲜是谁的料理？",
+    "key_points": [
+      "文火慢炖腌笃鲜",
+      "钟离"
+    ],
+    "game_id": "genshin"
+  },
+  {
+    "id": "ent-08",
+    "type": "entity",
+    "question": "雷电国家队由哪些角色组成？",
+    "key_points": [
+      "雷电将军",
+      "香菱",
+      "行秋",
+      "班尼特"
+    ],
+    "game_id": "genshin"
+  },
+  {
+    "id": "ent-09",
+    "type": "entity",
+    "question": "万达国际的核心思路是什么？",
+    "key_points": [
+      "万达国际",
+      "蒸发",
+      "达达利亚",
+      "香菱"
+    ],
+    "game_id": "genshin"
+  },
+  {
+    "id": "ent-10",
+    "type": "entity",
+    "question": "绝缘之旗印适合什么角色？",
+    "key_points": [
+      "绝缘之旗印",
+      "雷电将军",
+      "香菱"
+    ],
+    "game_id": "genshin"
+  },
+  {
+    "id": "knw-01",
+    "type": "knowledge",
+    "question": "推荐一个火系主C的配队",
+    "key_points": [
+      "胡桃蒸发队",
+      "火系主C",
+      "蒸发"
+    ],
+    "game_id": "genshin"
+  },
+  {
+    "id": "knw-02",
+    "type": "knowledge",
+    "question": "胡桃用什么圣遗物？",
+    "key_points": [
+      "炽烈的炎之魔女",
+      "魔女套",
+      "胡桃"
+    ],
+    "game_id": "genshin"
+  },
+  {
+    "id": "knw-03",
+    "type": "knowledge",
+    "question": "雷系副C有哪些？",
+    "key_points": [
+      "雷系",
+      "副C",
+      "雷电将军",
+      "菲谢尔"
+    ],
+    "game_id": "genshin"
+  },
+  {
+    "id": "knw-04",
+    "type": "knowledge",
+    "question": "原神有哪些元素？",
+    "key_points": [
+      "火",
+      "水",
+      "雷",
+      "冰",
+      "风",
+      "岩",
+      "草"
+    ],
+    "game_id": "genshin"
+  },
+  {
+    "id": "knw-05",
+    "type": "knowledge",
+    "question": "蒸发反应怎么触发？",
+    "key_points": [
+      "水",
+      "火",
+      "增幅反应"
+    ],
+    "game_id": "genshin"
+  },
+  {
+    "id": "knw-06",
+    "type": "knowledge",
+    "question": "有哪些五星角色？",
+    "key_points": [
+      "胡桃",
+      "奥黛塔",
+      "芙宁娜",
+      "那维莱特",
+      "尼可",
+      "珊瑚宫心海",
+      "甘雨"
+    ],
+    "game_id": "genshin"
+  },
+  {
+    "id": "knw-07",
+    "type": "knowledge",
+    "question": "胡桃蒸发队的输出循环是什么？",
+    "key_points": [
+      "钟离",
+      "行秋",
+      "夜兰",
+      "胡桃",
+      "重击"
+    ],
+    "game_id": "genshin"
+  },
+  {
+    "id": "knw-08",
+    "type": "knowledge",
+    "question": "万达国际和胡桃蒸发队有什么区别？",
+    "key_points": [
+      "主C不同",
+      "达达利亚",
+      "胡桃",
+      "操作上限"
+    ],
+    "game_id": "genshin"
+  },
+  {
+    "id": "knw-09",
+    "type": "knowledge",
+    "question": "草行久超绽放队怎么玩？",
+    "key_points": [
+      "草",
+      "行秋",
+      "久岐忍",
+      "超绽放"
+    ],
+    "game_id": "genshin"
+  },
+  {
+    "id": "knw-10",
+    "type": "knowledge",
+    "question": "平民深渊配队推荐",
+    "key_points": [
+      "配队",
+      "深渊",
+      "四星",
+      "推荐"
+    ],
+    "game_id": "genshin"
+  },
+  {
+    "id": "edg-01",
+    "type": "edge",
+    "question": "凯亚是几星角色？",
+    "key_points": [
+      "凯亚",
+      "4星",
+      "如实回答或说明依据"
+    ],
+    "game_id": "genshin"
+  },
+  {
+    "id": "edg-02",
+    "type": "edge",
+    "question": "芭芭拉是什么定位？",
+    "key_points": [
+      "芭芭拉",
+      "4星",
+      "治疗"
+    ],
+    "game_id": "genshin"
+  },
+  {
+    "id": "edg-03",
+    "type": "edge",
+    "question": "胡桃的生日是几月几号？",
+    "key_points": [
+      "不编造",
+      "以资料为准或如实说明"
+    ],
+    "game_id": "genshin"
+  },
+  {
+    "id": "edg-04",
+    "type": "edge",
+    "question": "原石怎么获取？",
+    "key_points": [
+      "无资料时如实说明",
+      "不编造"
+    ],
+    "game_id": "genshin"
+  },
+  {
+    "id": "edg-05",
+    "type": "edge",
+    "question": "散兵是几星角色？",
+    "key_points": [
+      "不编造",
+      "如实说明或给出依据"
+    ],
+    "game_id": "genshin"
+  },
+  {
+    "id": "cpx-01",
+    "type": "complex",
+    "question": "胡桃适合什么武器和圣遗物？",
+    "key_points": [
+      "护摩之杖",
+      "炽烈的炎之魔女"
+    ],
+    "game_id": "genshin"
+  },
+  {
+    "id": "cpx-02",
+    "type": "complex",
+    "question": "胡桃和那维莱特谁更适合当主C？",
+    "key_points": [
+      "胡桃",
+      "那维莱特",
+      "对比",
+      "各自特点"
+    ],
+    "game_id": "genshin"
+  },
+  {
+    "id": "cpx-03",
+    "type": "complex",
+    "question": "帮我组一套深渊配队并说明理由",
+    "key_points": [
+      "配队",
+      "理由",
+      "深渊"
+    ],
+    "game_id": "genshin"
+  },
+  {
+    "id": "cpx-04",
+    "type": "complex",
+    "question": "奥黛塔、芙宁娜、那维莱特谁是冰系角色？",
+    "key_points": [
+      "奥黛塔",
+      "冰"
+    ],
+    "game_id": "genshin"
+  },
+  {
+    "id": "cpx-05",
+    "type": "complex",
+    "question": "雷系角色可以怎么配队？",
+    "key_points": [
+      "雷电国家队",
+      "雷系",
+      "配队"
+    ],
+    "game_id": "genshin"
+  },
+  {
+    "id": "ak-ent-01",
+    "type": "entity",
+    "question": "介绍一下能天使",
+    "key_points": [
+      "能天使",
+      "6星",
+      "狙击",
+      "速射手",
+      "企鹅物流"
+    ],
+    "game_id": "arknights"
+  },
+  {
+    "id": "ak-ent-02",
+    "type": "entity",
+    "question": "银灰是什么职业？",
+    "key_points": [
+      "银灰",
+      "近卫",
+      "领主",
+      "物理"
+    ],
+    "game_id": "arknights"
+  },
+  {
+    "id": "ak-ent-03",
+    "type": "entity",
+    "question": "塞雷娅的定位是什么？",
+    "key_points": [
+      "塞雷娅",
+      "重装",
+      "守护者",
+      "治疗"
+    ],
+    "game_id": "arknights"
+  },
+  {
+    "id": "ak-ent-04",
+    "type": "entity",
+    "question": "艾雅法拉是什么类型的干员？",
+    "key_points": [
+      "艾雅法拉",
+      "6星",
+      "术师",
+      "扩散术师",
+      "法术"
+    ],
+    "game_id": "arknights"
+  },
+  {
+    "id": "ak-ent-05",
+    "type": "entity",
+    "question": "夜莺属于哪个职业分支？",
+    "key_points": [
+      "夜莺",
+      "医疗",
+      "群愈师",
+      "治疗"
+    ],
+    "game_id": "arknights"
+  },
+  {
+    "id": "ak-ent-06",
+    "type": "entity",
+    "question": "阿米娅是什么职业？",
+    "key_points": [
+      "阿米娅",
+      "术师",
+      "单体",
+      "罗德岛"
+    ],
+    "game_id": "arknights"
+  },
+  {
+    "id": "ak-ent-07",
+    "type": "entity",
+    "question": "棘刺有什么特点？",
+    "key_points": [
+      "棘刺",
+      "近卫",
+      "领主",
+      "物理",
+      "自回血"
+    ],
+    "game_id": "arknights"
+  },
+  {
+    "id": "ak-ent-08",
+    "type": "entity",
+    "question": "浊心斯卡蒂是哪个体系的干员？",
+    "key_points": [
+      "浊心斯卡蒂",
+      "辅助",
+      "削弱者",
+      "深海"
+    ],
+    "game_id": "arknights"
+  },
+  {
+    "id": "ak-knw-01",
+    "type": "knowledge",
+    "question": "2026年最近实装了哪些新干员？",
+    "key_points": [
+      "珊比",
+      "嘉辛塔",
+      "结城理",
+      "最近实装"
+    ],
+    "game_id": "arknights"
+  },
+  {
+    "id": "ak-knw-02",
+    "type": "knowledge",
+    "question": "有哪些法术系输出干员？",
+    "key_points": [
+      "阿米娅",
+      "艾雅法拉",
+      "法术",
+      "术师"
+    ],
+    "game_id": "arknights"
+  },
+  {
+    "id": "ak-knw-03",
+    "type": "knowledge",
+    "question": "有哪些六星近卫干员？",
+    "key_points": [
+      "银灰",
+      "棘刺",
+      "怒潮凛冬",
+      "近卫"
+    ],
+    "game_id": "arknights"
+  },
+  {
+    "id": "ak-knw-04",
+    "type": "knowledge",
+    "question": "医疗干员有哪些？",
+    "key_points": [
+      "夜莺",
+      "凯尔希·思衡托",
+      "医疗"
+    ],
+    "game_id": "arknights"
+  },
+  {
+    "id": "ak-edg-01",
+    "type": "edge",
+    "question": "怒潮凛冬是几星干员？",
+    "key_points": [
+      "怒潮凛冬",
+      "6星",
+      "近卫"
+    ],
+    "game_id": "arknights"
+  },
+  {
+    "id": "ak-edg-02",
+    "type": "edge",
+    "question": "可露希尔的获取方式是什么？",
+    "key_points": [
+      "可露希尔",
+      "标准寻访",
+      "常驻"
+    ],
+    "game_id": "arknights"
+  },
+  {
+    "id": "ak-edg-03",
+    "type": "edge",
+    "question": "凯尔希·思衡托是限定干员吗？",
+    "key_points": [
+      "凯尔希·思衡托",
+      "限定",
+      "医疗"
+    ],
+    "game_id": "arknights"
+  },
+  {
+    "id": "ak-edg-04",
+    "type": "edge",
+    "question": "银灰的生日是几月几号？",
+    "key_points": [
+      "不编造",
+      "以资料为准或如实说明"
+    ],
+    "game_id": "arknights"
+  },
+  {
+    "id": "ak-cpx-01",
+    "type": "complex",
+    "question": "能天使和银灰谁更适合当物理输出核心？",
+    "key_points": [
+      "能天使",
+      "银灰",
+      "物理",
+      "对比",
+      "各自特点"
+    ],
+    "game_id": "arknights"
+  },
+  {
+    "id": "ak-cpx-02",
+    "type": "complex",
+    "question": "推荐一套以深海体系为核心的阵容",
+    "key_points": [
+      "浊心斯卡蒂",
+      "深海",
+      "配队"
+    ],
+    "game_id": "arknights"
+  },
+  {
+    "id": "ak-cpx-03",
+    "type": "complex",
+    "question": "塞雷娅和夜莺都是治疗型干员，有什么区别？",
+    "key_points": [
+      "塞雷娅",
+      "夜莺",
+      "重装",
+      "医疗",
+      "区别"
+    ],
+    "game_id": "arknights"
+  },
+  {
+    "id": "ak-cpx-04",
+    "type": "complex",
+    "question": "阿米娅、艾雅法拉、浊心斯卡蒂谁是术师职业？",
+    "key_points": [
+      "阿米娅",
+      "艾雅法拉",
+      "术师"
+    ],
+    "game_id": "arknights"
+  }
+]
