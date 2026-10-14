@@ -702,7 +702,7 @@ def _build_suggestions(state: AgentState) -> list[str]:
             break
     if not hit_found:
         return []
-    # 按游戏区分话术：明日方舟用干员术语（潜能/精英化），原神用角色术语（命之座/养成）
+    # 按游戏区分措辞：明日方舟用干员术语（潜能/精英化），原神用角色术语（命之座/养成）
     is_arknights = state.get("game_id") == "arknights"
     if is_arknights and etype == "character":
         return [
