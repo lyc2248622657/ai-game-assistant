@@ -21,7 +21,18 @@ jobs:
         working-directory: backend
         run: |
           pip install -r requirements.txt
-          pip install pytest
+          pip install pytest ruff
+
+      - name: Static checks (ruff)
+        working-directory: backend
+        run: |
+          ruff check app scripts tests --select F,E9,B --output-format concise
+
+      - name: Data integrity (validate_data)
+        working-directory: backend
+        run: |
+          python scripts/validate_data.py --game genshin
+          python scripts/validate_data.py --game arknights
 
       - name: Run pytest
         working-directory: backend
@@ -44,11 +55,21 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Install & build
+      - name: Install
         working-directory: frontend
-        run: |
-          npm ci
-          npm run build
+        run: npm ci
+
+      - name: Type check
+        working-directory: frontend
+        run: npx tsc -b --force
+
+      - name: Unit tests
+        working-directory: frontend
+        run: npm test
+
+      - name: Build
+        working-directory: frontend
+        run: npm run build
 
   docker-build:
     runs-on: ubuntu-latest
@@ -57,9 +78,10 @@ jobs:
 
       - name: Build backend image
         working-directory: backend
-        # 使用 Dockerfile.ci（在线 pip 安装）：backend/wheels/ 被 gitignore，CI checkout 无离线包
+        # Dockerfile 已改为在线 pip 安装，干净 checkout 即可构建
+        # （离线 wheels 版本见 Dockerfile.offline，需要本地准备 backend/wheels/）
         run: |
-          docker build -f Dockerfile.ci -t ai-game-assistant-backend:ci .
+          docker build -t ai-game-assistant-backend:ci .
           echo "backend image built OK"
 
       - name: Build frontend image

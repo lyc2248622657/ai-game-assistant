@@ -16,14 +16,14 @@ class _FakeCol:
 
     def get(self, where=None, include=None):
         keep = []
-        for i, m in zip(self._ids, self._metas):
+        for i, m in zip(self._ids, self._metas, strict=False):
             if where is None or all(m.get(k) == v for k, v in where.items()):
                 keep.append(i)
         return {"ids": keep}
 
     def delete(self, ids=None):
         id_set = set(ids or [])
-        keep = [(i, m) for i, m in zip(self._ids, self._metas) if i not in id_set]
+        keep = [(i, m) for i, m in zip(self._ids, self._metas, strict=False) if i not in id_set]
         self._ids[:] = [i for i, _ in keep]
         self._metas[:] = [m for _, m in keep]
         return None
@@ -43,7 +43,7 @@ class _FakeStore:
 
     def delete_by_metadata(self, collection, where):
         c = self._cols[collection]
-        keep = [(i, m) for i, m in zip(c["ids"], c["metas"]) if not all(m.get(k) == v for k, v in where.items())]
+        keep = [(i, m) for i, m in zip(c["ids"], c["metas"], strict=False) if not all(m.get(k) == v for k, v in where.items())]
         deleted = len(c["ids"]) - len(keep)
         c["ids"], c["metas"] = [i for i, _ in keep], [m for _, m in keep]
         self.deleted_by_meta.append((collection, dict(where), deleted))

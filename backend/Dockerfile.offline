@@ -1,0 +1,30 @@
+# 后端镜像（离线/内网构建）：从本地预下载的 Linux cp311 wheel 安装，不访问 PyPI。
+#
+# 前置条件：backend/wheels/ 存在且完整（约 360MB，被 .gitignore 忽略，不入库）。
+# 生成方式：在联网机器上 `pip download -r requirements.txt -d wheels --only-binary :all:`
+#           （需与基础镜像的 Python 版本/平台一致：cp311 / manylinux）
+#
+# 用法：docker build -f Dockerfile.offline -t ai-game-assistant-backend .
+FROM python:3.11-slim
+
+WORKDIR /app
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+COPY requirements.txt .
+COPY wheels /wheels
+RUN pip install --no-index --find-links=/wheels -r requirements.txt
+
+COPY app ./app
+COPY config ./config
+COPY scripts ./scripts
+
+EXPOSE 8000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
+  CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=3)"
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

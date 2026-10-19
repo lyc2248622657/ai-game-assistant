@@ -4,7 +4,6 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-import pytest  # noqa: E402
 
 from app.api.chat import _auto_title, _rule_title  # noqa: E402
 

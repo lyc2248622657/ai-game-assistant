@@ -1,15 +1,9 @@
 """养成规划工具单测：预算测算 / 材料清单 / 计划持久化闭环"""
-import json
-import os
-import tempfile
 
-import pytest
 
 from app.knowledge.games import registry
 from app.tools.base import ToolContext
 from app.tools.build_plan import (
-    ASCENSION_BOOKS,
-    ASCENSION_MORA,
     PITY_HARD,
     PITY_SOFT,
     BuildBuildPlanTool,
