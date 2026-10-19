@@ -214,3 +214,116 @@ def test_build_materials_respects_budget():
     total = sum(len(m) for m in materials if not m.startswith("[提示]"))
     assert total <= _MATERIALS_TOTAL_MAX
     assert any(m.startswith("[提示]") for m in materials), "超限时应显式标注省略条数"
+
+
+# ---------- 10. 工具参数校验（模型传错参数时给可读错误，而不是内部 AttributeError） ----------
+class _EchoTool:
+    name = "echo"
+    description = "测试用"
+    parameters = {
+        "type": "object",
+        "properties": {
+            "name": {"type": "string"},
+            "level": {"type": "integer"},
+            "category": {"type": "string", "enum": ["character", "weapon"]},
+        },
+        "required": ["name"],
+    }
+
+    def __init__(self):
+        self.calls: list[dict] = []
+
+    def run(self, args, ctx):
+        self.calls.append(args)
+        return {"ok": True, "args": args}
+
+
+def _registry_with(tool):
+    from app.tools.registry import ToolRegistry
+
+    reg = ToolRegistry.__new__(ToolRegistry)
+    reg._tools = {tool.name: tool}
+    return reg
+
+
+def test_tool_validation_rejects_missing_required():
+    from app.core.errors import AppError
+
+    tool = _EchoTool()
+    reg = _registry_with(tool)
+    with pytest.raises(AppError) as ei:
+        reg.execute("echo", {"level": 3}, None)
+    assert "name" in ei.value.message
+    assert tool.calls == []
+
+
+def test_tool_validation_rejects_bad_enum():
+    from app.core.errors import AppError
+
+    reg = _registry_with(_EchoTool())
+    with pytest.raises(AppError) as ei:
+        reg.execute("echo", {"name": "x", "category": "nope"}, None)
+    assert "category" in ei.value.message
+
+
+def test_tool_validation_coerces_numeric_string():
+    tool = _EchoTool()
+    reg = _registry_with(tool)
+    reg.execute("echo", {"name": "x", "level": "90"}, None)
+    assert tool.calls[0]["level"] == 90
+
+
+def test_tool_validation_ignores_unknown_args():
+    tool = _EchoTool()
+    reg = _registry_with(tool)
+    reg.execute("echo", {"name": "x", "whatever": 1}, None)
+    assert tool.calls[0]["name"] == "x"
+
+
+def test_unknown_tool_raises_app_error():
+    from app.core.errors import AppError
+
+    reg = _registry_with(_EchoTool())
+    with pytest.raises(AppError) as ei:
+        reg.execute("not_exist", {}, None)
+    assert "未注册" in ei.value.message
+
+
+# ---------- 11. 结构化 trace ----------
+def test_node_timings_aggregate_repeated_nodes():
+    from app.api.chat import _node_timings
+
+    events = [
+        {"type": "agent_start", "node_name": "tool", "ts": 100.0},
+        {"type": "agent_end", "node_name": "tool", "ts": 100.5},
+        {"type": "agent_start", "node_name": "tool", "ts": 101.0},
+        {"type": "agent_end", "node_name": "tool", "ts": 101.2},
+        {"type": "agent_start", "node_name": "reflect", "ts": 102.0},
+        {"type": "agent_end", "node_name": "reflect", "ts": 102.3},
+    ]
+    timings = {t["node"]: t for t in _node_timings(events)}
+    assert timings["tool"]["runs"] == 2
+    assert timings["tool"]["ms"] == 700
+    assert timings["reflect"]["ms"] == 300
+
+
+def test_build_trace_shape():
+    from app.api.chat import _build_trace
+
+    events = [
+        {"type": "agent_start", "node_name": "synthesize", "ts": 1.0},
+        {"type": "agent_end", "node_name": "synthesize", "ts": 1.4},
+        {"type": "tool_call", "node_name": "tool", "tool_name": "query_game_entity"},
+    ]
+    trace = _build_trace(
+        "s1", 0.0, events,
+        {"retrieved_docs": [{"doc_id": "d1"}, {"doc_id": "d2"}], "citations": [{"doc_id": "d1"}]},
+        {"llm_calls": 5, "total_tokens": 1234},
+    )
+    assert trace["llm_calls"] == 5
+    assert trace["tokens"] == 1234
+    assert trace["retrieval_docs"] == 2
+    assert trace["tool_calls"] == 1
+    assert trace["citations"] == 1
+    assert trace["total_ms"] >= 0
+    assert trace["nodes"][0]["node"] == "synthesize"

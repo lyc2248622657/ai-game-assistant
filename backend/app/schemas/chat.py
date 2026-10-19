@@ -49,6 +49,7 @@ class ChatResponse(BaseModel):
     related_entities: list[str] = []  # 未收录时相关实体提示（前端渲染"补充资料"入口）
     guides: Optional[GuideInfo] = None  # 攻略检索结果（视频跳转/链接）
     usage: Optional[dict] = None  # 本轮对话 LLM token 消耗（input/output/total/calls）
+    trace: Optional[dict] = None  # 本轮 trace：总耗时/各节点耗时/调用与检索次数（可观测）
 
 
 class Citation(BaseModel):
@@ -78,6 +79,7 @@ EventType = Literal[
     "related_entities", # 未收录相关实体提示
     "guides",      # 攻略检索结果（视频跳转/链接）
     "citations",   # 最终引用列表
+    "trace",       # 本轮 trace：总耗时/各节点耗时/调用与检索次数（可观测）
     "usage",       # 本轮对话 token 消耗
     "error",       # 错误（code, message）
     "done",        # 流程结束

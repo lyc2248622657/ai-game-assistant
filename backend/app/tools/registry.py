@@ -147,11 +147,59 @@ class ToolRegistry:
             for t in self._tools.values()
         ]
 
+    def _validate_args(self, tool: Tool, arguments: dict) -> dict:
+        """按工具声明的 JSON Schema 做最小必要校验（required / type / enum）。
+
+        背景：模型会稳定地传错参数——漏必填、把 90 写成 "90"、给 category 一个不存在的枚举值。
+        原实现直接 `tool.run(args)`，错误会在工具内部变成 AttributeError/KeyError，
+        既难定位、又会被上层当成"工具执行失败"重试一次（白烧一次 token）。
+        """
+        schema = tool.parameters or {}
+        props = schema.get("properties") or {}
+        args = dict(arguments or {})
+
+        missing = [k for k in (schema.get("required") or []) if args.get(k) in (None, "")]
+        if missing:
+            raise AppError(ErrorCode.TOOL_FAILED, f"{tool.name} 缺少必填参数: {', '.join(missing)}")
+
+        py_types = {
+            "string": str, "integer": int, "number": (int, float), "boolean": bool,
+            "object": dict, "array": list,
+        }
+        for key, spec in props.items():
+            if key not in args or args[key] is None:
+                continue
+            spec = spec or {}
+            expected = spec.get("type")
+            py = py_types.get(expected)
+            if py and not isinstance(args[key], py):
+                # 容错：模型常把数字写成字符串（"90" 而不是 90）
+                raw = args[key]
+                if expected in ("integer", "number") and isinstance(raw, str) and raw.strip().lstrip("-").isdigit():
+                    args[key] = int(raw.strip())
+                else:
+                    raise AppError(
+                        ErrorCode.TOOL_FAILED,
+                        f"{tool.name} 参数 {key} 类型应为 {expected}，实际 {type(raw).__name__}",
+                    )
+            enum = spec.get("enum")
+            if enum and args[key] not in enum:
+                raise AppError(
+                    ErrorCode.TOOL_FAILED,
+                    f"{tool.name} 参数 {key} 取值必须是 {enum} 之一，实际 {args[key]!r}",
+                )
+
+        unknown = [k for k in args if k not in props]
+        if unknown:
+            logger.debug("%s 收到未声明参数（已忽略）: %s", tool.name, unknown)
+        return args
+
     def execute(self, name: str, arguments: dict, ctx: ToolContext) -> Any:
         """执行工具：参数校验失败 / 异常统一抛 AppError，由调用方重试或兜底"""
         tool = self.get(name)
-        logger.info("执行工具 %s args=%s", name, json.dumps(arguments, ensure_ascii=False)[:200])
-        return tool.run(arguments, ctx)
+        args = self._validate_args(tool, arguments)
+        logger.info("执行工具 %s args=%s", name, json.dumps(args, ensure_ascii=False)[:200])
+        return tool.run(args, ctx)
 
 
 tool_registry = ToolRegistry()

@@ -29,6 +29,7 @@ from app.agents.prompts import (
     prepare_history,
 )
 from app.agents.state import AgentState
+from app.core.config import settings
 from app.core.llm_json import extract_json
 from app.core.logging import get_logger
 from app.knowledge.games import registry
@@ -40,6 +41,24 @@ from app.tools.game_entity import _attach_image, search_entry
 from app.tools.registry import tool_registry
 
 logger = get_logger(__name__)
+
+
+def _json_model():
+    """只输出 JSON 的节点用这个模型：限制输出长度，避免模型长篇解释白烧 token。
+
+    走模块级的 get_chat_model（便于测试 monkeypatch）；测试里的假模型没有 bind，
+    直接原样返回，不影响单测。
+    """
+    model = get_chat_model()
+    if model is None:
+        return None
+    bind = getattr(model, "bind", None)
+    if not callable(bind):
+        return model
+    try:
+        return bind(max_tokens=settings.llm_json_max_tokens)
+    except Exception:  # noqa: BLE001 - 拿不到 bind 就退回原模型
+        return model
 
 # 节点名常量
 N_SUPERVISOR = "supervisor"
@@ -120,7 +139,7 @@ def supervisor_node(state: AgentState) -> AgentState:
         _load_memory_context(state)
     data: dict = {}
     try:
-        model = get_chat_model()
+        model = _json_model()
         for attempt in range(2):
             resp = model.invoke(
                 [
@@ -770,7 +789,7 @@ def replan_node(state: AgentState) -> AgentState:
     logger.info("[%s] replan 预检命中: pending=%d failed=%s", state["game_id"], len(pending), failed)
     _emit(state, {"type": "agent_start", "node_name": N_REPLAN, "message": "评估子任务完成度，动态调整计划…"})
     try:
-        model = get_chat_model()
+        model = _json_model()
         transcript = (
             f"用户问题：{state['user_message']}\n\n"
             f"规划子任务：{json.dumps(state.get('subtasks', []), ensure_ascii=False)}\n\n"
@@ -825,7 +844,7 @@ def reflect_node(state: AgentState) -> AgentState:
     answer = state.get("final_answer") or ""
     materials = _build_materials(state)
     try:
-        model = get_chat_model()
+        model = _json_model()
         resp = model.invoke(
             [
                 {"role": "system", "content": REFLECT_INSTRUCTION},

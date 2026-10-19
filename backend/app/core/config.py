@@ -35,6 +35,9 @@ class Settings(BaseSettings):
     embedding_cache_dir: str = "models/embeddings"     # 模型本地缓存目录
     retrieval_top_k: int = 5
     retrieval_score_threshold: float = 0.5  # 见 docs/框架问题排查报告.md：待按评测集标定
+    # 只输出 JSON 的节点（主管/重规划/质检）限制输出长度：它们只需要几十个 token，
+    # 不限制时模型容易长篇解释，纯属浪费
+    llm_json_max_tokens: int = 512
 
     # 路径
     chroma_dir: str = "data/chroma"

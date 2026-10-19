@@ -6,6 +6,7 @@
 import asyncio
 import json
 import re
+import time
 import traceback
 
 from fastapi import APIRouter, BackgroundTasks, Request
@@ -52,6 +53,44 @@ def _usage_delta(before: dict) -> dict:
         "output_tokens": now["output_tokens"] - before["output_tokens"],
         "total_tokens": now["total_tokens"] - before["total_tokens"],
         "llm_calls": now["llm_calls"] - before["llm_calls"],
+    }
+
+
+def _node_timings(events: list[dict]) -> list[dict]:
+    """按节点聚合耗时（同名节点可能因重规划/回炉跑多次，这里合并统计）"""
+    starts: dict[str, float] = {}
+    agg: dict[str, dict] = {}
+    for ev in events:
+        node = ev.get("node_name")
+        ts = ev.get("ts")
+        if not node or ts is None:
+            continue
+        if ev.get("type") == "agent_start":
+            starts[node] = ts
+        elif ev.get("type") == "agent_end" and node in starts:
+            ms = round((ts - starts.pop(node)) * 1000)
+            item = agg.setdefault(node, {"node": node, "ms": 0, "runs": 0})
+            item["ms"] += ms
+            item["runs"] += 1
+    return list(agg.values())
+
+
+def _build_trace(session_id: str, started: float, events: list[dict],
+                 snapshot: dict, usage: dict) -> dict:
+    """一次回答的结构化 trace：总耗时、各节点耗时、LLM 调用数、token、检索与工具次数。
+
+    这是"可观测"的最小闭环：既能给前端展示，也能落进结构化日志/评测数据，
+    避免排障时只能翻散落的日志行。
+    """
+    return {
+        "session_id": session_id,
+        "total_ms": round((time.perf_counter() - started) * 1000),
+        "nodes": _node_timings(events),
+        "llm_calls": usage.get("llm_calls", 0),
+        "tokens": usage.get("total_tokens", 0),
+        "retrieval_docs": len(snapshot.get("retrieved_docs") or []),
+        "tool_calls": sum(1 for ev in events if ev.get("type") == "tool_call"),
+        "citations": len(snapshot.get("citations") or []),
     }
 
 
@@ -124,9 +163,10 @@ def _sse(event: str, data: dict) -> str:
 
 @router.post("", response_model=ChatResponse)
 def chat(body: ChatRequest, background: BackgroundTasks):
-    """发送消息，执行多智能体流程，返回回答与引用（含本轮 token 消耗）"""
+    """发送消息，执行多智能体流程，返回回答与引用（含本轮 token 消耗与 trace）"""
     game, session, state = _prepare(body)
     usage_before = usage_stats.snapshot()
+    started = time.perf_counter()
 
     try:
         result = app_graph.invoke(state)
@@ -158,6 +198,10 @@ def chat(body: ChatRequest, background: BackgroundTasks):
         [c.title for c in citations[:4]],
     )
 
+    usage_delta = _usage_delta(usage_before)
+    trace = _build_trace(session["session_id"], started, result.get("events") or [], result, usage_delta)
+    logger.info("[trace] %s", json.dumps(trace, ensure_ascii=False))
+
     return ChatResponse(
         session_id=session["session_id"],
         game_id=result.get("game_id") or game.game_id,
@@ -168,7 +212,8 @@ def chat(body: ChatRequest, background: BackgroundTasks):
         images=result.get("entity_images") or [],
         related_entities=result.get("related_entities") or [],
         guides=result.get("guides"),
-        usage=_usage_delta(usage_before),
+        usage=usage_delta,
+        trace=trace,
     )
 
 
@@ -185,6 +230,7 @@ async def chat_stream(body: ChatRequest, request: Request):
     post: dict = {}
 
     async def gen():
+        started = time.perf_counter()
         last_n = 0
         last_snapshot = None
         usage_before = usage_stats.snapshot()
@@ -237,7 +283,14 @@ async def chat_stream(body: ChatRequest, request: Request):
                     last_snapshot.get("game_id") or game.game_id,
                     [c.get("title", "") for c in cits[:4]],
                 )
-            yield _sse("usage", {"type": "usage", "usage": _usage_delta(usage_before)})
+            usage_delta = _usage_delta(usage_before)
+            trace = _build_trace(
+                session["session_id"], started,
+                (last_snapshot or {}).get("events") or [], last_snapshot or {}, usage_delta,
+            )
+            logger.info("[trace] %s", json.dumps(trace, ensure_ascii=False))
+            yield _sse("trace", {"type": "trace", "trace": trace})
+            yield _sse("usage", {"type": "usage", "usage": usage_delta})
             yield _sse("done", {"type": "done"})
         except Exception as e:  # noqa: BLE001
             logger.error("SSE 流异常: %s\n%s", e, traceback.format_exc())
