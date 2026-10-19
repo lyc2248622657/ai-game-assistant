@@ -18,6 +18,7 @@ from __future__ import annotations
 import json
 import re
 import sys
+import threading
 from pathlib import Path
 from typing import Any
 
@@ -34,7 +35,7 @@ if str(BACKEND) not in sys.path:
 from scripts.crawler.base import WikiClient, parse_template_fields  # noqa: E402
 from scripts.crawler.official_source import parse_character_official  # noqa: E402
 from scripts.crawler.arknights_source import parse_operator_official  # noqa: E402
-from scripts.generator.generator import Generator, normalize_entry  # noqa: E402
+from scripts.generator.generator import Generator  # noqa: E402
 from scripts.generator.llm import LLMClient  # noqa: E402
 from scripts.generator.validator import Validator  # noqa: E402
 
@@ -134,21 +135,61 @@ class _Lazy:
         return cls.wiki
 
 
+def _entry_key(entry: dict) -> tuple[str, str]:
+    """条目的合并键：名称优先，缺名回退 id。
+
+    静态库与动态缓存的 id 规则不一致（`char_x` vs `character_x`），
+    只有名称在两套数据里是稳定的，因此合并必须以名称为主键。
+    """
+    name = str(entry.get("name") or "").strip().lower()
+    if name:
+        return ("name", name)
+    return ("id", str(entry.get("id") or ""))
+
+
 def load_entries(game_dir: Path, entry_type: str) -> list[dict]:
-    """读静态库 + 动态缓存库"""
-    out: list[dict] = []
+    """读静态库 + 动态缓存库，**动态覆盖静态**，并按名称去重。
+
+    原实现是"静态先拼、动态后拼"，而 `search_entry` 返回第一个同名条目
+    → 静态库里残缺的旧条目会遮蔽 dynamic 里经过 wiki 核验的完整数据
+    （方舟静态 11 条与动态 460 条同名，命中即缺 skills/materials）。
+    """
     fname = FILE_BY_TYPE.get(entry_type)
     if not fname:
-        return out
+        return []
+
+    buckets: list[list[dict]] = []
     for sub in ("", "dynamic"):
         path = game_dir / sub / fname
+        items: list[dict] = []
         if path.exists():
             try:
                 data = json.loads(path.read_text(encoding="utf-8"))
-                items = data if isinstance(data, list) else [data]
-                out.extend(e for e in items if isinstance(e, dict))
+                items = [e for e in (data if isinstance(data, list) else [data]) if isinstance(e, dict)]
             except Exception:  # noqa: BLE001
                 logger.warning("读取失败 %s", path)
+        buckets.append(items)
+
+    merged: dict[tuple[str, str], dict] = {}
+    for items in buckets:  # 静态在前、动态在后 → 后者覆盖前者
+        for e in items:
+            key = _entry_key(e)
+            prev = merged.get(key)
+            # 同名条目保留"信息更全"的那个（字段更多者胜；同分则后来的覆盖）
+            if prev is None or len(e) >= len(prev):
+                merged[key] = e
+    return list(merged.values())
+
+
+# 全量条目类型（实体 + 配队）；graph / retriever 共用同一份合并规则
+ALL_ENTRY_TYPES = ("character", "weapon", "artifact", "food", "material", "team")
+
+
+def load_all_entries(game: Game) -> list[dict]:
+    """加载某游戏全部知识条目（静态 + 动态，去重合并）"""
+    out: list[dict] = []
+    for t in ALL_ENTRY_TYPES:
+        out.extend(load_entries(game.data_dir, t))
     return out
 
 
@@ -462,26 +503,53 @@ def generate_with_verification(
     return entry, meta
 
 
-def _save_dynamic(game: Game, entry_type: str, entry: dict):
+_save_lock = threading.Lock()
+
+
+def _save_dynamic(game: Game, entry_type: str, entry: dict) -> bool:
+    """把条目写回动态缓存（增量知识库）。
+
+    安全约束（原实现会在解析失败时把整个文件覆盖成 1 条）：
+      - 解析失败 → 放弃写入并告警，绝不拿空列表覆盖已有数据；
+      - 同键（名称）替换而不是简单 append，避免同名条目堆积；
+      - tmp + replace 原子落盘；
+      - 进程内加锁，避免并发写互相截断。
+    """
     dyn_dir = game.data_dir / "dynamic"
-    dyn_dir.mkdir(parents=True, exist_ok=True)
     path = dyn_dir / FILE_BY_TYPE[entry_type]
-    items: list[dict] = []
-    if path.exists():
+    with _save_lock:
         try:
-            data = json.loads(path.read_text(encoding="utf-8"))
-            items = data if isinstance(data, list) else [data]
-        except Exception:  # noqa: BLE001
-            items = []
-    items = [e for e in items if e.get("id") != entry.get("id")]
-    items.append(entry)
-    path.write_text(json.dumps(items, ensure_ascii=False, indent=2), encoding="utf-8")
-    logger.info("[%s] 已写入动态缓存: %s", entry.get("name"), path)
+            dyn_dir.mkdir(parents=True, exist_ok=True)
+            items: list[dict] = []
+            if path.exists():
+                data = json.loads(path.read_text(encoding="utf-8"))
+                items = [e for e in (data if isinstance(data, list) else [data]) if isinstance(e, dict)]
+            key = _entry_key(entry)
+            items = [e for e in items if _entry_key(e) != key]
+            items.append(entry)
+            tmp = path.with_suffix(".json.tmp")
+            tmp.write_text(json.dumps(items, ensure_ascii=False, indent=2), encoding="utf-8")
+            tmp.replace(path)
+            logger.info("[%s] 已写入动态缓存: %s（共 %d 条）", entry.get("name"), path, len(items))
+            return True
+        except Exception as e:  # noqa: BLE001
+            logger.error("[%s] 动态缓存写入失败，已放弃（不覆盖原文件）: %s", entry.get("name"), e)
+            return False
+
+
+def _norm_ref(value: str) -> str:
+    """引用/成员名归一：去掉 `character_` / `char_` / `weapon_` 等前缀。
+
+    数据层存在多套 id 规则（`character_胡桃` / `char_胡桃` / `胡桃`），
+    按名称比对前必须归一，否则 `name in members` 永远不成立。
+    """
+    s = str(value or "").strip()
+    return re.sub(r"^(character|char|weapon|artifact|material|food|team)_", "", s)
 
 
 def _related_gear(game: Game, char_name: str) -> list[dict]:
     """角色关联信息联动：从数据层找出与该角色相关的配队/武器/圣遗物条目
-    （recommended 含角色、tags 含角色名、或摘要/描述文本含角色名），
+    （members 归一后含角色、recommended 含角色、tags 含角色名、或摘要/描述文本含角色名），
     供问答引用与评测核验（如问胡桃圣遗物 → 一并给出炽烈的炎之魔女）。
     """
     rel: list[dict] = []
@@ -491,11 +559,17 @@ def _related_gear(game: Game, char_name: str) -> list[dict]:
             if not isinstance(e, dict) or not e.get("id"):
                 continue
             tags = [str(x) for x in (e.get("tags") or [])]
+            members = [_norm_ref(x) for x in (e.get("members") or [])]
             rec = str(e.get("recommended") or "")
             text = " ".join(
                 str(e.get(k) or "") for k in ("name", "summary", "core", "rotation", "details", "two_piece", "four_piece", "passive")
             )
-            if char_name in tags or char_name in rec or char_name in text:
+            if (
+                char_name in tags
+                or char_name in members
+                or char_name in rec
+                or char_name in text
+            ):
                 if e["id"] in seen:
                     continue
                 seen.add(e["id"])

@@ -1,9 +1,9 @@
 {
   "source": "https://wiki.biligame.com/ys/api.php",
   "collected_at": "2026-09-22 20:32:08",
-  "note": "全量重跑即更新；图片为 WebP 压缩小图",
+  "note": "全量重跑即更新；图片为 WebP 压缩小图。注意：静态角色库当前为空（历史上一轮采集返回 0 条时被无条件覆盖，现已加落盘守卫）；角色数据以 dynamic/characters.json 为准。",
   "counts": {
-    "character": 2
+    "character": 0
   },
   "duration_sec": 23.1
 }

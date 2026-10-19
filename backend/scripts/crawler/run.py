@@ -25,6 +25,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 from scripts.crawler.base import WikiClient, parse_template_fields  # noqa: E402
 from scripts.crawler.image import save_game_image  # noqa: E402
+from scripts.safe_io import write_json_guarded  # noqa: E402
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger("crawler")
@@ -223,11 +224,13 @@ def backfill_foods(foods: list[dict], links: list[tuple[str, str, str]]) -> int:
     return n
 
 
-def save(entries: list[dict], game_dir: Path, entry_type: str):
+def save(entries: list[dict], game_dir: Path, entry_type: str) -> bool:
+    """落盘（带守卫）：本次为空或大幅缩水时拒绝写入，保留原文件。"""
     path = game_dir / f"{entry_type}s.json"
-    with path.open("w", encoding="utf-8") as fh:
-        json.dump(entries, fh, ensure_ascii=False, indent=2)
+    if not write_json_guarded(path, entries):
+        return False
     logger.info("已写入 %s: %d 条", path.name, len(entries))
+    return True
 
 
 def main():
@@ -246,6 +249,7 @@ def main():
     client = WikiClient(cfg["base_url"])
     types = [t.strip() for t in args.types.split(",") if t.strip()]
     counts: dict[str, int] = {}
+    rejected: list[str] = []
     t0 = time.time()
 
     try:
@@ -258,7 +262,9 @@ def main():
                 client, entry_type, cat, cfg, game_dir,
                 args.limit, not args.no_images, args.workers,
             )
-            save(entries, game_dir, entry_type)
+            if not save(entries, game_dir, entry_type):
+                rejected.append(entry_type)
+                logger.error("类型 %s 落盘被守卫拒绝，已保留原数据", entry_type)
             counts[entry_type] = len(entries)
             time.sleep(2)  # 类型切换间隔，降低限流风险
 
@@ -280,6 +286,9 @@ def main():
         }
         (game_dir / "meta.json").write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
         logger.info("完成: %s 总耗时 %.1fs, 各类型 %s", args.game, meta["duration_sec"], counts)
+        if rejected:
+            logger.error("以下类型因数据疑似不完整被守卫拒绝，请检查上游：%s", rejected)
+            raise SystemExit(2)
     finally:
         client.close()
 

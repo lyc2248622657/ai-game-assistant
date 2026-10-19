@@ -25,6 +25,7 @@ from scripts.generator.generator import Generator  # noqa: E402
 from scripts.generator.llm import LLMClient  # noqa: E402
 from scripts.generator.schema import BATCH_SIZE, TARGET_COUNTS, TYPE_SCHEMA  # noqa: E402
 from scripts.generator.validator import Validator  # noqa: E402
+from scripts.safe_io import write_json_guarded  # noqa: E402
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger("gen")
@@ -250,6 +251,7 @@ def main():
 
     meta: dict = {"source": "DeepSeek LLM 生成（Generator-Critic 双 Agent）", "stats": {}}
     all_stats = meta["stats"]
+    failed: list[str] = []
 
     try:
         for entry_type in types:
@@ -261,15 +263,24 @@ def main():
                 known_ids, images, TARGET_COUNTS[entry_type],
             )
             out = game_dir / FILE_BY_TYPE[entry_type]
-            out.write_text(json.dumps(entries, ensure_ascii=False, indent=2), encoding="utf-8")
+            # 守卫：本次生成 0 条或不足原有 50% 时拒绝覆盖（历史上曾把整库写成 []）
+            if not write_json_guarded(out, entries):
+                logger.error("类型 %s 落盘被守卫拒绝，已保留原文件", entry_type)
+                failed.append(entry_type)
+                continue
             all_stats[entry_type] = stats
             known_ids.update(e["id"] for e in entries)
             logger.info("已写入 %s：%d 条", out.name, len(entries))
 
         meta["collected_at"] = time.strftime("%Y-%m-%d %H:%M:%S")
         meta["cost"] = llm.cost_report()
+        if failed:
+            meta["rejected_types"] = failed
         (game_dir / "meta.json").write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
         logger.info("全部完成。%s", llm.cost_report())
+        if failed:
+            logger.error("以下类型被落盘守卫拒绝（数据疑似不完整）：%s", failed)
+            raise SystemExit(2)
     finally:
         pass
 
