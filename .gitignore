@@ -16,6 +16,7 @@ backend/data/sessions.db
 node_modules/
 frontend/dist/
 frontend/.vite/
+*.tsbuildinfo
 
 # 编辑器 / 系统
 .idea/
@@ -33,6 +34,7 @@ app_data/
 # 密钥（全局防护）
 key.txt
 *.key
+.api_token
 
 # 事件缓存
 backend/data/events_cache.json
@@ -48,3 +50,9 @@ backend/data/eval_*.json
 
 # 多模态：用户上传的游戏截图（不入库）
 backend/data/uploads/
+
+# 工具缓存与覆盖率产物
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
