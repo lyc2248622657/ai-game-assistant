@@ -190,33 +190,42 @@ SSE 流式：`POST /api/chat/stream` 增量推送节点事件（agent_start/end�
 
 ```bash
 cd backend
-.venv\Scripts\python.exe -m pytest tests -q     # 91 passed
+.venv\Scripts\python.exe -m pytest tests -q     # 149 passed（覆盖率约 60%）
 ```
 
+> 测试通过 `tests/conftest.py` 强制隔离：SQLite / Chroma / 文档目录全部指向临时目录，
+> 跑测试不会污染 `data/` 下的真实数据（此前的测试会往真实向量库里写测试记忆）。
+
 - `tests/test_parsers.py`：PRTS 技能/天赋/材料解析器单测（固定 wikitext 样本，不联网）——验证 `{{*|20%|{{color|+20%}}}}` 公式清洗、技能 1-7 级+专精分级、天赋条件、精1/精2 与技能升级材料解析；
-- `tests/test_graph.py`：Agent 图可编译（6 节点齐全）、建议按钮生成（按游戏区分措辞）、检索空→工具降级路由；
+- `tests/test_graph.py`：Agent 图可编译（8 节点齐全）、建议按钮生成（按游戏区分措辞）、检索空→工具降级路由；
 - `tests/test_strategy_tools.py`：B站标题清洗、材料数量「万」单位归一；
 - `tests/test_events.py`：事件倒计时引擎纯逻辑单测——6 周版本周期推算（更新日=周三）、前瞻直播早于版本更新约 14 天、upcoming/active/ended 状态判定与倒计时、优先级排序、**近 30 天窗口过滤**、**祈愿页真实卡池合并**（官方池名/角色覆盖推算、双池合并、未命中保持预计）、进行中版本带真实活动名（不联网，固定样本）；
 - `tests/test_bm25.py`：BM25 稀疏检索单测——中英混合分词（中文 bigram + 英文词）、干员名查询命中对应条目、中文复合查询命中语义相关条目（不加载向量模型，纯逻辑）；
 - `tests/test_eval_sets.py`：评测集格式校验——两游戏评测集 50 题 id 全局唯一、type 合法、key_points 非空、四种题型每种 ≥4 题；
 - `tests/test_auto_title.py`：智能命名单测——本地规则兜底标题（去客套前缀/截 14 字）、已命名会话不覆盖、LLM 提炼失败静默回退；
 - `tests/test_recent_entities.py`：list_recent_entities 工具单测——上线时间倒序、limit 钳制（上限 10/非法值回退 5）、同名去重、方舟可用；
-- `tests/test_enhance.py`：信息补全单测——只补缺失字段不覆盖已有值、wiki 失败静默、非角色类型跳过、无缺失字段不触发 wiki 请求。
-- `tests/test_vector_ops.py`：向量库运维单测——集合统计/文档删除/重建与脏数据清理（增量更新口径）。
-- `tests/test_mcp.py`：MCP 工具协议单测——握手/工具清单/实体查询/检索/文档问答（stdio 冒烟）。
-- `tests/test_a2a.py`：A2A 多智能体协同单测——任务分解/三域派发/汇总带来源/无 LLM 离线链路。**共 91 passed**。
+- `tests/test_enhance.py`：信息补全单测——只补缺失字段不覆盖已有值、wiki 失败静默、非角色类型跳过、无缺失字段不触发 wiki 请求；
+- `tests/test_vector_admin.py`：向量库运维单测——集合统计/文档删除/重建与脏数据清理（增量更新口径）；
+- `tests/test_build_plan.py`：养成计划单测——材料清单口径与步骤生成；
+- `tests/test_memory_rag.py`：记忆向量化单测——写入/召回/按游戏隔离/记忆 id 内容化（使用临时 Chroma）；
+- `tests/test_a2a.py`：A2A 多智能体协同单测——任务分解/三域派发/汇总带来源/无 LLM 离线链路；
+- `tests/test_api_contract.py`：接口契约测试（TestClient）——健康检查/会话 CRUD/错误体形状（`{code,message}`）/404 语义/上传校验/`image_path` 越界拒绝/计划删除归属校验；
+- `tests/test_data_and_tools.py`：数据层与工具层回归——静态与动态合并（动态覆盖）、动态缓存写入守卫、落盘守卫、天赋材料只计主动天赋、方舟材料口径隔离、计划删除归属、引用前缀归一、JSON 抽取健壮性、资料上下文预算；
+- `tests/test_framework_fixes.py`：框架层回归——状态通道声明一致性（AST 比对）、错误码枚举、SQLite 关闭/WAL/回滚、fallback 路由、RRF 融合、上传路径守卫、记忆注入到达 prompt（端到端）。**共 149 passed**。
 
 ### 前端测试（vitest，2026-10）
 
 ```bash
 cd frontend
-npm test        # 11 条 smoke/单元测试（vitest + jsdom + Testing Library）
+npm test        # 19 条 smoke/单元测试（vitest + jsdom + Testing Library）
 ```
 
 - `src/api/client.test.ts`：SSE 帧解析（event/data 拆分、多行 data 拼接）；**连接层失败自动重试后成功**、收到部分事件后断流抛 `StreamInterruptedError` 且不自动重发（避免重复生成）、5xx 重试耗尽抛出、4xx 直接抛出；
+- `src/utils/markdown.test.tsx`：多链接各自指向正确地址（回归：曾全部指向第一个 URL）、rel/target 属性、粗体与行内代码渲染；
+- `src/utils/history.test.ts`：引用归一（SSE 的 `content` → `snippet`）与历史消息映射（保留引用与配图）；
 - `src/components/ErrorBoundary.test.tsx`：渲染级错误兜底（子组件抛错不白屏、显示重试按钮）；
 - `src/App.test.tsx`：页面挂载 smoke（标题/双 tab/侧栏渲染）。
-- **前端健壮性（2026-10）**：SSE 流式连接层自动重试（最多 3 次指数退避）+ 收到部分内容后断流给出可操作提示；全局 `ErrorBoundary` 兜底渲染异常（不再白屏）。
+- **前端健壮性（2026-10）**：SSE 流式连接层自动重试（最多 3 次指数退避）+ 收到部分内容后断流给出可操作提示；切换会话/卸载时中断在途流并丢弃迟到响应；全局 `ErrorBoundary` 兜底渲染异常（不再白屏）。
 
 ## 评测（LLM-as-Judge + 规则判定）
 
@@ -389,6 +398,30 @@ reflect / hybrid 无差异**——在该子集上各组件未表现出显著正�
 - [x] **MCP 工具演示扩展（P1，2026-10-11）**：MCP 工具 3 → 10（+向量运维 3 + 文档问答 3 + A2A 1），`docs/MCP-DEMO.md` 同步；冒烟全通过（commit `d4202fa` / `b15906ff`）
 - [x] **A2A 多智能体协同演示（P2，2026-10-11）**：`run_agent_task` 工具 + `app/agents/a2a.py`——一个请求分解 → 派发 game/doc/vector 三域智能体 → 汇总带来源；`docs/A2A-DEMO.md` + `scripts/a2a_demo.py`（--no-llm 离线可跑）；pytest 新增 10 项 → **91 passed**（commit `207561a`）
 - [x] **Docker 容器化部署（2026-10-12）**：双容器 healthy 全量验证通过，commit `18f9f41` 已推送（详见「Docker 部署」章节）
+
+### 我的工作（个人贡献边界）
+
+本项目在 AI 辅助下完成（AI 用于生成页面骨架、接口模板、重复逻辑与调试辅助），我负责的部分是：
+
+- **需求与方案**：确定"多游戏统一问答"的产品形态、检索融合策略、8 节点编排与失败兜底设计；
+- **链路取舍**：名称强匹配置顶（不参与 RRF 融合）、工具循环上限 3 轮、重规划与质检各 1 轮；
+- **问题定位与修复**：见「已知问题」中的已修复项，均按"复现 → 定位根因 → 修复 → 回归测试锁定"闭环推进
+  （例：LangGraph 未声明状态通道导致记忆注入静默失效、SQLite 连接在异常路径未关闭、混检 BM25 分数尺度压制向量召回）；
+- **数据与评测**：数据管道脚本、评测集与 judge 口径、消融与 ReAct 对比实验；
+- **工程收口**：接口契约与错误码体系、落盘守卫、Docker / EXE 打包、CI 与文档。
+
+### 已知问题与后续优化（不放大结论）
+
+- **评测口径**：numeric 指标用"标准答案是否为回答子串"判定，对"水/火/5星"这类短答案会偏高；
+  judge 与被测模型同源且未记录 seed/model → 跨版本不可比。**因此对外只讲方法，不讲具体准确率**；
+- **上下文预算**：已为资料上下文加"单条 1.2k / 总量 8k 字符"截断，但检索 Top-K 与相似度阈值仍未经评测集标定；
+- **数据治理**：静态库与动态缓存存在同名条目（读取时已按"动态覆盖静态"合并）；部分引用仍是拼音/别名，
+  `scripts/validate_data.py` 会列出（当前 genshin 74 条别名引用）；
+- **测试覆盖**：约 60%，`app/api` 层以契约测试为主，缺少真实模型的端到端回归；
+- **安全边界**：接口已内置令牌鉴权（本机回环免令牌，非本机必须带令牌，详见「接口鉴权」），
+  默认只监听 `127.0.0.1`；但**没有**用户体系与多租户隔离，不适合直接作为公网多用户服务；
+- **并发**：单进程 + 本地 SQLite/Chroma，未做多用户隔离、限流与向量库服务化。
+
 ## 本地一键启动（推荐，无需 Docker）
 
 ```powershell
@@ -435,11 +468,65 @@ docker compose up -d --build
 # 前端 http://localhost:5173，后端 http://localhost:8000/api/health
 ```
 
-- `backend/Dockerfile`：python:3.11-slim，**离线 wheel 安装**（`COPY wheels /wheels` + `pip install --no-index --find-links=/wheels`，规避容器内 PyPI 不可达）；
+- `backend/Dockerfile`：python:3.11-slim，**在线安装**（干净 clone 即可构建）；离线/内网场景用
+  `-f Dockerfile.offline`（`COPY wheels /wheels` + `pip install --no-index --find-links=/wheels`）；
 - `frontend/Dockerfile`：node:20-alpine 构建 → nginx:alpine 托管（`nginx.conf` 反向代理 `/api` → backend:8000，SSE 关闭 buffering）；
 - 卷：`backend/data`（知识包 + Chroma + SQLite 持久化）、`backend/models`（bge embedding 缓存复用，避免容器内重新下载）；
 - 密钥：`backend/.env` 经 `env_file` 注入，不入镜像；
+- **注意**：容器端口映射属于"非本机访问"，请先在 `backend/.env` 里设置 `API_TOKEN`（见下节「接口鉴权」）；
 - **实机验证（2026-10-12）**：双容器 healthy（backend 3.23GB / frontend 93.9MB），`/api/health` → `{"status":"ok","app":"AI 游戏助手智能体平台"}`、前端 200、nginx 反代 200；构建中间产物 `backend/wheels/`（137 个 Linux wheel，约 700MB）已 gitignore 不入库。
+
+## 接口鉴权
+
+项目内置了清空向量库、删除文档、写 API Key、删计划这类**破坏性接口**，所以默认策略是
+**"本机免令牌 + 一旦暴露就强制令牌"**：
+
+| 场景 | 行为 |
+|---|---|
+| 本机访问（127.0.0.1 / ::1 直连） | 默认免令牌，双击 EXE / 本地开发零配置 |
+| 非本机访问（局域网、Docker 端口映射、反向代理） | **必须携带令牌**，否则 `401 {"code":10008}` |
+| `TRUST_LOOPBACK=0` | 本机也必须带令牌（远程桌面、多人共用主机） |
+| 同一 IP 鉴权失败过多 | 超过 `AUTH_FAIL_LIMIT`（默认 10 次/分钟）返回 `429` |
+
+**令牌从哪来**
+
+- 未配置时首次启动自动生成到 `backend/app_data/.api_token`（日志只打印打码值）；
+- 也可用环境变量 `API_TOKEN` 显式指定（Docker / CI 推荐），设了就优先用它；
+- 令牌**不会**明文进日志，也**不会**通过接口返回给非回环来源。
+
+**三种传递方式**（任选其一）
+
+```bash
+# 1) Bearer：前端与脚本默认
+curl http://<host>:8000/api/games -H "Authorization: Bearer $API_TOKEN"
+# 2) 自定义头
+curl http://<host>:8000/api/games -H "X-API-Token: $API_TOKEN"
+# 3) 查询参数：给 <img src="/uploads/..."> 这类无法自定义请求头的资源
+curl "http://<host>:8000/uploads/shot.png?token=$API_TOKEN"
+```
+
+**前端行为**：远端打开页面会自动弹出令牌输入框（存 `localStorage`，仅存本机浏览器）；
+本机回环打开时由 `/api/auth/status` 自动回填，用户无感；聊天里的截图/配图会自动拼 `?token=`。
+
+**鉴权相关接口**
+
+- `GET /api/auth/status`（豁免鉴权）：返回 `auth_required / authorized / loopback`；
+  **仅回环来源**额外返回明文令牌，供本机页面自动填充；
+- `POST /api/auth/verify`：校验令牌是否正确（不回传令牌）；
+- `POST /api/auth/rotate`：轮换令牌，**仅回环来源**可用，轮换后已连接的外部客户端立即失效。
+
+**部署注意事项（重要）**
+
+1. **Docker 默认就是"非本机访问"**：`docker compose up` 把 8000 映射到宿主机后，请在
+   `backend/.env` 设置 `API_TOKEN=<随机长串>`，再把同一串填进前端弹出的令牌框；
+2. **反向代理必须显式收紧**：中间件按 TCP 对端判断来源，而反代与本服务同机时对端也是 127.0.0.1。
+   为此它已把"带 `X-Forwarded-For` 的请求"排除在免令牌之外；但最稳妥的做法仍是把
+   `TRUST_LOOPBACK` 设为 `0`，让经过反代的一切请求都必须带令牌；
+3. `app_data/.api_token` 已被 `.gitignore` 忽略，**不要提交到仓库**；怀疑泄露就用
+   `POST /api/auth/rotate` 轮换；
+4. 静态资源（`/`）与 `/api/health`、`/api/auth/status` 保持开放——否则远端页面连"输入令牌"的
+   界面都加载不出来；除此之外 `/api/*` 与 `/uploads/*` 全部受保护。
+
 
 ## 企业文档问答（RAG 能力复用，P2）
 
