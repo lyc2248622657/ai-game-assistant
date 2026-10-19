@@ -1,7 +1,7 @@
 """聊天接口的数据模型：请求、SSE 事件、响应"""
 from typing import Literal, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class ChatRequest(BaseModel):
@@ -11,6 +11,20 @@ class ChatRequest(BaseModel):
     message: str = Field(..., min_length=1, max_length=4000, description="用户消息")
     session_id: Optional[str] = Field(None, description="会话 ID；缺省时自动新建")
     image_path: Optional[str] = Field(None, description="随消息上传的游戏截图本地路径（/api/vision/upload 返回）")
+
+    @field_validator("image_path")
+    @classmethod
+    def _check_image_path(cls, v: Optional[str]) -> Optional[str]:
+        """入口就挡住越界路径：image_path 会被视觉工具读文件并外发给模型。"""
+        if not v:
+            return v
+        from app.core.paths import ensure_upload_path
+
+        try:
+            ensure_upload_path(v)
+        except ValueError as e:
+            raise ValueError(str(e)) from None
+        return v
 
 
 class GuideInfo(BaseModel):
@@ -55,6 +69,9 @@ EventType = Literal[
     "tool_call",   # 工具调用（tool_name, arguments）
     "tool_result", # 工具返回（tool_name, result 摘要）
     "retrieval",   # 检索结果（docs 摘要）
+    "tasks",       # 任务分解：复合意图拆出的子任务清单（subtasks）
+    "subagent",    # 多智能体委派（delegate_to / identity / brief）
+    "replan",      # 动态重规划：补充执行的子任务（remaining）
     "answer",      # 回答增量（delta 文本，流式）
     "suggestions", # 猜测适配选项（suggestions 数组，前端渲染为可点击按钮）
     "image",       # 相关图片（image_url 主图 + images 多图列表）

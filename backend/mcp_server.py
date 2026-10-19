@@ -12,7 +12,6 @@ Cursor、自研编排器等）通过 stdio 调用。
 """
 from __future__ import annotations
 
-import json
 import sys
 from pathlib import Path
 
@@ -28,7 +27,7 @@ from app.rag import document_qa, vector_admin  # noqa: E402
 from app.rag.retriever import hybrid_retrieve  # noqa: E402
 from app.tools.base import ToolContext  # noqa: E402
 from app.tools.game_entity import QueryGameEntityTool  # noqa: E402
-from app.tools.vision_tool import analyze_screenshot  # noqa: E402
+from app.tools.vision_tool import analyze_screenshot as _analyze_screenshot  # noqa: E402
 
 mcp = MCPServer("ai-game-assistant", instructions="AI 游戏助手智能体平台：查询游戏实体、检索知识库、运维向量库、企业文档问答。")
 
@@ -140,7 +139,7 @@ def analyze_screenshot(image_path: str) -> dict:
     Args:
         image_path: 截图本地路径（如 /api/vision/upload 上传后返回的 image_path）。
     """
-    return analyze_screenshot(image_path)
+    return _analyze_screenshot(image_path)
 
 
 # ---- A2A 多智能体协同 ----

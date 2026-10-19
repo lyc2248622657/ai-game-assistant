@@ -6,12 +6,12 @@
 """
 import base64
 import json
-import re
-from pathlib import Path
 
 from app.core import key_manager
 from app.core.config import settings
+from app.core.llm_json import extract_json
 from app.core.logging import get_logger
+from app.core.paths import ensure_upload_path
 from app.tools.base import Tool, ToolContext
 
 logger = get_logger(__name__)
@@ -37,10 +37,12 @@ _MAX_BYTES = 10 * 1024 * 1024  # 10MB
 
 
 def encode_image(image_path: str) -> str:
-    """读图 → base64 data URL（附带 MIME；超大图先缩到长边 ≤1024 控制 token 与耗时）"""
-    p = Path(image_path)
-    if not p.exists():
-        raise FileNotFoundError(f"截图不存在: {image_path}")
+    """读图 → base64 data URL（附带 MIME；超大图先缩到长边 ≤1024 控制 token 与耗时）
+
+    路径必须先通过 `ensure_upload_path` 校验：只允许读取上传目录内的截图，
+    防止 image_path 被注入任意本地路径后随请求外发给模型。
+    """
+    p = ensure_upload_path(image_path)
     data = p.read_bytes()
     if len(data) > _MAX_BYTES:
         raise ValueError(f"截图过大（>{_MAX_BYTES // 1024 // 1024}MB），请压缩后重试")
@@ -88,8 +90,7 @@ def analyze_screenshot(image_path: str) -> dict:
         raise RuntimeError("未配置 DeepSeek API Key，无法调用视觉模型")
     logger.info("vision analyze: %s", image_path)
     raw = _call_vision(image_path, key, settings.deepseek_base_url)
-    m = re.search(r"\{.*\}", raw, re.S)
-    data = json.loads(m.group(0)) if m else {}
+    data = extract_json(raw) or {}
     entities = []
     for e in data.get("entities") or []:
         if isinstance(e, dict) and e.get("name"):

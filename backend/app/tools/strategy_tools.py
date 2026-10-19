@@ -137,9 +137,12 @@ class AnalyzeTeamsTool(Tool):
 
         # ① 库内 teams 匹配（原神 teams.json；明日方舟按官方职业规则）
         if game.game_id == "genshin":
+            from app.tools.game_entity import _norm_ref
+
             for t in _load_json(game.data_dir / "teams.json"):
                 members = t.get("members") or []
-                if name in members:
+                # members 里存的是 `character_胡桃` 这类引用 id，直接 `name in members` 永不命中
+                if name in members or name in [_norm_ref(m) for m in members]:
                     teams.append({"name": t.get("name"), "members": members, "core": t.get("core", "")})
             if not teams:
                 # 修复：不再生成"{name}·主C 通用队"伪配队（成员仅自己、来源标注虚假会触发幻觉判定），
@@ -165,7 +168,6 @@ class AnalyzeTeamsTool(Tool):
         llm_teams: list[dict] = []
         if not teams:
             try:
-                from scripts.generator.llm import LLMClient
                 from app.tools.game_entity import _Lazy
 
                 llm = _Lazy.get_llm("")

@@ -2,10 +2,11 @@
 
 安全约定：响应只返回打码后的 key；明文仅用于保存到本地 settings.json 与运行时内存。
 """
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from pydantic import BaseModel, Field
 
 from app.core import key_manager
+from app.core.errors import AppError, ErrorCode
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -49,7 +50,7 @@ def save_key(req: KeySaveRequest):
     """保存应用内设置的 Key（持久化 settings.json 并即时生效，无需重启）"""
     api_key = req.api_key.strip()
     if not api_key.startswith("sk-"):
-        raise HTTPException(status_code=400, detail="Key 应以 sk- 开头，请检查后重试")
+        raise AppError(ErrorCode.INVALID_REQUEST, "Key 应以 sk- 开头，请检查后重试")
     path = key_manager.save(req.model, api_key)
     logger.info("应用内设置已保存 API Key（%s）到 %s", key_manager.mask_key(api_key), path)
     return {

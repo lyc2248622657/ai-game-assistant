@@ -12,14 +12,13 @@
 from __future__ import annotations
 
 import json
-import sqlite3
-import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 from app.core.config import settings
 from app.core.logging import get_logger
+from app.core.sqlite import connect
 from app.knowledge.games import Game, registry
 from app.tools.base import Tool, ToolContext
 
@@ -58,14 +57,15 @@ EVENT_PRIMOGEM_EST = 1_000  # 每活动估算（版本大活动更高，取保�
 DISCLAIMER = "资源测算为通用规则估算，角色特有材料与最终数值以游戏内为准。"
 
 
-def _load_json(path: Path) -> Any:
+def _load_json(path: Path, default: Any = None) -> Any:
+    """读 JSON；缺失/损坏返回 default（调用方决定是 [] 还是 {}）"""
     if not path.exists():
-        return []
+        return [] if default is None else default
     try:
         return json.loads(path.read_text(encoding="utf-8"))
     except Exception:  # noqa: BLE001
         logger.warning("读取 %s 失败", path)
-        return []
+        return [] if default is None else default
 
 
 def _now() -> str:
@@ -96,13 +96,8 @@ class PlanStore:
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._init_db()
 
-    def _connect(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(self.db_path)
-        conn.row_factory = sqlite3.Row
-        return conn
-
     def _init_db(self) -> None:
-        with self._connect() as conn:
+        with connect(self.db_path) as conn:
             conn.executescript(
                 """
                 CREATE TABLE IF NOT EXISTS plans (
@@ -121,7 +116,7 @@ class PlanStore:
 
     def save(self, session_id: str, game_id: str, character: str, goal: str,
              plan: dict, status: str = "planned") -> int:
-        with self._connect() as conn:
+        with connect(self.db_path) as conn:
             cur = conn.execute(
                 "INSERT INTO plans(session_id, game_id, character, goal, plan_json, status, created_at)"
                 " VALUES (?,?,?,?,?,?,?)",
@@ -131,7 +126,7 @@ class PlanStore:
             return int(cur.lastrowid)
 
     def list_by_session(self, session_id: str) -> list[dict]:
-        with self._connect() as conn:
+        with connect(self.db_path) as conn:
             rows = conn.execute(
                 "SELECT * FROM plans WHERE session_id = ? ORDER BY id DESC", (session_id,)
             ).fetchall()
@@ -145,9 +140,15 @@ class PlanStore:
             out.append(d)
         return out
 
-    def delete(self, plan_id: int) -> bool:
-        with self._connect() as conn:
-            cur = conn.execute("DELETE FROM plans WHERE id = ?", (plan_id,))
+    def delete(self, plan_id: int, session_id: str | None = None) -> bool:
+        """删除计划；传 session_id 时校验归属（防越权删他人计划）"""
+        with connect(self.db_path) as conn:
+            if session_id:
+                cur = conn.execute(
+                    "DELETE FROM plans WHERE id = ? AND session_id = ?", (plan_id, session_id)
+                )
+            else:
+                cur = conn.execute("DELETE FROM plans WHERE id = ?", (plan_id,))
             return cur.rowcount > 0
 
 
@@ -180,9 +181,11 @@ def _fetch_character(game: Game, name: str) -> dict:
 
 def _gacha_and_events(game_id: str) -> dict:
     """从 events_cache 聚合当前卡池与活动（跨源数据之一）"""
-    cache = _load_json(DATA_DIR / "events_cache.json")
-    for g in cache.get("games", []):
-        if g.get("game_id") != game_id:
+    cache = _load_json(DATA_DIR / "events_cache.json", default={})
+    if not isinstance(cache, dict):
+        return {"gacha": None, "activities": []}
+    for g in cache.get("games") or []:
+        if not isinstance(g, dict) or g.get("game_id") != game_id:
             continue
         gacha = None
         activities = []
@@ -226,8 +229,16 @@ def build_primogem_budget(budget: int | None, days_left: int, activities: list[d
     }
 
 
-def build_materials(entity: dict, level_target: int, talent_target: int) -> list[dict]:
-    """养成材料清单（原神）：通用常量 × 角色元素，输出带 note 口径"""
+def build_materials(entity: dict, level_target: int, talent_target: int,
+                    game_id: str = "genshin") -> list[dict]:
+    """养成材料清单（按游戏分流）。
+
+    原神：通用常量 × 角色元素（本函数）；
+    方舟：材料口径完全不同（精英化/技能专精/龙门币），由 CalculateMaterialsTool 按官方数据给出，
+          这里返回空清单，避免把"摩拉/地区特产"这类原神材料混进方舟计划。
+    """
+    if game_id != "genshin":
+        return []
     element = entity.get("element", "")
     gem = GEM_BY_ELEMENT.get(element)
     materials: list[dict] = []
@@ -249,7 +260,12 @@ def build_materials(entity: dict, level_target: int, talent_target: int) -> list
     if talent_target in TALENT_BOOKS:
         t, g, p = TALENT_BOOKS[talent_target]
         skills = entity.get("skills") or []
-        active_count = max(1, len(skills))
+        # 只有普攻/元素战技/元素爆发这 3 个天赋可消耗天赋书；
+        # 原实现用 len(skills)（含被动/生活天赋），会把材料量放大到约 2 倍。
+        active_count = len([
+            s for s in skills
+            if isinstance(s, dict) and str(s.get("type") or "") in ("normal", "skill", "burst")
+        ]) or 3
         materials.append({"name": "天赋书·教导", "count": t * active_count,
                           "note": f"天赋 1→{talent_target}，按 {active_count} 个主动天赋估算"})
         materials.append({"name": "天赋书·引导", "count": g * active_count,
@@ -338,7 +354,7 @@ class BuildBuildPlanTool(Tool):
             mat = CalculateMaterialsTool().run({"game": "arknights", "name": character}, ToolContext(game))
             plan["materials_note"] = mat if isinstance(mat, dict) else {"error": "材料统计不可用"}
 
-        plan["materials"] = build_materials(entity, level_target, talent_target)
+        plan["materials"] = build_materials(entity, level_target, talent_target, game.game_id)
         plan["steps"] = build_plan_steps(game.game_id, character, plan.get("budget"),
                                          plan.get("gacha"), plan["materials"])
         plan["disclaimer"] = DISCLAIMER

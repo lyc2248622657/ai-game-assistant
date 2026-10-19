@@ -36,21 +36,28 @@ class GetGameEventsTool(Tool):
 
     def run(self, args: dict, ctx: ToolContext) -> Any:
         types = args.get("types") or list(VALID_TYPES)
-        limit = int(args.get("limit") or 10)
+        try:
+            limit = int(args.get("limit") or 10)
+        except (TypeError, ValueError):
+            limit = 10
+        limit = max(1, min(limit, 50))
         try:
             games = build_events()
         except Exception as e:  # noqa: BLE001
+            # 契约统一：失败用 {found: False, error}，这样 graph 的重规划预检能识别到
             return {
                 "game": ctx.game.game_id,
-                "ok": False,
+                "found": False,
+                "error": f"事件服务暂不可用: {e}",
                 "events": [],
-                "note": f"事件服务暂不可用（{e}），请稍后再试",
+                "note": "事件服务暂不可用，请稍后再试",
             }
-        game_evs = next((g for g in games if g["game_id"] == ctx.game.game_id), None)
+        game_evs = next((g for g in games if g.get("game_id") == ctx.game.game_id), None)
         if not game_evs:
             return {
                 "game": ctx.game.game_id,
-                "ok": True,
+                "found": False,
+                "error": "no_schedule",
                 "events": [],
                 "note": "该游戏暂无已公布事件排期",
             }
@@ -72,7 +79,7 @@ class GetGameEventsTool(Tool):
             })
         return {
             "game": ctx.game.game_id,
-            "ok": True,
+            "found": True,
             "count": len(out),
             "events": out,
             "note": "数据来自官方 wiki（bwiki），未收录的不编造",

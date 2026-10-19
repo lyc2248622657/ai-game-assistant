@@ -8,8 +8,9 @@ import json
 import re
 import traceback
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, BackgroundTasks, Request
 from fastapi.responses import StreamingResponse
+from starlette.background import BackgroundTask
 
 from app.agents.graph import app_graph
 from app.agents.state import initial_state
@@ -122,7 +123,7 @@ def _sse(event: str, data: dict) -> str:
 
 
 @router.post("", response_model=ChatResponse)
-def chat(body: ChatRequest):
+def chat(body: ChatRequest, background: BackgroundTasks):
     """发送消息，执行多智能体流程，返回回答与引用（含本轮 token 消耗）"""
     game, session, state = _prepare(body)
     usage_before = usage_stats.snapshot()
@@ -147,11 +148,14 @@ def chat(body: ChatRequest):
         citations=[c.model_dump() for c in citations],
         images=result.get("entity_images") or [],
     )
-    _auto_title(session["session_id"], body.message)  # 智能命名（默认标题才改名，失败静默）
-    _write_memory(
+    # 智能命名 + 记忆维护放后台：两者各含 1-2 次额外 LLM 调用，
+    # 不应计入用户等待（原实现在 return 之前串行执行）。
+    background.add_task(_auto_title, session["session_id"], body.message)
+    background.add_task(
+        _write_memory,
         session["session_id"],
         result.get("game_id") or game.game_id,
-        entities=[c.title for c in citations[:4]],
+        [c.title for c in citations[:4]],
     )
 
     return ChatResponse(
@@ -176,7 +180,9 @@ async def chat_stream(body: ChatRequest, request: Request):
     客户端断开后立即停止拉取后续节点（不再发起新的 LLM 调用），
     避免 token 浪费；正在执行的单次同步 LLM 调用无法中途取消（语言级限制，已在日志说明）。
     """
-    game, session, state = _prepare(body)
+    # _prepare 内含 SQLite 查询与 Key 文件读取，放到线程池执行，避免阻塞事件循环
+    game, session, state = await asyncio.to_thread(_prepare, body)
+    post: dict = {}
 
     async def gen():
         last_n = 0
@@ -221,12 +227,12 @@ async def chat_stream(body: ChatRequest, request: Request):
                 await asyncio.to_thread(store.add_message, session["session_id"], "user", body.message)
                 await asyncio.to_thread(
                     store.add_message, session["session_id"], "assistant", answer,
-                    [{"doc_id": c["doc_id"], "title": c["title"], "content": c.get("content", ""), "source": c.get("source", "")} for c in cits],
+                    [{"doc_id": c["doc_id"], "title": c["title"], "snippet": c.get("content", ""), "source": c.get("source", "")} for c in cits],
                     last_snapshot.get("entity_images") or [],
                 )
-                await asyncio.to_thread(_auto_title, session["session_id"], body.message)  # 智能命名（失败静默）
-                await asyncio.to_thread(
-                    _write_memory,
+                # 智能命名 + 记忆维护推迟到响应结束后的后台任务（各含额外 LLM 调用）
+                post["title_args"] = (session["session_id"], body.message)
+                post["memory_args"] = (
                     session["session_id"],
                     last_snapshot.get("game_id") or game.game_id,
                     [c.get("title", "") for c in cits[:4]],
@@ -237,4 +243,16 @@ async def chat_stream(body: ChatRequest, request: Request):
             logger.error("SSE 流异常: %s\n%s", e, traceback.format_exc())
             yield _sse("error", {"type": "error", "code": 500, "error_message": str(e)})
 
-    return StreamingResponse(gen(), media_type="text/event-stream", headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+    def _post_process() -> None:
+        """响应结束后再跑身份无关的收尾（智能命名 + 记忆维护），失败静默。"""
+        if title_args := post.get("title_args"):
+            _auto_title(*title_args)
+        if memory_args := post.get("memory_args"):
+            _write_memory(*memory_args)
+
+    return StreamingResponse(
+        gen(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+        background=BackgroundTask(_post_process),
+    )

@@ -10,7 +10,6 @@ from typing import Any
 
 from app.core.errors import AppError, ErrorCode
 from app.core.logging import get_logger
-from app.knowledge.games import Game, registry
 from app.tools.base import Tool, ToolContext
 
 logger = get_logger(__name__)
@@ -125,7 +124,11 @@ class ToolRegistry:
         self._tools[AnalyzeScreenshotTool.name] = AnalyzeScreenshotTool()
 
     def get(self, name: str) -> Tool:
-        return self._tools[name]
+        tool = self._tools.get(name)
+        if tool is None:
+            # 契约一致：未注册工具也走 AppError（模型幻觉出不存在的工具名时，不应该抛裸 KeyError）
+            raise AppError(ErrorCode.TOOL_FAILED, f"未注册的工具: {name}")
+        return tool
 
     def list_tools(self) -> list[Tool]:
         return list(self._tools.values())

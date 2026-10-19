@@ -2,6 +2,7 @@
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
 
+from app.core.errors import AppError, ErrorCode
 from app.knowledge.games import registry
 from app.memory.store import store
 from app.schemas.chat import SessionCreate, SessionInfo
@@ -34,7 +35,7 @@ def rename_session(session_id: str, body: SessionRename):
     store.get_session(session_id)  # 不存在则抛 404 语义错误
     title = body.title.strip()
     if not title:
-        raise ValueError("标题不能为空")
+        raise AppError(ErrorCode.INVALID_REQUEST, "标题不能为空")
     store.update_session_title(session_id, title)
     return store.get_session(session_id)
 

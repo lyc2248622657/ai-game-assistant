@@ -11,9 +11,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from pydantic import BaseModel, Field
 
+from app.core.errors import AppError, ErrorCode
 from app.knowledge.games import registry
 
 router = APIRouter(prefix="/api/knowledge", tags=["knowledge"])
@@ -32,12 +33,11 @@ class FeedbackRequest(BaseModel):
 @router.post("/feedback")
 def submit_feedback(body: FeedbackRequest):
     gid = (body.game_id or "").strip().lower()
-    if gid not in ("genshin", "arknights"):
-        raise HTTPException(status_code=400, detail="无效的 game_id")
-    try:
-        game = registry.get_game(gid)
-    except Exception:  # noqa: BLE001
-        raise HTTPException(status_code=400, detail="游戏不存在")
+    # 不再写死两个游戏：由注册表（games.yaml）决定有哪些合法 game_id
+    known = {g["game_id"] for g in registry.list_games(only_enabled=False)}
+    if gid not in known:
+        raise AppError(ErrorCode.INVALID_REQUEST, f"无效的 game_id: {gid}（可选：{'、'.join(sorted(known))}）")
+    game = registry.get_game(gid)
 
     fb_dir = game.data_dir / "feedback"
     fb_dir.mkdir(parents=True, exist_ok=True)

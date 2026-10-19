@@ -16,10 +16,10 @@ from __future__ import annotations
 
 import json
 import re
+import threading
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any
 
 import httpx
 
@@ -286,7 +286,7 @@ def derive_ak_events(activities: list[dict], versions: list[dict], now: datetime
 
     for a in activities:
         _add("activity", a["name"], a["start"], a["end"],
-             f"官方起止时间（bwiki 活动关卡）", estimated=False)
+             "官方起止时间（bwiki 活动关卡）", estimated=False)
     events.sort(key=lambda e: e["start"])
     return events
 
@@ -529,18 +529,42 @@ def _load_cache() -> dict | None:
 
 
 def _save_cache(payload: dict) -> None:
+    """原子写：先写临时文件再替换，避免并发读到半截 JSON"""
     try:
-        CACHE_FILE.write_text(json.dumps({"ts": time.time(), **payload}, ensure_ascii=False, indent=2), encoding="utf-8")
+        CACHE_FILE.parent.mkdir(parents=True, exist_ok=True)
+        tmp = CACHE_FILE.with_suffix(".json.tmp")
+        tmp.write_text(
+            json.dumps({"ts": time.time(), **payload}, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+        tmp.replace(CACHE_FILE)
     except Exception as e:  # noqa: BLE001
         logger.warning("事件缓存写入失败: %s", e)
 
 
-def build_events(force: bool = False) -> dict:
-    """构建事件响应：缓存命中直接返回；否则抓取+推算"""
-    cached = None if force else _load_cache()
-    if cached:
-        return cached.get("games", [])
+_BUILD_LOCK = threading.Lock()
 
+
+def build_events(force: bool = False) -> list[dict]:
+    """构建事件响应：缓存命中直接返回；否则抓取+推算。
+
+    加进程内互斥锁：冷缓存时并发请求原本会各自打一遍 wiki（4 路串行 HTTP），
+    既慢又容易被上游限流。
+    """
+    if not force:
+        cached = _load_cache()
+        if cached:
+            return cached.get("games", [])
+    with _BUILD_LOCK:
+        # 双重检查：等锁期间可能已被别的请求填好缓存
+        if not force:
+            cached = _load_cache()
+            if cached:
+                return cached.get("games", [])
+        return _build_events_uncached()
+
+
+def _build_events_uncached() -> list[dict]:
     games_out: list[dict] = []
     now = datetime.now()
 
