@@ -1,0 +1,32 @@
+{
+  "_comment": "检索 golden set：query → 期望在 top-k 中出现的文档标题。kind=name 为实体名直查（防合并/遮蔽类回归），kind=relation 为关系型提问（考验 BM25/向量/规则补充）。新增加游戏时按同样格式追加。",
+  "version": 1,
+  "cases": [
+    {"id": "gs-name-01", "game_id": "genshin", "kind": "name", "query": "胡桃", "expect": ["胡桃"]},
+    {"id": "gs-name-02", "game_id": "genshin", "kind": "name", "query": "那维莱特", "expect": ["那维莱特"]},
+    {"id": "gs-name-03", "game_id": "genshin", "kind": "name", "query": "哥伦比娅是几星", "expect": ["哥伦比娅"]},
+    {"id": "gs-name-04", "game_id": "genshin", "kind": "name", "query": "散兵的技能", "expect": ["散兵"]},
+    {"id": "gs-name-05", "game_id": "genshin", "kind": "name", "query": "薙草之稻光", "expect": ["薙草之稻光"]},
+    {"id": "gs-name-06", "game_id": "genshin", "kind": "name", "query": "绝缘之旗印", "expect": ["绝缘之旗印"]},
+    {"id": "gs-name-07", "game_id": "genshin", "kind": "name", "query": "万民堂水煮鱼怎么做", "expect": ["万民堂水煮鱼"]},
+    {"id": "gs-name-08", "game_id": "genshin", "kind": "name", "query": "燃愿玛瑙哪里刷", "expect": ["燃愿玛瑙"]},
+    {"id": "gs-name-09", "game_id": "genshin", "kind": "name", "query": "万达国际", "expect": ["万达国际"]},
+    {"id": "gs-name-10", "game_id": "genshin", "kind": "name", "query": "胡桃蒸发队配队思路", "expect": ["胡桃蒸发队"]},
+
+    {"id": "gs-rel-01", "game_id": "genshin", "kind": "relation", "query": "胡桃用什么圣遗物", "expect": ["炽烈的炎之魔女", "胡桃"]},
+    {"id": "gs-rel-02", "game_id": "genshin", "kind": "relation", "query": "那维莱特怎么配队", "expect": ["那维莱特水伤队", "那维莱特"]},
+    {"id": "gs-rel-03", "game_id": "genshin", "kind": "relation", "query": "神里绫华永冻怎么打", "expect": ["神里永冻队"]},
+    {"id": "gs-rel-04", "game_id": "genshin", "kind": "relation", "query": "雷电将军国家队", "expect": ["雷电国家队"]},
+    {"id": "gs-rel-05", "game_id": "genshin", "kind": "relation", "query": "护摩之杖适合谁", "expect": ["护摩之杖"]},
+    {"id": "gs-rel-06", "game_id": "genshin", "kind": "relation", "query": "翠绿之影给谁用", "expect": ["翠绿之影"]},
+    {"id": "gs-rel-07", "game_id": "genshin", "kind": "relation", "query": "宵宫用什么武器", "expect": ["宵宫"]},
+    {"id": "gs-rel-08", "game_id": "genshin", "kind": "relation", "query": "钟离值得抽吗", "expect": ["钟离"]},
+
+    {"id": "ak-name-01", "game_id": "arknights", "kind": "name", "query": "银灰", "expect": ["银灰"]},
+    {"id": "ak-name-02", "game_id": "arknights", "kind": "name", "query": "能天使的技能", "expect": ["能天使"]},
+    {"id": "ak-name-03", "game_id": "arknights", "kind": "name", "query": "阿米娅怎么样", "expect": ["阿米娅"]},
+    {"id": "ak-name-04", "game_id": "arknights", "kind": "name", "query": "塞雷娅", "expect": ["塞雷娅"]},
+    {"id": "ak-rel-01", "game_id": "arknights", "kind": "relation", "query": "银灰怎么练", "expect": ["银灰"]},
+    {"id": "ak-rel-02", "game_id": "arknights", "kind": "relation", "query": "能天使适合什么阵容", "expect": ["能天使"]}
+  ]
+}

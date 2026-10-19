@@ -34,6 +34,11 @@ jobs:
           python scripts/validate_data.py --game genshin
           python scripts/validate_data.py --game arknights
 
+      - name: Retrieval regression (golden set)
+        working-directory: backend
+        # 不加载 embedding 模型，只跑名称+BM25；hit@5 低于 0.95 视为检索回归
+        run: python scripts/eval/retrieval_eval.py --no-vector --k 5 --min-hit 0.95
+
       - name: Run pytest
         working-directory: backend
         run: |
