@@ -11,10 +11,8 @@
   - memory：Memory RAG 向量召回历史记忆（用户偏好 + 会话摘要 + 常问实体）注入上下文
 """
 import json
-import re
 import time
-from pathlib import Path
-from typing import Any, Literal
+from typing import Literal
 
 from langchain_core.messages import ToolMessage
 from langgraph.graph import END, START, StateGraph
@@ -31,13 +29,14 @@ from app.agents.prompts import (
     prepare_history,
 )
 from app.agents.state import AgentState
+from app.core.llm_json import extract_json
 from app.core.logging import get_logger
 from app.knowledge.games import registry
 from app.memory.memory_rag import memory_rag
 from app.memory.session_memory import session_memory
 from app.memory.user_memory import user_memory
 from app.tools.base import ToolContext
-from app.tools.game_entity import FILE_BY_TYPE, _attach_image, load_entries, search_entry
+from app.tools.game_entity import _attach_image, search_entry
 from app.tools.registry import tool_registry
 
 logger = get_logger(__name__)
@@ -132,31 +131,24 @@ def supervisor_node(state: AgentState) -> AgentState:
                     {"role": "user", "content": state["user_message"]},
                 ]
             )
-            m = re.search(r"\{.*\}", resp.content or "", re.S)
-            try:
-                data = json.loads(m.group(0)) if m else {}
+            data = extract_json(resp.content or "") or {}
+            if data:
                 break
-            except Exception:  # noqa: BLE001
-                data = {}
-                if attempt == 0:
-                    logger.warning("supervisor JSON 解析失败，重试一次")
-                    _emit(state, {"type": "agent_start", "node_name": N_SUPERVISOR, "message": "意图识别失败，正在重试…"})
-                    # 追加严格 JSON 约束后重试
-                    strict_instruction = SUPERVISOR_INSTRUCTION + "\n【硬性要求】只输出一个合法 JSON 对象，不要任何解释或额外文本。"
-                    resp = model.invoke(
-                        [
-                            {
-                                "role": "system",
-                                "content": build_agent_system_prompt(None, state.get("memory_context")) + "\n\n" + strict_instruction,
-                            },
-                            {"role": "user", "content": state["user_message"]},
-                        ]
-                    )
-                    m = re.search(r"\{.*\}", resp.content or "", re.S)
-                    try:
-                        data = json.loads(m.group(0)) if m else {}
-                    except Exception:  # noqa: BLE001
-                        data = {}
+            if attempt == 0:
+                logger.warning("supervisor JSON 解析失败，重试一次")
+                _emit(state, {"type": "agent_start", "node_name": N_SUPERVISOR, "message": "意图识别失败，正在重试…"})
+                # 追加严格 JSON 约束后重试
+                strict_instruction = SUPERVISOR_INSTRUCTION + "\n【硬性要求】只输出一个合法 JSON 对象，不要任何解释或额外文本。"
+                resp = model.invoke(
+                    [
+                        {
+                            "role": "system",
+                            "content": build_agent_system_prompt(None, state.get("memory_context")) + "\n\n" + strict_instruction,
+                        },
+                        {"role": "user", "content": state["user_message"]},
+                    ]
+                )
+                data = extract_json(resp.content or "") or {}
 
         # ① 游戏判别：Agent 识别出的 game_id 覆盖初始默认值；未识别时关键词规则兜底
         detected_game = str(data.get("game_id") or "").strip().lower()
@@ -442,19 +434,47 @@ def _build_task_plan_prompt(subtasks: list[dict]) -> str:
     return "\n".join(lines)
 
 
+# 资料上下文预算：单条上限 / 总量上限（字符）
+_MATERIAL_ITEM_MAX = 1200
+_MATERIALS_TOTAL_MAX = 8000
+
+
 def _build_materials(state: AgentState) -> list[str]:
-    """汇总检索/工具结果，作为 synthesize 与 reflect 共享的资料上下文"""
+    """汇总检索/工具结果，作为 synthesize 与 reflect 共享的资料上下文。
+
+    上下文预算（原实现把每条资料的完整 JSON 全量拼进 prompt）：
+    方舟单条实体约 15KB，top_k=4 就 ≈17k tokens，列举类 top_k=12 可达 ~60k tokens。
+    这里按"单条上限 + 总量上限"截断，超出部分显式标注条数，避免提示词无限膨胀。
+    """
     materials: list[str] = []
+    used = 0
+    omitted = 0
+
+    def _push(text: str) -> None:
+        nonlocal used, omitted
+        text = text.strip()
+        if not text:
+            return
+        if len(text) > _MATERIAL_ITEM_MAX:
+            text = text[:_MATERIAL_ITEM_MAX] + "…（已截断）"
+        if used + len(text) > _MATERIALS_TOTAL_MAX:
+            omitted += 1
+            return
+        materials.append(text)
+        used += len(text)
+
     for d in state.get("retrieved_docs", []):
-        materials.append(f"[资料] {d['title']}: {d['content']}")
+        _push(f"[资料] {d.get('title', '')}: {d.get('content', '')}")
     for tr in state.get("tool_results", []):
         res = tr.get("result", {})
         if isinstance(res, dict) and res.get("entity"):
-            materials.append(f"[工具结果] {json.dumps(res['entity'], ensure_ascii=False)}")
+            _push(f"[工具结果] {json.dumps(res['entity'], ensure_ascii=False)}")
         elif isinstance(res, dict):
-            materials.append(f"[工具结果] {json.dumps(res, ensure_ascii=False)}")
+            _push(f"[工具结果] {json.dumps(res, ensure_ascii=False)}")
         else:
-            materials.append(f"[工具结果] {res}")
+            _push(f"[工具结果] {res}")
+    if omitted:
+        materials.append(f"[提示] 另有 {omitted} 条资料因长度上限未纳入，如需细节请缩小问题范围。")
     return materials
 
 
@@ -484,26 +504,11 @@ def _find_related_entities(state: AgentState) -> list[str]:
 _ENTITY_IMG_MAX = 4  # 回答最多夹带图片数（A 全覆盖 / B 多图）
 
 
-def _load_all_entries(game_dir: Path) -> list[dict]:
-    """加载某游戏全部类型条目（静态库 + 动态缓存）"""
-    out: list[dict] = []
-    for fname in FILE_BY_TYPE.values():
-        for sub in ("", "dynamic"):
-            p = game_dir / sub / fname
-            if not p.exists():
-                continue
-            try:
-                data = json.loads(p.read_text(encoding="utf-8"))
-                items = data if isinstance(data, list) else [data]
-                out.extend(x for x in items if isinstance(x, dict))
-            except Exception:  # noqa: BLE001
-                continue
-    return out
-
-
 def _entity_image_url(game, name: str) -> str:
     """取实体图片网络直链：库内已存 http(s) 直链优先；相对路径/缺失 → 从 wiki 抓取一次（仅本次回答用，不阻塞）"""
-    for e in _load_all_entries(game.data_dir):
+    from app.rag.retriever import load_all_entries
+
+    for e in load_all_entries(game):
         if not search_entry([e], name):
             continue
         u = str(e.get("image_url") or e.get("image") or "")
@@ -532,8 +537,10 @@ def _entity_candidates(state: AgentState) -> list[str]:
                     seen.add(n)
                     names.append(n)
     try:
+        from app.rag.retriever import load_all_entries
+
         game = registry.get_game(state["game_id"])
-        all_entries = _load_all_entries(game.data_dir)
+        all_entries = load_all_entries(game)
     except Exception:  # noqa: BLE001
         all_entries = []
     for txt in [*(str(d.get("title") or "") for d in state.get("retrieved_docs", [])), str(state.get("user_message") or "")]:
@@ -739,8 +746,6 @@ def _replan_signals(state: AgentState) -> tuple[list[dict], bool]:
         res = tr.get("result", {})
         if isinstance(res, dict) and (res.get("found") is False or res.get("error")):
             failed = True
-        if isinstance(res, dict) and res.get("found") is False:
-            failed = True
     return pending, failed
 
 
@@ -777,8 +782,7 @@ def replan_node(state: AgentState) -> AgentState:
                 {"role": "user", "content": transcript},
             ]
         )
-        m = re.search(r"\{.*\}", resp.content or "", re.S)
-        data = json.loads(m.group(0)) if m else {}
+        data = extract_json(resp.content or "") or {}
         if not data.get("complete"):
             remaining = [
                 {
@@ -832,10 +836,13 @@ def reflect_node(state: AgentState) -> AgentState:
                 },
             ]
         )
-        import re
-
-        m = re.search(r"\{.*\}", resp.content or "", re.S)
-        data = json.loads(m.group(0)) if m else {}
+        data = extract_json(resp.content or "")
+        if data is None:
+            # 解析失败 ≠ 质检不通过：原实现按"未通过"处理，会白白回炉一整轮 synthesize
+            logger.info("[%s] 质检输出无法解析，按跳过处理", state["game_id"])
+            state["self_reflect"] = {"passed": True, "issues": [], "revised": ""}
+            _emit(state, {"type": "agent_end", "node_name": N_REFLECT, "summary": "质检输出无法解析，跳过"})
+            return state
         passed = str(data.get("pass", "")).lower() in ("true", "1", "yes")
         issues = [str(i) for i in data.get("issues", []) if i] or ([] if passed else ["未通过质检"])
         revised = str(data.get("revised_answer") or "").strip()
@@ -883,6 +890,17 @@ def decide_next(state: AgentState) -> Literal["retrieve", "tool", "synthesize"]:
     return N_RETRIEVE
 
 
+def decide_after_tool(state: AgentState) -> Literal["replan", "fallback"]:
+    """工具节点异常 → 收敛到 fallback（原先 fallback 无入边，等于死代码）。
+
+    正常路径不受影响：只有 state["error"] 非空时才改道。
+    """
+    if state.get("error"):
+        logger.warning("工具节点异常，路由到 fallback 收敛: %s", state["error"])
+        return N_FALLBACK
+    return N_REPLAN
+
+
 def decide_replan(state: AgentState) -> Literal["tool", "synthesize"]:
     """重规划判断：需要补充执行 → 回 tool 二次执行；否则进入汇总"""
     if state.get("replan_needed"):
@@ -928,7 +946,9 @@ def build_graph():
     g.add_edge(N_SUPERVISOR, N_ROUTE)
     g.add_conditional_edges(N_ROUTE, decide_next, {N_RETRIEVE: N_RETRIEVE, N_TOOL: N_TOOL, N_SYNTHESIZE: N_SYNTHESIZE})
     g.add_conditional_edges(N_RETRIEVE, decide_after_retrieve, {N_SYNTHESIZE: N_SYNTHESIZE, N_TOOL: N_TOOL})
-    g.add_edge(N_TOOL, N_REPLAN)
+    g.add_conditional_edges(
+        N_TOOL, decide_after_tool, {N_REPLAN: N_REPLAN, N_FALLBACK: N_FALLBACK}
+    )
     g.add_conditional_edges(N_REPLAN, decide_replan, {N_TOOL: N_TOOL, N_SYNTHESIZE: N_SYNTHESIZE})
     g.add_edge(N_SYNTHESIZE, N_REFLECT)
     g.add_conditional_edges(N_REFLECT, decide_reflect, {N_SYNTHESIZE: N_SYNTHESIZE, "end": END})

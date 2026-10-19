@@ -28,23 +28,27 @@ def build_chat_model(**overrides):
 
 
 _cached_model = None
-_cached_key: str | None = None
+_cached_sig: tuple[str, str] | None = None
 
 
 def get_chat_model():
-    """获取模型实例：key 或 model 变化时自动重建（应用内设置保存后即时生效）"""
-    global _cached_model, _cached_key
+    """获取模型实例：key 或 model 任一变化即重建（应用内设置保存后即时生效）。
+
+    缓存键用 (key, model) 元组——原实现只比较 key，
+    于是"同一个 key 切模型"不会生效，"key 被清空"仍会复用旧实例。
+    """
+    global _cached_model, _cached_sig
     model, key = key_manager.resolve_runtime()
-    if key and key != _cached_key:
+    if not key or key.startswith("sk-xxx"):
+        logger.warning("未配置 DEEPSEEK_API_KEY，Agent 将无法调用模型（请在应用内设置界面填写）")
+        return None
+
+    sig = (key, model or settings.deepseek_model)
+    if _cached_model is None or sig != _cached_sig:
         settings.deepseek_api_key = key
         if model:
             settings.deepseek_model = model
         _cached_model = build_chat_model()
-        _cached_key = key
-        logger.info("LLM 实例已按当前 Key 重建（%s）", key_manager.mask_key(key))
-    elif _cached_model is None and key:
-        _cached_model = build_chat_model()
-        _cached_key = key
-    if not key or key.startswith("sk-xxx"):
-        logger.warning("未配置 DEEPSEEK_API_KEY，Agent 将无法调用模型（请在应用内设置界面填写）")
+        _cached_sig = sig
+        logger.info("LLM 实例已重建（key=%s, model=%s）", key_manager.mask_key(key), settings.deepseek_model)
     return _cached_model

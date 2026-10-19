@@ -47,6 +47,7 @@ class AgentState(TypedDict, total=False):
     messages: list[dict]            # 历史消息（记忆注入用）
     image_path: Optional[str]       # 本轮用户上传的游戏截图本地路径（多模态）
     ablate: dict                    # 组件消融开关（3.3：{"replan"/"reflect"/"hybrid"/"memory": True 时禁用该组件）
+    memory_context: Optional[str]   # 记忆注入上下文（用户偏好 + 摘要 + Memory RAG 召回）
 
     # 规划与路由
     plan: Optional[str]             # 任务分解结果
@@ -71,8 +72,7 @@ class AgentState(TypedDict, total=False):
     citations: Annotated[list[dict], _dedup_extend]       # 最终引用列表
 
     # 可靠性
-    error: Optional[str]            # 异常信息
-    retry_count: int                # 重试计数
+    error: Optional[str]            # 异常信息（非空时图路由到 fallback 收敛）
 
     # Reflection 自检（阶段三：synthesize 后质检 → 不合格回炉一次）
     reflect_retries: int            # 质检回炉次数（上限 1）
@@ -83,6 +83,8 @@ class AgentState(TypedDict, total=False):
     suggestions: Annotated[list[str], _dedup_extend]  # 猜测适配选项（问实体时生成）
     entity_image: Optional[str]     # 主实体图片 URL（角色图/武器图，前端渲染）
     entity_images: list[str]        # 回答相关图片列表（主实体 + 关联实体多图，A/B 全覆盖）
+    related_entities: list[str]     # 未收录时的相关实体提示（前端渲染"补充资料"入口）
+    guides: Optional[dict]          # 攻略检索结果（视频列表 + 搜索直达 + wiki 攻略页）
     events: Annotated[list[dict], _dedup_extend]      # Agent 过程事件（SSE 转发给前端时间线）
 
 
@@ -100,6 +102,7 @@ def initial_state(
         "messages": messages,
         "image_path": image_path,
         "ablate": {},
+        "memory_context": None,
         "task_type": None,
         "plan": None,
         "guide_type": None,
@@ -114,12 +117,13 @@ def initial_state(
         "tool_results": [],
         "citations": [],
         "error": None,
-        "retry_count": 0,
         "reflect_retries": 0,
         "self_reflect": None,
         "final_answer": None,
         "suggestions": [],
         "entity_image": None,
         "entity_images": [],
+        "related_entities": [],
+        "guides": None,
         "events": [],
     }
