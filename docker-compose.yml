@@ -9,6 +9,12 @@ services:
       - "8000:8000"
     env_file:
       - ./backend/.env
+    # 接口鉴权：端口映射属于"非本机访问"，必须在 backend/.env 里设置 API_TOKEN，
+    # 否则容器内 /api 请求会被 401（前端会提示输入令牌）。
+    # 反向代理场景建议同时设置 TRUST_LOOPBACK=0。
+    environment:
+      API_TOKEN: ${API_TOKEN:-}
+      TRUST_LOOPBACK: ${TRUST_LOOPBACK:-1}
     volumes:
       # 数据（静态知识包 + 动态缓存 + Chroma + SQLite）持久化
       - ./backend/data:/app/data

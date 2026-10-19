@@ -5,20 +5,68 @@ import type {
   DocqaDocument,
   GameInfo,
   SessionInfo,
+  StoredMessage,
   VectorCollection,
   VectorStats,
 } from '../types'
 
 const BASE = '/api'
+const TOKEN_KEY = 'aiga.api_token'
+
+/** 读取本地保存的访问令牌（本机回环免令牌，远端部署时由用户在页面填入） */
+export function getToken(): string {
+  try {
+    return localStorage.getItem(TOKEN_KEY) || ''
+  } catch {
+    return ''
+  }
+}
+
+export function setToken(token: string): void {
+  try {
+    if (token) localStorage.setItem(TOKEN_KEY, token)
+    else localStorage.removeItem(TOKEN_KEY)
+  } catch {
+    /* 隐私模式/禁用存储时忽略 */
+  }
+}
+
+/** 给 `<img src>` 这类无法自定义请求头的 URL 附加令牌（后端支持 ?token=） */
+export function withToken(url: string): string {
+  const t = getToken()
+  if (!t || !url) return url
+  if (url.startsWith('data:') || url.startsWith('blob:') || url.startsWith('http')) return url
+  return `${url}${url.includes('?') ? '&' : '?'}token=${encodeURIComponent(t)}`
+}
+
+/** 401：需要访问令牌（UI 据此弹出令牌输入，而不是显示一条"请求失败"） */
+export class AuthRequiredError extends Error {
+  constructor(message = '需要访问令牌') {
+    super(message)
+    this.name = 'AuthRequiredError'
+  }
+}
+
+function authHeaders(extra?: HeadersInit): Record<string, string> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...((extra as Record<string, string> | undefined) ?? {}),
+  }
+  const t = getToken()
+  if (t) headers.Authorization = `Bearer ${t}`
+  return headers
+}
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
-    ...init,
-  })
+  const res = await fetch(`${BASE}${path}`, { ...init, headers: authHeaders(init?.headers) })
+  if (res.status === 401) {
+    const body = await res.json().catch(() => ({}))
+    throw new AuthRequiredError(body?.message || '需要访问令牌')
+  }
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))
-    throw new Error(body?.message || `请求失败: ${res.status}`)
+    // 后端统一契约是 {code, message}；detail 仅用于兼容旧版/框架级错误
+    throw new Error(body?.message || body?.detail || `请求失败: ${res.status}`)
   }
   return res.json() as Promise<T>
 }
@@ -41,9 +89,7 @@ export const api = {
   deleteSession: (sessionId: string) =>
     request<{ ok: boolean }>(`/sessions/${sessionId}`, { method: 'DELETE' }),
   getMessages: (sessionId: string) =>
-    request<{ messages: Array<{ role: string; content: string; citations?: unknown[]; images?: string[] }> }>(
-      `/sessions/${sessionId}/messages`,
-    ),
+    request<{ messages: StoredMessage[] }>(`/sessions/${sessionId}/messages`),
 
   // 知识库补充（资料未收录 → 提交补充请求，待人工核实入库）
   submitFeedback: (gameId: string, entityName: string, note?: string) =>
@@ -57,6 +103,17 @@ export const api = {
     request<{ configured: boolean; source?: string | null; model?: string; masked_key?: string }>(
       '/settings/key',
     ),
+
+  // 接口鉴权：/api/auth/status 豁免鉴权，用于判断是否需要输入访问令牌
+  getAuthStatus: () =>
+    request<{
+      auth_required: boolean
+      authorized: boolean
+      loopback: boolean
+      token_configured: boolean
+      token?: string | null
+    }>('/auth/status'),
+  verifyToken: () => request<{ ok: boolean }>('/auth/verify', { method: 'POST' }),
   saveKey: (apiKey: string, model: string) =>
     request<{ ok: boolean; model: string; masked_key: string; message: string }>('/settings/key', {
       method: 'PUT',
@@ -165,13 +222,17 @@ async function streamOnce(
   try {
     res = await fetch(`${BASE}/chat/stream`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(),
       body: JSON.stringify({ game_id: gameId, message, session_id: sessionId, image_path: imagePath }),
       signal,
     })
   } catch (e) {
     if (signal?.aborted) throw e
     throw new StreamConnectionError(`连接失败: ${(e as Error).message}`)
+  }
+  if (res.status === 401) {
+    const body = await res.json().catch(() => ({}))
+    throw new AuthRequiredError(body?.message || '需要访问令牌')
   }
   if (!res.ok) {
     if (res.status >= 500) throw new StreamConnectionError(`服务暂时不可用 (${res.status})`)
@@ -234,6 +295,7 @@ export async function streamChat(
       return
     } catch (e) {
       if (signal?.aborted) throw e
+      if (e instanceof AuthRequiredError) throw e
       if (e instanceof StreamInterruptedError) throw e
       if (!(e instanceof StreamConnectionError)) throw e
       if (attempt >= maxAttempts - 1) throw e

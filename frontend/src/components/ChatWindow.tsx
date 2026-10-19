@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import type { ChatMessage } from '../types'
-import { api } from '../api/client'
+import { api, withToken } from '../api/client'
 import { renderMarkdown } from '../utils/markdown'
 
 interface Props {
@@ -77,7 +77,7 @@ export function ChatWindow({ messages, loading, gameId, onSend, onStop }: Props)
             >
               {m.role === 'user' && m.user_image && (
                 <img
-                  src={m.user_image}
+                  src={withToken(m.user_image)}
                   alt="上传截图"
                   className="mb-2 max-h-40 rounded-lg border border-blue-200 object-cover"
                 />
@@ -89,7 +89,7 @@ export function ChatWindow({ messages, loading, gameId, onSend, onStop }: Props)
                     {m.images.map((u, ui) => (
                       <img
                         key={u}
-                        src={u}
+                        src={withToken(u)}
                         alt={m.images!.length === 1 ? '相关图片' : `相关图片 ${ui + 1}`}
                         className={
                           m.images!.length === 1
@@ -106,7 +106,7 @@ export function ChatWindow({ messages, loading, gameId, onSend, onStop }: Props)
                 // 助手消息带实体头像：圆形图片 + 文字并排
                 <div className="mb-2 flex items-start gap-3">
                   <img
-                    src={m.image_url}
+                    src={withToken(m.image_url)}
                     alt="实体头像"
                     className="h-24 w-24 shrink-0 rounded-xl border border-gray-100 object-cover shadow-sm"
                     onError={(e) => ((e.target as HTMLImageElement).style.display = 'none')}
@@ -219,7 +219,7 @@ export function ChatWindow({ messages, loading, gameId, onSend, onStop }: Props)
       <div className="border-t p-3">
         {pendingImage && (
           <div className="mb-2 flex items-center gap-2 rounded-lg bg-blue-50 p-2">
-            <img src={pendingImage.url} alt="待发送截图" className="h-14 w-14 rounded object-cover" />
+            <img src={withToken(pendingImage.url)} alt="待发送截图" className="h-14 w-14 rounded object-cover" />
             <span className="flex-1 truncate text-xs text-gray-500">截图已就绪，随消息发送</span>
             <button
               onClick={() => setPendingImage(null)}
