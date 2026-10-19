@@ -51,8 +51,24 @@ export interface ChatMessage {
   guides?: GuideInfo
 }
 
-/** 本轮对话的 LLM token 消耗（后端 usage 回调统计） */
-export interface UsageInfo {
+/** 后端持久化的引用项：新数据用 snippet，旧数据可能是 content（渲染前需归一） */
+export interface StoredCitation {
+  doc_id?: string
+  title?: string
+  snippet?: string
+  content?: string
+  source?: string
+}
+
+/** GET /api/sessions/{id}/messages 返回的持久化消息形状 */
+export interface StoredMessage {
+  role: string
+  content: string
+  citations?: StoredCitation[]
+  images?: string[]
+}
+
+/** 本轮对话的 LLM token 消耗（后端 usage 回调统计） */export interface UsageInfo {
   input_tokens: number
   output_tokens: number
   total_tokens: number

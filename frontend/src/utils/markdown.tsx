@@ -68,8 +68,10 @@ function renderInline(text: string, keyBase: string): React.ReactNode[] {
   for (let i = 0; i < urlMasked.length; i++) {
     const seg = urlMasked[i]
     if (seg.startsWith('\u0000URL')) {
-      const idx = Number(seg.slice(5, -1))
-      const url = protectedParts[idx]
+      // 占位符是 \u0000URL{n}\u0000，数字在下标 4
+      // （原实现 slice(5, -1) 恒为空串 → Number('') === 0，导致所有链接都指向第一个 URL）
+      const idx = Number(seg.slice(4, -1))
+      const url = protectedParts[idx] ?? ''
       const display = url.length > 48 ? url.slice(0, 46) + '…' : url
       nodes.push(
         <a key={`${keyBase}-a${key++}`} href={url} target="_blank" rel="noopener noreferrer"
