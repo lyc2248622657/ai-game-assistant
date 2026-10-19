@@ -2,7 +2,7 @@
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path('.').resolve()))
-from scripts.crawler.base import WikiClient, parse_template_fields
+from scripts.crawler.base import WikiClient
 c = WikiClient("https://prts.wiki/api.php", interval=1.0)
 try:
     wt = c.parse_wikitext("珊比")

@@ -72,7 +72,7 @@ def main() -> int:
     p50 = latencies[n // 2] if n else 0
     p95 = latencies[int(n * 0.95)] if n else 0
     avg = sum(latencies) / n if n else 0
-    print(f"\n===== Chroma 并发压力测试 =====")
+    print("\n===== Chroma 并发压力测试 =====")
     print(f"并发线程: {args.threads} × {args.rounds} 轮 = {n} 次查询")
     print(f"墙钟耗时: {wall:.2f}s（理论串行下限 ≈ {sum(latencies):.2f}s）")
     print(f"平均延迟: {avg * 1000:.1f}ms  P50: {p50 * 1000:.1f}ms  P95: {p95 * 1000:.1f}ms")

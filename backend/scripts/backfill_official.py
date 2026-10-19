@@ -46,7 +46,7 @@ def backfill(game, entry_type: str, limit: int = 0) -> tuple[int, int]:
         try:
             wf = _fetch_official(entry_type, name, game)
             if not wf:
-                print(f"  -> wiki 无数据，跳过（保留原样）", flush=True)
+                print("  -> wiki 无数据，跳过（保留原样）", flush=True)
                 skipped += 1
                 continue
             new_entry = _build_from_wiki(llm, entry_type, name, wf)

@@ -1,6 +1,5 @@
 """探测原神 BWIKI 数据源 API 可用性与结构（一次性侦察脚本）"""
 import json
-import sys
 import httpx
 
 BASE = "https://wiki.biligame.com/ys/api.php"

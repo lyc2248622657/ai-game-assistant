@@ -146,9 +146,10 @@ def main() -> int:
     n = len(rows)
     if n >= 3:
         lens = sorted((r["answer_len"], r["id"]) for r in rows)
-        ranks = {r["id"]: i + 1 for i, (_, cid) in enumerate(lens)}
+        # 键必须取排序元组里的 id（原来写成 r["id"]，会退化成一个只含"最后一行 id"的字典）
+        ranks = {cid: i + 1 for i, (_, cid) in enumerate(lens)}
         accs = sorted((r["judge"]["accuracy"], r["id"]) for r in rows)
-        acc_ranks = {r["id"]: i + 1 for i, (_, cid) in enumerate(accs)}
+        acc_ranks = {cid: i + 1 for i, (_, cid) in enumerate(accs)}
         d2 = sum((ranks[cid] - acc_ranks[cid]) ** 2 for r in rows for cid in [r["id"]])
         rho = 1 - 6 * d2 / (n * (n * n - 1))
         print(f"  长度-accuracy 秩相关 ρ={rho:+.3f}（>0.3 提示长度偏好风险）")

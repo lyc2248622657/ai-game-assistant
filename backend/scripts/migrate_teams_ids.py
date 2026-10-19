@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """迁移 teams.json：成员 id 英文→中文（对齐采集器 id 体系 character_中文名）"""
-import io
 import json
-import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent

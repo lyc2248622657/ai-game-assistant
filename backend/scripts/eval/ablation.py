@@ -142,8 +142,9 @@ def main() -> int:
                 })
         usage = usage_stats.snapshot()
 
-        def avg(key):
-            vals = [r["scores"][key] for r in results if r["scores"].get(key) is not None]
+        def avg(key, _results=results):
+            # 绑定当前轮的 results（闭包默认参数），避免后续循环重绑定导致统计串轮
+            vals = [r["scores"][key] for r in _results if r["scores"].get(key) is not None]
             return round(sum(vals) / len(vals), 3) if vals else 0.0
 
         hall_vals = [r["scores"]["hallucination_count"] for r in results if r["scores"].get("hallucination_count") is not None]

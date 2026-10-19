@@ -13,6 +13,7 @@
 """
 import argparse
 import json
+import re
 import sys
 import time
 from pathlib import Path
@@ -95,6 +96,41 @@ def _gt_in_answer(gt: str, answer: str) -> bool:
     return g in (answer or "")
 
 
+# 规则判定版本：v2 = ground_truth + key_points 全覆盖（数字/中文数字归一后比对）
+# v1 只看 ground_truth 子串，对"冰""火""5星"这类单词会显著虚高。
+GRADER_VERSION = "rule-v2"
+
+_HAN2DIGIT = {"一": "1", "二": "2", "三": "3", "四": "4", "五": "5",
+              "六": "6", "七": "7", "八": "8", "九": "9", "十": "10"}
+
+
+def _normalize(text: str) -> str:
+    """归一：去空白/引号，并把中文数字转成阿拉伯数字（"五星" → "5星"）"""
+    s = re.sub(r"\s+", "", str(text or ""))
+    s = s.strip("「」『』\"'“”")
+    return "".join(_HAN2DIGIT.get(ch, ch) for ch in s)
+
+
+def _rule_judge(case: dict, answer: str) -> tuple[bool, list[str]]:
+    """numeric 题判定：ground_truth 命中 **且** key_points 全部出现。
+
+    返回 (是否命中, 缺失项列表)。要求 key_points 全覆盖，是为了避免
+    "回答里恰好提到某个词" 就被判为正确（旧口径的主要虚高来源）。
+    """
+    ans = _normalize(answer)
+    missing: list[str] = []
+    gt = _normalize(case.get("ground_truth") or "")
+    if not gt:
+        return False, ["缺少 ground_truth"]
+    if gt not in ans:
+        missing.append(f"ground_truth={gt}")
+    for kp in case.get("key_points") or []:
+        k = _normalize(kp)
+        if k and k not in ans:
+            missing.append(f"key_point={k}")
+    return (not missing), missing
+
+
 def run_case(model, case: dict) -> dict:
     """跑单条：Agent 图 → 判定。
     numeric（含 ground_truth）→ 规则判定 accuracy，不调用 LLM Judge；
@@ -117,7 +153,7 @@ def run_case(model, case: dict) -> dict:
     gt = case.get("ground_truth")
     if gt:
         elapsed = round(time.time() - started, 1)
-        hit = _gt_in_answer(gt, answer)
+        hit, missing = _rule_judge(case, answer)
         # RAG 命中（numeric）：回答是否携带引用资料（实体工具/检索均会产生引用）
         retrieval_hit = 1.0 if citations else 0.0
         return {
@@ -139,9 +175,11 @@ def run_case(model, case: dict) -> dict:
                 "coverage": None,
                 "hallucination_count": None,
                 "rule_based": True,
+                "grader": GRADER_VERSION,
                 "ground_truth": gt,
+                "missing": missing,
             },
-            "comment": "规则判定命中" if hit else f"规则判定未命中（期望: {gt}）",
+            "comment": "规则判定命中" if hit else f"规则判定未命中（缺: {', '.join(missing) or '—'}）",
             "elapsed": elapsed,
         }
 
@@ -325,6 +363,18 @@ def main() -> int:
             "avg_tokens_per_case": round(usage["total_tokens"] / len(results), 0) if results else 0,
         },
         "by_type": {},
+        # 可复现性元信息：没有这些字段，跨版本/跨模型的分数不可比
+        "meta": {
+            "grader": GRADER_VERSION,
+            "agent_model": getattr(model, "model_name", None) or "unknown",
+            "judge_model": args.judge_model or "same_as_agent（存在自评偏差）",
+            "temperature": getattr(model, "temperature", None),
+            "runs": 1,
+            "note": "numeric 为规则判定（ground_truth + key_points 全覆盖）；judge 为 LLM 评审。"
+                    "结论只在同一 grader / 同一 model / 同一随机种子下可比。",
+            "generated_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+            "python": sys.version.split()[0],
+        },
     }
     for t in ("entity", "knowledge", "edge", "complex"):
         rs = [r for r in results if r["type"] == t]
