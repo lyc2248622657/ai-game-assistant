@@ -5,13 +5,12 @@
 """
 from __future__ import annotations
 
-import sqlite3
 from datetime import datetime, timezone
 
 from app.agents.llm import get_chat_model
-from app.core.config import settings
 from app.core.logging import get_logger
-from app.memory.store import SessionStore
+from app.core.sqlite import connect
+from app.memory.store import SessionStore, store as _shared_store
 
 logger = get_logger(__name__)
 
@@ -22,16 +21,13 @@ class SessionMemory:
     """会话摘要：读取/生成/更新（基于现有 SQLite 存储）"""
 
     def __init__(self, store: SessionStore | None = None):
-        self.store = store or SessionStore()
+        # 复用全局 SessionStore 单例：原实现 `store or SessionStore()` 会再建一个实例，
+        # 把建表/ALTER/PRAGMA 的副作用在导入期重跑一遍。
+        self.store = store or _shared_store
         self._ensure_summary_column()
 
-    def _connect(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(self.store.db_path)
-        conn.row_factory = sqlite3.Row
-        return conn
-
     def _ensure_summary_column(self) -> None:
-        with self._connect() as conn:
+        with connect(self.store.db_path) as conn:
             cols = {r[1] for r in conn.execute("PRAGMA table_info(sessions)")}
             if "summary" not in cols:
                 conn.execute("ALTER TABLE sessions ADD COLUMN summary TEXT")
@@ -44,14 +40,14 @@ class SessionMemory:
 
     # --- 读取 ---
     def get_summary(self, session_id: str) -> str | None:
-        with self._connect() as conn:
+        with connect(self.store.db_path) as conn:
             row = conn.execute(
                 "SELECT summary FROM sessions WHERE session_id = ?", (session_id,)
             ).fetchone()
         return (row["summary"] or None) if row else None
 
     def _get_summary_from(self, session_id: str) -> int:
-        with self._connect() as conn:
+        with connect(self.store.db_path) as conn:
             row = conn.execute(
                 "SELECT summary_from FROM sessions WHERE session_id = ?", (session_id,)
             ).fetchone()
@@ -97,7 +93,7 @@ class SessionMemory:
             if not summary:
                 return None
             last_id = pending[-1]["id"]
-            with self._connect() as conn:
+            with connect(self.store.db_path) as conn:
                 conn.execute(
                     "UPDATE sessions SET summary = ?, summary_from = ?, updated_at = ? WHERE session_id = ?",
                     (summary, last_id, datetime.now(timezone.utc).isoformat(), session_id),

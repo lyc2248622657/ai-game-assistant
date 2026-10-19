@@ -5,15 +5,14 @@
 """
 from __future__ import annotations
 
-import json
-import re
-import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
 
 from app.agents.llm import get_chat_model
 from app.core.config import settings
+from app.core.llm_json import extract_json
 from app.core.logging import get_logger
+from app.core.sqlite import connect
 
 logger = get_logger(__name__)
 
@@ -28,13 +27,8 @@ class UserMemory:
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._init_db()
 
-    def _connect(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(self.db_path)
-        conn.row_factory = sqlite3.Row
-        return conn
-
     def _init_db(self) -> None:
-        with self._connect() as conn:
+        with connect(self.db_path) as conn:
             conn.executescript(
                 """
                 CREATE TABLE IF NOT EXISTS user_prefs (
@@ -48,7 +42,7 @@ class UserMemory:
 
     # --- 读取 ---
     def get_prefs(self, game_id: str) -> list[str]:
-        with self._connect() as conn:
+        with connect(self.db_path) as conn:
             rows = conn.execute(
                 "SELECT pref FROM user_prefs WHERE game_id = ? ORDER BY updated_at DESC",
                 (game_id,),
@@ -79,13 +73,13 @@ class UserMemory:
                     {"role": "user", "content": transcript},
                 ]
             )
-            m = re.search(r"\{.*\}", resp.content or "", re.S)
-            prefs = json.loads(m.group(0)).get("prefs", []) if m else []
+            data = extract_json(resp.content or "") or {}
+            prefs = data.get("prefs", []) if isinstance(data.get("prefs"), list) else []
             prefs = [str(p).strip()[:20] for p in prefs if str(p).strip()]
             if not prefs:
                 return 0
             now = datetime.now(timezone.utc).isoformat()
-            with self._connect() as conn:
+            with connect(self.db_path) as conn:
                 for p in prefs:
                     conn.execute(
                         "INSERT INTO user_prefs(game_id, pref, updated_at) VALUES (?,?,?) "

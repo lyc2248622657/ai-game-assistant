@@ -1,12 +1,12 @@
 """会话记忆：SQLite 持久化存储（基础框架版）"""
 import json
-import sqlite3
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
 from app.core.config import settings
 from app.core.errors import AppError, ErrorCode
+from app.core.sqlite import connect
 
 
 class SessionStore:
@@ -22,13 +22,25 @@ class SessionStore:
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._init_db()
 
-    def _connect(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(self.db_path)
-        conn.row_factory = sqlite3.Row
-        return conn
+    @staticmethod
+    def _row_to_session(row) -> dict:
+        """行 → 会话字典（message_count 由 SQL 聚合列提供）"""
+        return {
+            "session_id": row["session_id"],
+            "game_id": row["game_id"],
+            "title": row["title"],
+            "created_at": row["created_at"],
+            "updated_at": row["updated_at"],
+            "message_count": int(row["message_count"] or 0),
+        }
+
+    _COUNT_SQL = (
+        "SELECT s.*, (SELECT COUNT(*) FROM messages m WHERE m.session_id = s.session_id)"
+        " AS message_count FROM sessions s"
+    )
 
     def _init_db(self) -> None:
-        with self._connect() as conn:
+        with connect(self.db_path) as conn:
             conn.executescript(
                 """
                 CREATE TABLE IF NOT EXISTS sessions (
@@ -52,7 +64,7 @@ class SessionStore:
                 """
             )
         # 兼容旧库：早版本 messages 无 images 列 → 增量补列
-        with self._connect() as conn:
+        with connect(self.db_path) as conn:
             cols = [r["name"] for r in conn.execute("PRAGMA table_info(messages)").fetchall()]
             if "images" not in cols:
                 conn.execute("ALTER TABLE messages ADD COLUMN images TEXT")
@@ -65,7 +77,7 @@ class SessionStore:
     def create_session(self, game_id: str, title: str = "新会话") -> dict:
         session_id = uuid.uuid4().hex[:16]
         now = self._now()
-        with self._connect() as conn:
+        with connect(self.db_path) as conn:
             conn.execute(
                 "INSERT INTO sessions(session_id, game_id, title, created_at, updated_at) VALUES (?,?,?,?,?)",
                 (session_id, game_id, title, now, now),
@@ -73,50 +85,31 @@ class SessionStore:
         return self.get_session(session_id)
 
     def get_session(self, session_id: str) -> dict:
-        with self._connect() as conn:
+        with connect(self.db_path) as conn:
             row = conn.execute(
-                "SELECT * FROM sessions WHERE session_id = ?", (session_id,)
+                f"{self._COUNT_SQL} WHERE s.session_id = ?", (session_id,)
             ).fetchone()
         if row is None:
             raise AppError(ErrorCode.SESSION_NOT_FOUND, f"会话不存在: {session_id}")
-        count = self.count_messages(session_id)
-        return {
-            "session_id": row["session_id"],
-            "game_id": row["game_id"],
-            "title": row["title"],
-            "created_at": row["created_at"],
-            "updated_at": row["updated_at"],
-            "message_count": count,
-        }
+        return self._row_to_session(row)
 
     def update_session_title(self, session_id: str, title: str) -> None:
         """更新会话标题（智能命名）"""
-        with self._connect() as conn:
+        with connect(self.db_path) as conn:
             conn.execute(
                 "UPDATE sessions SET title = ? WHERE session_id = ?", (title, session_id)
             )
 
     def list_sessions(self, game_id: str | None = None) -> list[dict]:
-        with self._connect() as conn:
-            if game_id:
-                rows = conn.execute(
-                    "SELECT * FROM sessions WHERE game_id = ? ORDER BY updated_at DESC", (game_id,)
-                ).fetchall()
-            else:
-                rows = conn.execute(
-                    "SELECT * FROM sessions ORDER BY updated_at DESC"
-                ).fetchall()
-        return [
-            {
-                "session_id": r["session_id"],
-                "game_id": r["game_id"],
-                "title": r["title"],
-                "created_at": r["created_at"],
-                "updated_at": r["updated_at"],
-                "message_count": self.count_messages(r["session_id"]),
-            }
-            for r in rows
-        ]
+        """会话列表：message_count 由 SQL 聚合一次算出（原实现是每行再查一次，N+1）"""
+        sql, params = self._COUNT_SQL, ()
+        if game_id:
+            sql += " WHERE s.game_id = ?"
+            params = (game_id,)
+        sql += " ORDER BY s.updated_at DESC"
+        with connect(self.db_path) as conn:
+            rows = conn.execute(sql, params).fetchall()
+        return [self._row_to_session(r) for r in rows]
 
     # --- 消息 ---
     def add_message(
@@ -124,7 +117,7 @@ class SessionStore:
         images: list | None = None,
     ) -> None:
         now = self._now()
-        with self._connect() as conn:
+        with connect(self.db_path) as conn:
             conn.execute(
                 "INSERT INTO messages(session_id, role, content, citations, images, created_at) VALUES (?,?,?,?,?,?)",
                 (session_id, role, content, json.dumps(citations or [], ensure_ascii=False),
@@ -135,7 +128,7 @@ class SessionStore:
             )
 
     def get_messages(self, session_id: str, limit: int | None = None) -> list[dict]:
-        with self._connect() as conn:
+        with connect(self.db_path) as conn:
             if limit:
                 rows = conn.execute(
                     "SELECT * FROM (SELECT * FROM messages WHERE session_id = ? ORDER BY id DESC LIMIT ?) ORDER BY id ASC",
@@ -157,7 +150,7 @@ class SessionStore:
         ]
 
     def count_messages(self, session_id: str) -> int:
-        with self._connect() as conn:
+        with connect(self.db_path) as conn:
             row = conn.execute(
                 "SELECT COUNT(*) AS c FROM messages WHERE session_id = ?", (session_id,)
             ).fetchone()
@@ -165,7 +158,7 @@ class SessionStore:
 
     def delete_session(self, session_id: str) -> None:
         """删除会话及其全部消息（前端"删除对话"按钮调用）"""
-        with self._connect() as conn:
+        with connect(self.db_path) as conn:
             # 先确认存在（不存在抛 404 语义）
             row = conn.execute(
                 "SELECT session_id FROM sessions WHERE session_id = ?", (session_id,)

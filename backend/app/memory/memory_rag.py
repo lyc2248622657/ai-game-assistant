@@ -14,6 +14,7 @@ MemGPT 式分层记忆的落地子集：
 """
 from __future__ import annotations
 
+import hashlib
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -25,6 +26,11 @@ logger = get_logger(__name__)
 
 COLLECTION = "user_memory"
 MEMORY_TOP_K = 5
+
+
+def _content_key(text: str) -> str:
+    """内容 → 稳定短哈希（同一事实始终同一 id，不同事实不会互相覆盖）"""
+    return hashlib.sha1(str(text).strip().encode("utf-8")).hexdigest()[:12]
 
 
 class MemoryRAG:
@@ -59,10 +65,13 @@ class MemoryRAG:
 
         if summary:
             _add("summary", f"会话摘要：{summary}", f"sum:{session_id}")
-        for i, p in enumerate(prefs or []):
-            _add("pref", f"玩家偏好：{p}", f"pref:{i}")
-        for i, e in enumerate(entities or []):
-            _add("entity", f"用户近期关注实体：{e}", f"ent:{i}")
+        # 记忆 id 由内容哈希派生，而不是列表下标。
+        # 原实现用 pref:{i} / ent:{i}：记忆条目会按下标互相覆盖（第 0 条偏好一变就顶掉旧事实），
+        # 且实体永远只有 ent:0..3 四个槽位、无法累积。
+        for p in prefs or []:
+            _add("pref", f"玩家偏好：{p}", "pref:" + _content_key(p))
+        for e in entities or []:
+            _add("entity", f"用户近期关注实体：{e}", "ent:" + _content_key(e))
 
         if not texts:
             return 0
@@ -82,7 +91,11 @@ class MemoryRAG:
             return []
         try:
             q_vec = self._embedding.encode([query])[0]
-            res = self._store.query(COLLECTION, q_vec, top_k=max(top_k * 2, 10))
+            # 在向量库层按 game_id 过滤（原实现只取 2*k 再在 Python 里过滤，
+            # 另一个游戏的记忆会把名额占满 → 静默召回为空）
+            res = self._store.query(
+                COLLECTION, q_vec, top_k=top_k, where={"game_id": game_id}
+            )
         except Exception as e:  # noqa: BLE001
             logger.warning("[mem-rag] 记忆检索不可用（降级）: %s", e)
             return []
@@ -90,7 +103,7 @@ class MemoryRAG:
         for r in res:
             meta = r.get("metadata") or {}
             if meta.get("game_id") not in (game_id, "", None):
-                continue  # 按游戏隔离，不串游戏
+                continue  # 双保险：无 where 支持的老实现也不会串游戏
             score = 1.0 - r["distance"]
             if score < 0.35:
                 continue

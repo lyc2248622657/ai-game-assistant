@@ -7,7 +7,6 @@
 设计意图：同一套 RAG 能力复用到企业文档问答场景（制度/产品手册/知识库），
 验证检索能力脱离游戏领域的可迁移性。
 """
-import json
 import re
 from pathlib import Path
 
@@ -18,7 +17,7 @@ from app.rag.vectorstore import get_vectorstore
 
 logger = get_logger(__name__)
 
-DOC_DIR = Path(settings.chroma_dir).parent / "documents"
+DOC_DIR = Path(settings.documents_dir)
 COLLECTION = "documents"
 _CHUNK_MAX = 600
 _CHUNK_OVERLAP = 80

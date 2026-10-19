@@ -39,14 +39,27 @@ class VectorStore:
         col = self.get_collection(collection)
         col.upsert(ids=ids, documents=texts, metadatas=metadatas, embeddings=embeddings)
 
-    def query(self, collection: str, query_embedding: list[float], top_k: int = 5) -> list[dict]:
-        """按向量检索，返回 [{id, text, metadata, distance}]"""
+    def query(
+        self,
+        collection: str,
+        query_embedding: list[float],
+        top_k: int = 5,
+        where: dict | None = None,
+    ) -> list[dict]:
+        """按向量检索，返回 [{id, text, metadata, distance}]
+
+        where: Chroma 元数据过滤（如 {"game_id": "genshin"}）。原实现没有这个参数，
+        调用方只能"先取 2*k 再在 Python 里过滤"，跨游戏记忆会互相挤占召回名额。
+        """
         col = self.get_collection(collection)
-        res = col.query(
+        kwargs = dict(
             query_embeddings=[query_embedding],
             n_results=top_k,
             include=["documents", "metadatas", "distances"],
         )
+        if where:
+            kwargs["where"] = where
+        res = col.query(**kwargs)
         docs = res.get("documents", [[]])[0]
         metas = res.get("metadatas", [[]])[0]
         dists = res.get("distances", [[]])[0]
