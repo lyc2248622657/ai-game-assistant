@@ -9,6 +9,39 @@
 [![License](https://img.shields.io/github/license/lyc2248622657/ai-game-assistant)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB)](backend/requirements.txt)
 
+## 产品视角（给非技术读者）
+
+> 这一节不写技术栈，只回答四个问题：给谁用、解决什么、做不到什么、花多少钱。
+
+**给谁用**：自己玩原神/明日方舟、需要频繁查角色/配队/材料/活动排期，但不想在 wiki、B站、计算器之间来回切的人。单机单用户，不是团队协作工具。
+
+**解决什么**：把"翻资料"变成"问一句话"。回答必须能溯源（每条结论带引用），资料没收录就明说，不编造。
+
+**能做到**：
+- 自动识别问的是原神还是方舟，并路由到对应知识库；
+- 一句话里包含多个诉求时（"配队 + 攻略视频"）会拆成子任务依次执行；
+- 回答附带引用来源、角色/武器配图、可点击的追问选项；
+- 展示完整的决策过程（主管委派 → 工具调用 → 质检），以及本轮耗时与 token 消耗。
+
+**做不到（能力边界，如实标注）**：
+- 只覆盖两个游戏；知识库以 wiki 快照为准，版本更新后需要重新采集；
+- 不保证数值精确到个位（材料/预算为规则估算，界面有 disclaimer）；
+- 无账号体系，不支持多人同时使用；公网部署需自行配访问令牌；
+- 回答质量依赖底层模型，评测口径见下文「评测」章节（不对外宣称准确率）。
+
+**关键指标（可在界面/日志里查到）**：
+
+| 指标 | 当前值 | 怎么查 |
+|---|---|---|
+| 检索命中（golden set，24 条） | hit@5 = 1.000 / MRR 0.95 | `scripts/eval/retrieval_eval.py` |
+| 单轮 LLM 调用 | 4~8 次（含后台 5~10 次） | 回答下方 `trace` / `usage` |
+| 单轮 token | 数值随问题长度变化，列举类更高 | 回答下方 `⚡ token` |
+| 单轮耗时 | 界面展示 `⏱ x.xs`，含各节点耗时（悬浮查看） | 回答下方 `trace` |
+| 测试 | 后端 165+、前端 25，覆盖率约 60% | `pytest` / `npm test` |
+
+**成本模型**：成本 ≈ 单轮 token × 单价。项目做了三处控制：只输出 JSON 的节点限制 `max_tokens`（512）、
+资料上下文按"单条 1.2k / 总量 8k 字符"截断、记忆维护与智能命名移出响应关键路径。
+
 ## 整体架构
 
 ```
@@ -250,6 +283,22 @@ cd backend
 > 这些数字仅反映当时 30 条自建集（且 Judge 与生成同模型）。样本小、单条波动大，"忠实性 1.0"
 > 与"幻觉清零"类表述不适合作为对外能力声明，故 2026-10 起改为：扩展集 + 规则判定 + 交叉 Judge + 置信区间。
 
+**检索层评测（golden set，2026-10 新增，不调用 LLM）**
+
+```bash
+cd backend
+.venv\Scripts\python.exe scripts\eval\retrieval_eval.py --no-vector --k 5   # 名称+BM25（不加载模型，可进 CI）
+.venv\Scripts\python.exe scripts\eval\retrieval_eval.py --k 5               # 完整 hybrid（含向量路）
+.venv\Scripts\python.exe scripts\eval\retrieval_eval.py --json data/retrieval_report.json
+```
+
+- golden set：`scripts/eval/retrieval_golden.json`（24 条，`kind=name` 实体名直查 + `kind=relation` 关系型提问）；
+- 指标：**hit@k**（期望文档是否出现在前 k 条）与 **MRR**（首命中排名倒数）；
+- 基线（2026-10-19）：`--no-vector` hit@5 **1.000** / MRR 0.946；完整 hybrid hit@5 **1.000** / MRR 0.951；
+- **口径限制（重要）**：当前 golden set 以"query 里含实体名"为主，hit@5 已饱和，主要用于**防回归**
+  （例如静态库遮蔽动态、合并去重出错会立刻掉分）。要评估 rerank / 查询改写是否有效，需要补
+  "不含实体名的语义型 query"（如"火系主C有哪些"），且期望文档需人工核验后加入——否则就是拿评估集调参。
+
 **最新全量结果（2026-10-14，220 条全量报告，`data/eval_report_v5.json`）**：
 - **numeric 170 条规则判定准确率 0.947**（95%CI 0.913~0.981，不依赖 LLM 评判）；
 - **judge 50 条 LLM 评审准确率 0.868**（95%CI 0.791~0.945，含失败重跑后聚合）；
@@ -259,6 +308,11 @@ cd backend
   元素反应/圣遗物套件等知识题检索覆盖不足），已列入后续优化；
 - 成本：本轮 1103 次 LLM 调用，3,049,334 token（输入 2,957,062 / 输出 92,272，平均 13.9k/条）。
 - 新增 plan 3 条已单条走 Agent 图验证规则命中（3/3），待下次全量评测并入整体报告。
+
+> ⚠️ **口径变更（2026-10-19）**：numeric 判定已升级为 `rule-v2`——要求 `ground_truth` **且** `key_points`
+> 全部命中（中文数字归一，"五星"≡"5星"），并在报告 `meta.grader` 中记录判定器版本。
+> 上表 0.947 等数字由旧口径（仅 ground_truth 子串）产生，**与新口径不可直接比较**；
+> 下次全量评测请以报告里的 `meta.grader` 与 `meta.agent_model` 为准。
 
 **质量对比**（LangGraph 全链路 vs 自研 ReAct）：
 ```bash
