@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { api, setToken, streamChat, StreamInterruptedError, AuthRequiredError } from './api/client'
+import { ApiError, api, setToken, streamChat, StreamInterruptedError, AuthRequiredError } from './api/client'
 import { AdminPanel } from './components/AdminPanel'
 import { AgentTimeline } from './components/AgentTimeline'
 import { ChatWindow } from './components/ChatWindow'
@@ -10,6 +10,7 @@ import { SessionBar } from './components/SessionBar'
 import { SettingsModal } from './components/SettingsModal'
 import type { AgentEvent, ChatMessage, SessionInfo, UsageInfo } from './types'
 import { mapHistory, normalizeCitations } from './utils/history'
+import { describeError } from './utils/errors'
 
 /** 多游戏统一对话框：不再按游戏切换模块，由 Agent 自动判别游戏（原神/明日方舟）
  *  顶部 tab：对话 / 管理控制台（知识库运维 + 检索测试，方向①）
@@ -180,6 +181,10 @@ function AppContent() {
             if (ev.type === 'usage' && ev.usage) {
               patch((last) => ({ ...last, usage: ev.usage as UsageInfo }))
             }
+            // trace：一次回答的耗时/调用/检索汇总（回答下方展示，可观测性的用户可见部分）
+            if (ev.type === 'trace' && ev.trace) {
+              patch((last) => ({ ...last, trace: ev.trace }))
+            }
             if (ev.type === 'suggestions' && ev.suggestions) {
               patch((last) => ({ ...last, suggestions: ev.suggestions as string[] }))
             }
@@ -196,9 +201,11 @@ function AppContent() {
             if (ev.type === 'guides' && ev.guides) {
               patch((last) => ({ ...last, guides: ev.guides }))
             }
-            // 后端在 200 流内推送 error 事件（agent 异常）；原先没有分支 → 只剩一个空白气泡
+            // 后端在 200 流内推送 error 事件（agent 异常）；带上错误码给出可操作提示
             if (ev.type === 'error') {
-              const text = ev.error_message || 'Agent 执行失败，请稍后重试'
+              const advice = describeError(ev.code, ev.error_message)
+              if (advice.openSettings) setSettingsOpen(true)
+              const text = advice.hint ? `${advice.text}（${advice.hint}）` : advice.text
               patch((last) => ({ ...last, content: last.content || `错误：${text}` }))
             }
             if (ev.type === 'session' && ev.session_id && !currentSession) {
@@ -217,10 +224,16 @@ function AppContent() {
           return
         }
         // 已收到部分内容后断流：连接层已自动重试过，此处提示用户，不自动重发（避免重复生成）
-        const msg =
-          e instanceof StreamInterruptedError
-            ? '连接中断（已收到部分回答）。请重新发送以继续。'
-            : `错误：${(e as Error).message}`
+        let msg: string
+        if (e instanceof StreamInterruptedError) {
+          msg = '连接中断（已收到部分回答）。请重新发送以继续。'
+        } else if (e instanceof ApiError) {
+          const advice = describeError(e.code, e.message)
+          if (advice.openSettings) setSettingsOpen(true)
+          msg = `错误：${advice.hint ? `${advice.text}（${advice.hint}）` : advice.text}`
+        } else {
+          msg = `错误：${(e as Error).message}`
+        }
         setMessages((m) => {
           const last = m[m.length - 1]
           if (last?.role === 'assistant' && !last.content) {

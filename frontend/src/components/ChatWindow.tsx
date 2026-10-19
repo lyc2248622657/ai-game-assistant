@@ -201,9 +201,18 @@ export function ChatWindow({ messages, loading, gameId, onSend, onStop }: Props)
                   ))}
                 </div>
               )}
-              {m.role === 'assistant' && m.usage && (
-                <div className="mt-1.5 border-t border-gray-100 pt-1 text-[11px] text-gray-400">
-                  ⚡ 本轮消耗 {m.usage.total_tokens.toLocaleString()} token（{m.usage.llm_calls} 次调用）
+              {m.role === 'assistant' && (m.usage || m.trace) && (
+                <div className="mt-1.5 flex flex-wrap items-center gap-x-3 border-t border-gray-100 pt-1 text-[11px] text-gray-400">
+                  {m.trace && (
+                    <span title={(m.trace.nodes || []).map((n) => `${n.node} ${n.ms}ms`).join(' · ')}>
+                      ⏱ {(m.trace.total_ms / 1000).toFixed(1)}s · {m.trace.tool_calls} 次工具 · {m.trace.retrieval_docs} 条检索
+                    </span>
+                  )}
+                  {m.usage && (
+                    <span>
+                      ⚡ {m.usage.total_tokens.toLocaleString()} token（{m.usage.llm_calls} 次调用）
+                    </span>
+                  )}
                 </div>
               )}
             </div>

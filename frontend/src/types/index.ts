@@ -35,6 +35,8 @@ export interface ChatMessage {
   content: string
   citations?: Citation[]
   usage?: UsageInfo
+  /** 本轮 trace：耗时/调用次数/检索次数（回答下方展示） */
+  trace?: TraceInfo
   /** 用户随消息上传的截图：本地路径（提交给后端 image_path） */
   image_path?: string
   /** 用户截图的预览 URL（/uploads/xxx，前端渲染缩略图） */
@@ -68,7 +70,19 @@ export interface StoredMessage {
   images?: string[]
 }
 
-/** 本轮对话的 LLM token 消耗（后端 usage 回调统计） */export interface UsageInfo {
+/** 一轮回答的结构化 trace（可观测：总耗时 / 调用次数 / 检索与工具次数） */
+export interface TraceInfo {
+  total_ms: number
+  llm_calls: number
+  tokens: number
+  retrieval_docs: number
+  tool_calls: number
+  citations: number
+  nodes: Array<{ node: string; ms: number; runs: number }>
+}
+
+/** 本轮对话的 LLM token 消耗（后端 usage 回调统计） */
+export interface UsageInfo {
   input_tokens: number
   output_tokens: number
   total_tokens: number
@@ -100,6 +114,7 @@ export type AgentEventType =
   | 'related_entities'
   | 'guides'
   | 'citations'
+  | 'trace'
   | 'usage'
   | 'error'
   | 'done'
@@ -139,6 +154,7 @@ export interface AgentEvent {
   guides?: GuideInfo
   citations?: Citation[]
   usage?: UsageInfo
+  trace?: TraceInfo
   session_id?: string
   code?: number
   error_message?: string

@@ -47,6 +47,17 @@ export class AuthRequiredError extends Error {
   }
 }
 
+/** 后端业务错误：带 code 才能做"错误码 → 可操作提示"的映射 */
+export class ApiError extends Error {
+  code?: number
+
+  constructor(message: string, code?: number) {
+    super(message)
+    this.name = 'ApiError'
+    this.code = code
+  }
+}
+
 function authHeaders(extra?: HeadersInit): Record<string, string> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -66,7 +77,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))
     // 后端统一契约是 {code, message}；detail 仅用于兼容旧版/框架级错误
-    throw new Error(body?.message || body?.detail || `请求失败: ${res.status}`)
+    throw new ApiError(body?.message || body?.detail || `请求失败: ${res.status}`, body?.code)
   }
   return res.json() as Promise<T>
 }
